@@ -27,6 +27,9 @@ FEATURES_DIR = OKF_DIR / "features"
 LOG_FILE = OKF_DIR / "log.md"
 BADCASE_DIR = PROJECT_ROOT / "artifacts"
 
+# 反哺闭环：生产问题 feedback-loop inbox
+FEEDBACK_ROOT = Path.home() / ".qoderwork" / "feedback-loop" / "inbox"
+
 # 沉淀阈值
 MIN_FAILURE_COUNT = 2
 
@@ -175,6 +178,125 @@ def update_log(new_entries: list):
     LOG_FILE.write_text("\n".join(lines), encoding="utf-8")
 
 
+# =============================================================================
+# 反哺闭环：生产问题 → knowledge/okf/ 知识沉淀
+# =============================================================================
+
+def load_feedback_candidates(route: str, status_filter: str = "promoted") -> list:
+    """从 feedback-loop inbox/{route}/ 读取指定 status 的候选文件。"""
+    route_dir = FEEDBACK_ROOT / route
+    if not route_dir.exists() or not route_dir.is_dir():
+        return []
+
+    candidates = []
+    for fpath in route_dir.glob("*.md"):
+        try:
+            content = fpath.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+
+        # 解析 frontmatter
+        fm_match = re.match(r"^---\s*\n(.*?\n)---", content, re.DOTALL)
+        if not fm_match:
+            continue
+
+        fm_text = fm_match.group(1)
+        status_match = re.search(r"^status:\s*(\S+)", fm_text, re.MULTILINE)
+        if not status_match or status_match.group(1) != status_filter:
+            continue
+
+        # 提取 frontmatter 字段
+        fields = {"_file": str(fpath), "_fname": fpath.name}
+        for key in ("id", "source", "date", "category", "priority", "related_batch", "affected_node"):
+            m = re.search(rf"^{key}:\s*(.+)", fm_text, re.MULTILINE)
+            if m:
+                fields[key] = m.group(1).strip()
+
+        # 提取 body
+        body = re.sub(r"^---\s*\n.*?\n---\s*\n?", "", content, count=1, flags=re.DOTALL)
+        fields["_body"] = body.strip()
+        candidates.append(fields)
+
+    return candidates
+
+
+def merge_feedback_patterns(target_dir: Path = None, domain: str = "common") -> dict:
+    """将 promoted 的 patterns 候选合并到 knowledge/okf/learnings/ 或 features/。"""
+    target = target_dir or LEARNINGS_DIR
+    candidates = load_feedback_candidates("patterns", status_filter="promoted")
+
+    if not candidates:
+        return {"merged": 0, "candidates": []}
+
+    # 过滤：按 domain 或 affected_node 匹配
+    relevant = []
+    for c in candidates:
+        c_domain = c.get("domain", "")
+        c_node = c.get("affected_node", "")
+        # 如果候选无 domain 限制，或 domain 匹配，或 node 匹配
+        if not c_domain or c_domain == domain or not c_node:
+            relevant.append(c)
+
+    if not relevant:
+        return {"merged": 0, "candidates": [], "reason": f"no candidates matching domain={domain}"}
+
+    # 为每个候选生成 learning 文件
+    merged = []
+    for c in relevant:
+        cid = c.get("id", "unknown")
+        title = c.get("_body", "").split("\n")[0].lstrip("# ").strip() if c.get("_body") else cid
+        priority = c.get("priority", "P2")
+        batch = c.get("related_batch", "")
+        source = c.get("source", "")
+        date = c.get("date", "")
+        body = c.get("_body", "")
+
+        # 提取知识卡建议
+        suggestion_match = re.search(r"## 知识卡建议\s*\n(.*?)(?=\n## |\Z)", body, re.DOTALL)
+        suggestion = suggestion_match.group(1).strip() if suggestion_match else body[:300]
+
+        # 生成文件名
+        safe_name = re.sub(r'[^\w\u4e00-\u9fff-]', '-', cid)[:50]
+        target_file = target / f"{safe_name}.md"
+
+        content = f"""---
+title: "{title}"
+type: learning
+domain: {domain}
+last_updated: "{datetime.now().strftime('%Y-%m-%d')}"
+tags: [production-feedback, {priority.lower()}]
+source: {source}
+related_batch: {batch}
+promotion_date: {date}
+auto_generated: true
+---
+
+# {title}
+
+## 来源
+
+- **来源**: {source}
+- **关联批次**: {batch}
+- **晋升日期**: {date}
+- **优先级**: {priority}
+
+## 问题描述
+
+{body[:500]}
+
+## 知识卡建议
+
+{suggestion}
+
+---
+*此条目由反哺闭环自动晋升，来源：production feedback inbox*
+"""
+        target_file.write_text(content, encoding="utf-8")
+        merged.append(cid)
+
+    return {"merged": len(merged), "candidates": merged, "domain": domain}
+
+
 def run(artifacts_dir: str = None, min_count: int = MIN_FAILURE_COUNT, dry_run: bool = False):
     """主执行入口"""
     print(f"[knowledge_extractor] 开始知识沉淀...")
@@ -217,6 +339,15 @@ def run(artifacts_dir: str = None, min_count: int = MIN_FAILURE_COUNT, dry_run: 
     if not dry_run and generated:
         update_log(generated)
         print(f"  📝 已更新 log.md")
+
+    # 6. 反哺闭环：合并生产问题知识卡
+    if not dry_run:
+        print(f"\n[knowledge_extractor] 检查反哺闭环...")
+        feedback_result = merge_feedback_patterns()
+        if feedback_result.get("merged", 0) > 0:
+            print(f"  ✅ 反哺合并: {feedback_result['merged']} 条生产问题模式")
+        else:
+            print(f"  无反哺候选需要合并")
 
     print(f"[knowledge_extractor] 完成！沉淀 {len(generated)} 条知识")
     return generated
