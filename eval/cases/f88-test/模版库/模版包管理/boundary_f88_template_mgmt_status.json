@@ -1,0 +1,173 @@
+{
+  "id": "boundary-f88-template-mgmt-status",
+  "name": "模版包管理 - 使用状态筛选与空结果边界",
+  "description": "验证使用状态筛选的两种状态值（使用中/未使用）的过滤正确性，以及筛选无结果时的空态展示",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待完整加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const labels = document.querySelectorAll('.ant-form-item-label, label'); for (const l of labels) { if (l.textContent.includes('使用状态')) { const sel = l.closest('.ant-form-item')?.querySelector('.ant-select'); if (sel) { sel.setAttribute('data-test-target', 'usage-status'); return true; } } } return false; })()",
+      "description": "标记使用状态Select"
+    },
+    {
+      "type": "click",
+      "selector": "[data-test-target='usage-status']",
+      "description": "打开使用状态下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "click",
+      "text": "使用中",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择-使用中"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const texts = [...cards].map(c => c.textContent); const allActive = texts.every(t => !t.includes('未使用')); return { cardCount: cards.length, allShowActive: allActive }; })()",
+      "storeAs": "activeFilter",
+      "description": "验证筛选后全部为使用中"
+    },
+    {
+      "type": "screenshot",
+      "label": "status-active-filter",
+      "description": "截图-使用中筛选"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "click",
+      "selector": "[data-test-target='usage-status']",
+      "description": "打开使用状态下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "click",
+      "text": "未使用",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择-未使用"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const texts = [...cards].map(c => c.textContent); const allInactive = texts.every(t => !t.includes('使用中') || t.includes('未使用')); return { cardCount: cards.length, allShowInactive: allInactive }; })()",
+      "storeAs": "inactiveFilter",
+      "description": "验证筛选后全部为未使用"
+    },
+    {
+      "type": "screenshot",
+      "label": "status-inactive-filter",
+      "description": "截图-未使用筛选"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='店铺名称']",
+      "value": "不存在的店铺XYZ123",
+      "react": true,
+      "description": "输入不存在的店铺名"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const emptyText = document.body.innerText; return { cardCount: cards.length, hasEmptyState: emptyText.includes('暂无') || emptyText.includes('No data') || emptyText.includes('空') || cards.length === 0 }; })()",
+      "storeAs": "emptyResult",
+      "description": "验证空结果时展示空态"
+    },
+    {
+      "type": "screenshot",
+      "label": "empty-result",
+      "description": "截图-空结果状态"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置恢复全部列表"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查看详情",
+      "description": "验证重置后列表恢复"
+    },
+    {
+      "type": "screenshot",
+      "label": "final-restored",
+      "description": "截图-重置后恢复"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "使用状态为AntD Select（options: 全部/使用中/未使用）；空结果时可能显示AntD Empty组件或自定义空态。",
+    "riskPoints": [
+      "Select下拉交互需用mouse.click",
+      "空态展示形式需探查"
+    ]
+  }
+}

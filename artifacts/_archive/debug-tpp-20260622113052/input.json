@@ -1,0 +1,33 @@
+{
+  "id": "debug-tpp",
+  "name": "TPP 页面加载",
+  "cookiesUrl": "https://test-ai-hub-testing.oss-cn-hangzhou.aliyuncs.com/cookies/442416.json",
+  "context": {
+    "urlPattern": "tppnext.alibaba-inc.com",
+    "url": "https://tppnext.alibaba-inc.com/web/v1/scenes/scene/47648/oexp/layerDetail?env=pre&layerId=14164&sceneName=穿搭星球频道页",
+    "ssoWarmup": [
+      "https://work.alibaba-inc.com/",
+      "https://aone.alibaba-inc.com/"
+    ]
+  },
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 4000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "bucket",
+      "description": "桶列表渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "tpp-layer",
+      "description": "TPP截图"
+    }
+  ],
+  "capture": {
+    "enabled": false
+  }
+}

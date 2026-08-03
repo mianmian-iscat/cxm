@@ -1,0 +1,58 @@
+version: "1.0"
+description: 原创保护跨系统契约定义（快维中心/YC机构/汇金/e签宝）
+
+contracts:
+  # ── 快维中心 ──
+  - system_name: "快维中心"
+    api_pattern: "/api/kuaiwei/pre-exam/callback"
+    required: true
+    timeout_ms: 15000
+    expected_fields:
+      result_code: "type:string"
+      application_id: "type:string"
+      exam_result: "type:string"
+      reject_reason: "type:string"
+      exam_time: "type:string"
+      examiner_id: "type:string"
+
+  # ── YC机构（巡检报告）──
+  - system_name: "YC机构"
+    api_pattern: "/api/yc/inspection/report"
+    required: true
+    timeout_ms: 30000
+    expected_fields:
+      report_id: "type:string"
+      merchant_id: "type:string"
+      inspection_period_start: "type:string"
+      inspection_period_end: "type:string"
+      enforcement_total: "type:integer"
+      enforcement_takedown: "type:integer"
+      takedown_rate: "type:number"
+      report_status: "type:string"
+
+  # ── 汇金（结算单）──
+  - system_name: "汇金"
+    api_pattern: "/api/huijin/settlement"
+    required: true
+    timeout_ms: 15000
+    expected_fields:
+      settlement_no: "type:string"
+      merchant_id: "type:string"
+      service_fee: "type:number"
+      settlement_amount: "type:number"
+      settlement_status: "type:string"
+      currency: "type:string"
+      created_time: "type:string"
+
+  # ── e签宝（电子签章）──
+  - system_name: "e签宝"
+    api_pattern: "/api/esign/sign"
+    required: true
+    timeout_ms: 20000
+    expected_fields:
+      sign_flow_id: "type:string"
+      signer_identity: "type:string"
+      sign_time: "type:string"
+      document_hash: "type:string"
+      certificate_sn: "type:string"
+      timestamp_authority: "type:string"

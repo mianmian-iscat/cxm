@@ -1,0 +1,98 @@
+{
+  "id": "ui-f88-sd-step-dropdown",
+  "name": "UI：策略详情-环节下拉选项验证",
+  "description": "打开策略详情页，展开环节下拉，验证包含企划/设计/搭配/视觉/套图等全部9个选项。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const selects = document.querySelectorAll('.ant-select');\n        const allValues = [];\n        for (const s of selects) {\n          const val = s.querySelector('.ant-select-selection-item');\n          if (val) allValues.push({ value: val.textContent.trim(), select: s });\n        }\n        // 环节 Select 是第二个有值的 ant-select（第一个是策略阶段）\n        const stepOptions = ['视觉', '设计', '企划', '搭配', '套图', '款式分配', '信息补充', '面料上身', '视频'];\n        for (const item of allValues) {\n          if (stepOptions.includes(item.value)) {\n            const target = item.select.querySelector('.ant-select-selector') || item.select;\n            target.click();\n            return { ok: true, currentValue: item.value };\n          }\n        }\n        return { ok: false, allValues: allValues.map(v => v.value) };\n      })()",
+      "description": "打开环节下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const dropdowns = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)');\n        for (const d of dropdowns) {\n          const items = d.querySelectorAll('.ant-select-item-option');\n          if (items.length >= 5) {\n            return { options: Array.from(items).map(i => i.textContent.trim()), count: items.length };\n          }\n        }\n        return { options: [], count: 0 };\n      })()",
+      "storeAs": "stepOptions",
+      "description": "获取环节选项列表"
+    },
+    {
+      "type": "screenshot",
+      "label": "step-dropdown",
+      "description": "截图-环节下拉"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待关闭"
+    }
+  ]
+}

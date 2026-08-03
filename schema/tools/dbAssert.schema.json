@@ -1,0 +1,108 @@
+{
+  "name": "dbAssert",
+  "version": "1.0.0",
+  "description": "通过 dms-alibaba CLI 查询数据库并断言结果（只读 SQL）",
+  "triggers": ["断言数据库", "dbAssert", "验证数据库", "DB断言", "查库断言"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "group", "db", "sql"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "dbAssert" },
+      "group": {
+        "type": "string",
+        "description": "DMS 数据库组名（如 quality_f88, stylespot）"
+      },
+      "db": {
+        "type": "string",
+        "description": "组内具体库名（如 dev-wulanchabu），必填"
+      },
+      "sql": {
+        "type": "string",
+        "description": "SQL 语句，仅允许 SELECT/WITH/EXPLAIN，禁止 DDL/DML",
+        "maxLength": 4000
+      },
+      "params": {
+        "type": "object",
+        "description": "SQL 中的 :name 占位符替换字典（简易字符串替换，非真参数化，避免注入请配合 check_sql_readonly 一起使用）"
+      },
+      "expect": {
+        "type": "array",
+        "items": { "type": "object" },
+        "description": "期望行数组，按顺序与查询结果逐行比对"
+      },
+      "rowCount": {
+        "type": "integer",
+        "description": "期望返回行数（与 expect 二选一）"
+      },
+      "jsonPath": {
+        "type": "string",
+        "description": "对结果行的点号路径提取（如 $.taskName），配合 equals/contains/matches/valueType/exists 使用"
+      },
+      "equals": {
+        "description": "期望 jsonPath 提取后的值等于"
+      },
+      "contains": {
+        "type": "string",
+        "description": "期望 jsonPath 提取后的字符串包含"
+      },
+      "matches": {
+        "type": "string",
+        "description": "正则表达式字符串，匹配 jsonPath 提取后的值"
+      },
+      "valueType": {
+        "type": "string",
+        "enum": ["string", "number", "boolean", "array", "object", "null"],
+        "description": "jsonPath 提取值的类型断言"
+      },
+      "exists": {
+        "type": "boolean",
+        "description": "true=验证 jsonPath 字段存在且非 null；false=验证字段不存在或为 null"
+      },
+      "rowIndex": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0,
+        "description": "jsonPath 断言的目标行索引（默认 0 即第一行）"
+      },
+      "allRows": {
+        "type": "boolean",
+        "default": false,
+        "description": "true 时 jsonPath 断言对所有行生效（优先级高于 rowIndex）"
+      },
+      "soft": {
+        "type": "boolean",
+        "default": false,
+        "description": "true 时断言失败不中断步骤链，累积到 _softFailures"
+      },
+      "timeoutMs": {
+        "type": "integer",
+        "default": 30000,
+        "minimum": 1000,
+        "maximum": 120000,
+        "description": "CLI 超时毫秒（默认 30000）"
+      },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "dbGroup": { "type": "string" },
+      "sql": { "type": "string" },
+      "rows": { "type": "array" },
+      "rowCount": { "type": "integer" },
+      "matched": { "type": "boolean" },
+      "failures": { "type": "array" },
+      "durationMs": { "type": "integer" }
+    }
+  },
+  "timeout_ms": 60000,
+  "retry_policy": { "max_retries": 0 },
+  "safety": {
+    "readonly": true,
+    "forbidden_keywords": ["DROP", "TRUNCATE", "ALTER", "GRANT", "INSERT", "UPDATE", "DELETE", "CREATE", "EXEC"]
+  }
+}

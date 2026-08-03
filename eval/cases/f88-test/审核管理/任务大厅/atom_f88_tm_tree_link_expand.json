@@ -1,0 +1,77 @@
+{
+  "id": "atom-f88-tm-tree-link-expand",
+  "name": "原子：任务管理-树形链路节点展开验证",
+  "description": "验证第一层链路节点可展开，展开后显示子批次节点",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); const beforeCount = document.querySelectorAll('.ant-tree-treenode').length; if(arrows[0]) arrows[0].click(); return { hasArrow: arrows.length > 0, beforeCount }; })()",
+      "description": "展开第一个链路节点",
+      "storeAs": "treeExpand"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const afterCount = document.querySelectorAll('.ant-tree-treenode').length; return { afterCount, expanded: afterCount > 0 }; })()",
+      "description": "验证展开后节点数",
+      "storeAs": "treeAfter"
+    },
+    {
+      "type": "assertStore",
+      "key": "treeAfter",
+      "path": "expanded",
+      "equals": true,
+      "description": "断言展开后有子节点"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-tree-link-expand",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

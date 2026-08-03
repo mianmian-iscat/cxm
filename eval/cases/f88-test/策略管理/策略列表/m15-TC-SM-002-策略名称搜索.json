@@ -1,0 +1,86 @@
+{
+  "id": "m15-TC-SM-002-策略名称搜索",
+  "name": "TC-SM-002 — 策略名称搜索 [P1]",
+  "description": "策略列表已加载",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "F88-平台全模块用例",
+  "page": "",
+  "testScope": "",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/F88-平台全模块用例",
+  "sourceIds": [
+    "F88-平台全模块用例/m15-TC-SM-002-策略名称搜索"
+  ],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = Array.from(document.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea')); if(inputs.length > 0) { return { inputCount: inputs.length, firstPlaceholder: inputs[0].getAttribute('placeholder') || '' }; } return { inputCount: 0 }; })()",
+      "description": "操作1: 在搜索框输入关键字 2.触发搜索",
+      "storeAs": "action1"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作1结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const checks = [\"表格仅显示匹配的策略\"]; const results = checks.map(c => ({ check: c, found: text.includes(c) })); const passCount = results.filter(r => r.found).length; return { totalChecks: checks.length, passCount, results, pageTextPreview: text.substring(0, 300) }; })()",
+      "description": "验证预期结果",
+      "storeAs": "resultCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "策略列表已加载",
+    "stepsText": "1.在搜索框输入关键字 2.触发搜索",
+    "expectedResult": "表格仅显示匹配的策略",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": [],
+    "relatedDocs": [],
+    "verified": "",
+    "sourceType": "md",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/qa-testing-workbench/skills/F88测试知识库/references/test-cases/F88-平台全模块用例.md，2026-07-11T11:00:03.124017"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "id": "boundary-f88-season-match-asymmetry",
+  "name": "风险点#18 - 季节匹配不对称（各季节组合匹配结果验证）",
+  "description": "验证模板匹配中季节标签组合的匹配结果不对称问题。风险：不同季节组合（春/夏/秋/冬/四季通用）匹配到的模板集可能不对称，导致某些季节的模板池明显偏少。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开淘内资源池页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待资源池完整加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模版资源池",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const seasons = ['春', '夏', '秋', '冬', '四季']; const found = seasons.filter(s => text.includes(s)); return { foundSeasons: found, hasSeasonFilter: found.length > 0 }; })()",
+      "storeAs": "seasonInfo",
+      "description": "检查页面是否包含季节相关标签或筛选项"
+    },
+    {
+      "type": "screenshot",
+      "label": "resource-pool-initial",
+      "description": "截图-资源池初始状态"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "导航到策略列表（验证模板匹配节点的季节配置）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('tr, [class*=row], [class*=item]'); const strategies = []; for (const r of rows) { const text = r.textContent; if (text.includes('模板匹配') || text.includes('模版')) { const nameEl = r.querySelector('a, [class*=name], [class*=title]'); strategies.push({ name: nameEl ? nameEl.textContent.trim() : text.substring(0, 50), hasTemplateMatch: true }); } } return { strategyCount: strategies.length, strategies: strategies.slice(0, 5) }; })()",
+      "storeAs": "templateStrategies",
+      "description": "查找包含模板匹配的策略"
+    },
+    {
+      "type": "screenshot",
+      "label": "strategy-list",
+      "description": "截图-策略列表"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "导航到模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const shopData = []; for (const c of cards) { const text = c.textContent; const nameMatch = text.match(/(.+?)(?=\\s*店铺ID)/); const idMatch = text.match(/店铺ID[:：]?\\s*(\\d+)/); const pkgMatch = text.match(/(\\d+)个/); const isActive = text.includes('使用中'); shopData.push({ name: nameMatch ? nameMatch[1].trim() : '', shopId: idMatch ? idMatch[1] : '', packageCount: pkgMatch ? parseInt(pkgMatch[1]) : 0, isActive }); } return { totalShops: shopData.length, shops: shopData }; })()",
+      "storeAs": "allShops",
+      "description": "采集所有店铺数据（用于分析季节匹配覆盖面）"
+    },
+    {
+      "type": "screenshot",
+      "label": "all-shops-data",
+      "description": "截图-全部店铺数据"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); let activeCount = 0, inactiveCount = 0, totalPkgs = 0; for (const c of cards) { const text = c.textContent; const pkgMatch = text.match(/(\\d+)个/); const pkgs = pkgMatch ? parseInt(pkgMatch[1]) : 0; totalPkgs += pkgs; if (text.includes('使用中')) activeCount++; else inactiveCount++; } return { activeCount, inactiveCount, totalPackages: totalPkgs, coverageRatio: activeCount > 0 ? (activeCount / (activeCount + inactiveCount)).toFixed(2) : '0' }; })()",
+      "storeAs": "coverageStats",
+      "description": "统计模板包覆盖率（使用中/总数），验证季节匹配不对称影响"
+    },
+    {
+      "type": "screenshot",
+      "label": "coverage-stats",
+      "description": "截图-覆盖率统计"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "template|season|workflow2",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "风险点#18: 季节匹配不对称 — 春/夏/秋/冬/四季通用各组合匹配到的模板数量可能差异大。通过UI验证模板包分布+API抓包确认匹配结果。季节标签可能在淘内资源池的标签筛选维度中。",
+    "riskPoints": [
+      "季节标签可能不在页面显式展示，需抓包确认 API 返回",
+      "不对称问题可能只在特定类目下出现",
+      "预发数据量小，不对称现象可能不明显，需关注分布比例而非绝对值"
+    ]
+  }
+}

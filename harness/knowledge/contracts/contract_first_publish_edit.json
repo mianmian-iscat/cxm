@@ -1,0 +1,16 @@
+{
+  "id": "contract_first_publish_edit",
+  "category": "contracts",
+  "title": "首发编辑权限契约",
+  "content": "{\"preconditions\": {\"whitelist_categories\": [16, 30, 50006843, 50011740, 1625, 50010404, 50006842, 28, 50468001], \"to_regular_not_done\": true, \"data_source\": \"SYNC_CERT_FILE ODPS snapshot\"}, \"time_combinations\": [{\"first_publish\": null, \"consistency\": null, \"editable\": false}, {\"first_publish\": \"has\", \"consistency\": null, \"editable\": false}, {\"first_publish\": null, \"consistency\": \"has\", \"editable\": \"T+3 rule\", \"base\": \"consistency_time\"}, {\"first_publish\": \"has\", \"consistency\": \"has\", \"editable\": \"T+3 rule\", \"base\": \"min(first_publish, consistency)\"}], \"t_plus_3\": \"within 3 days: editable\", \"t_plus_4\": \"after T+4 00:00: never-edited once, already-edited locked\", \"non_9_category\": \"disabled, no tooltip\", \"to_regular_done\": \"disabled, no tooltip\"}",
+  "tags": [
+    "首发",
+    "权限",
+    "契约",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783394362.2919471
+}

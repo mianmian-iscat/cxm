@@ -1,0 +1,26 @@
+{
+  "name": "cdpMouseWheel",
+  "version": "1.0.0",
+  "description": "CDP 原生级鼠标滚轮",
+  "triggers": ["滚轮", "滚动", "scroll", "mousewheel"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "cdpMouseWheel" },
+      "x": { "type": "number", "default": 500 },
+      "y": { "type": "number", "default": 400 },
+      "deltaX": { "type": "number", "default": 0 },
+      "deltaY": { "type": "number", "default": -120 },
+      "modifiers": { "type": "integer", "default": 0 },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "scrolled": { "type": "boolean" } } },
+  "timeout_ms": 5000,
+  "retry_policy": { "max_retries": 0 }
+}

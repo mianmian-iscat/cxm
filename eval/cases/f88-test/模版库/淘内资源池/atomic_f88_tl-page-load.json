@@ -1,0 +1,69 @@
+{
+  "id": "atomic-f88-tl-page-load",
+  "name": "UI：淘内资源池-页面加载与文案完整性",
+  "description": "验证页面标题、筛选区、标签维度",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开淘内资源池"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "淘内资源池",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "重置",
+      "description": "验证重置按钮"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const dims = ['设计','搭配','拍摄','场景','光影','构图','视觉']; const found = dims.filter(d => t.includes(d)); return { dims, found, coverage: found.length+'/'+dims.length }; })()",
+      "description": "验证标签维度",
+      "storeAs": "tagDims"
+    },
+    {
+      "type": "screenshot",
+      "label": "tl-page-load",
+      "description": "淘内资源池页面"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模板资源数据",
+    "realDomNotes": "标签7维度: 设计-主品描述/搭配-配饰穿搭/拍摄-模特维度/场景/光影/构图/整体视觉",
+    "riskPoints": []
+  }
+}

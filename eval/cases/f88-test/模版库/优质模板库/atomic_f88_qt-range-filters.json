@@ -1,0 +1,71 @@
+{
+  "id": "atomic-f88-qt-range-filters",
+  "name": "UI：优质模板库-范围筛选字段验证",
+  "description": "验证优质模板库模板组表现和模板图表现区域的范围筛选：使用次数/累计选中率/款均CTR(最小-最大)",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开优质模板库"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const groupSection = t.includes('模板组表现'); const imgSection = t.includes('模板图表现'); const filters = ['使用次数','累计选中率','款均CTR']; const found = filters.filter(f => t.includes(f)); return { hasGroupSection: groupSection, hasImgSection: imgSection, filters, found, coverage: found.length+'/'+filters.length }; })()",
+      "description": "验证范围筛选",
+      "storeAs": "filterInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "filterInfo",
+      "path": "hasGroupSection",
+      "equals": true,
+      "description": "验证模板组表现区域存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "filterInfo",
+      "path": "hasImgSection",
+      "equals": true,
+      "description": "验证模板图表现区域存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-range-filters",
+      "description": "范围筛选字段"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "模板组表现+模板图表现各有：使用次数/累计选中率/款均CTR(最小-最大)",
+    "riskPoints": []
+  }
+}

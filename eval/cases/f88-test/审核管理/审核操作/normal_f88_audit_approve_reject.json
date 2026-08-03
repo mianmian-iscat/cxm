@@ -1,0 +1,112 @@
+{
+  "id": "normal-f88-audit-approve-reject",
+  "name": "正常流程：F88 审核详情-通过/驳回按钮可见性验证",
+  "description": "打开个人任务中心，进入一条待审核任务的审核详情，验证通过/驳回操作按钮可见，hover后触发编辑工具栏（如有），但不实际提交操作。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "个人任务中心",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "点击第一条待审核任务的审核按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待审核详情Drawer打开"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "通过",
+      "description": "验证通过按钮可见"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "驳回",
+      "description": "验证驳回按钮可见"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-audit-detail-btns",
+      "description": "截图-审核详情通过驳回按钮"
+    },
+    {
+      "type": "hover",
+      "text": "审核",
+      "description": "hover素材图区域触发编辑工具栏"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待工具栏出现"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-audit-toolbar-hover",
+      "description": "截图-hover后工具栏（若有）"
+    },
+    {
+      "type": "clickText",
+      "text": "取消",
+      "description": "关闭抽屉，不提交操作"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在待审核任务数据。",
+    "realDomNotes": "审核详情Drawer含：通过/驳回按钮；驳回原因为必填项；hover素材图触发替换/裁剪/高清化/局部修改工具栏；工具栏确认后CopyURL/下载/导出才可见。",
+    "riskPoints": [
+      "无待审核任务时筛选后列表为空，clickText'审核'会找不到",
+      "hover区域不精确时工具栏不出现"
+    ]
+  }
+}

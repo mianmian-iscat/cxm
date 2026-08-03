@@ -1,0 +1,122 @@
+{
+  "id": "ui-f88-strategy-data-consistency",
+  "name": "UI：F88 策略全字段数据一致性",
+  "description": "打开策略详情页，抓取全部字段值，保存并刷新，再次抓取全部字段值，逐字段比对确保数据一致性。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const data = {};\n        // 策略名称\n        const nameInput = document.querySelector('input#name');\n        data.name = nameInput?.value || '';\n        // 策略阶段\n        const formItems = document.querySelectorAll('.ant-form-item');\n        for (const item of formItems) {\n          const label = item.querySelector('.ant-form-item-label');\n          const val = item.querySelector('.ant-select-selection-item');\n          if (label?.textContent.includes('策略阶段')) data.stagePhase = val?.textContent.trim() || '';\n          if (label?.textContent.includes('环节') && !label.textContent.includes('策略')) data.stage = val?.textContent.trim() || '';\n        }\n        // textarea\n        const ta = document.querySelectorAll('textarea');\n        for (const t of ta) {\n          const item = t.closest('.ant-form-item');\n          const label = item?.querySelector('.ant-form-item-label');\n          if (label?.textContent.includes('策略说明')) data.desc = t.value || '';\n          if (label?.textContent.includes('适配场景')) data.scene = t.value || '';\n        }\n        // 节点列表\n        data.nodes = [];\n        document.querySelectorAll('.ant-card, [class*=\"nodeItem\"]').forEach(n => {\n          const txt = n.textContent.trim().substring(0, 30);\n          if (txt.includes('Start') || txt.includes('End') || n.querySelector('.ant-card-meta-title')) {\n            data.nodes.push(n.querySelector('.ant-card-meta-title')?.textContent.trim() || txt.substring(0, 15));\n          }\n        });\n        // 落库字段数\n        const bodyText = document.body.innerText;\n        const match = bodyText.match(/已映射\\s*(\\d+)\\s*个字段/);\n        data.mappedFields = match ? parseInt(match[1]) : -1;\n        return data;\n      })()",
+      "storeAs": "snapshot1",
+      "description": "抓取刷新前全字段快照"
+    },
+    {
+      "type": "screenshot",
+      "label": "snapshot1",
+      "description": "截图-快照1"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略保存完成"
+    },
+    {
+      "type": "navigate",
+      "url": "current",
+      "waitUntil": "networkidle",
+      "description": "刷新页面验证持久化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面重新加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const data = {};\n        const nameInput = document.querySelector('input#name');\n        data.name = nameInput?.value || '';\n        const formItems = document.querySelectorAll('.ant-form-item');\n        for (const item of formItems) {\n          const label = item.querySelector('.ant-form-item-label');\n          const val = item.querySelector('.ant-select-selection-item');\n          if (label?.textContent.includes('策略阶段')) data.stagePhase = val?.textContent.trim() || '';\n          if (label?.textContent.includes('环节') && !label.textContent.includes('策略')) data.stage = val?.textContent.trim() || '';\n        }\n        const ta = document.querySelectorAll('textarea');\n        for (const t of ta) {\n          const item = t.closest('.ant-form-item');\n          const label = item?.querySelector('.ant-form-item-label');\n          if (label?.textContent.includes('策略说明')) data.desc = t.value || '';\n          if (label?.textContent.includes('适配场景')) data.scene = t.value || '';\n        }\n        data.nodes = [];\n        document.querySelectorAll('.ant-card, [class*=\"nodeItem\"]').forEach(n => {\n          const txt = n.textContent.trim().substring(0, 30);\n          if (txt.includes('Start') || txt.includes('End') || n.querySelector('.ant-card-meta-title')) {\n            data.nodes.push(n.querySelector('.ant-card-meta-title')?.textContent.trim() || txt.substring(0, 15));\n          }\n        });\n        const bodyText = document.body.innerText;\n        const match = bodyText.match(/已映射\\s*(\\d+)\\s*个字段/);\n        data.mappedFields = match ? parseInt(match[1]) : -1;\n        return data;\n      })()",
+      "storeAs": "snapshot2",
+      "description": "抓取刷新后全字段快照"
+    },
+    {
+      "type": "screenshot",
+      "label": "snapshot2",
+      "description": "截图-快照2"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证详情页正常加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "Start",
+      "description": "验证 Start 节点存在"
+    }
+  ]
+}

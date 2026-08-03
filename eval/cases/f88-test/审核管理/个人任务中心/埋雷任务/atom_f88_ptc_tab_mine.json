@@ -1,0 +1,83 @@
+{
+  "id": "atom-f88-ptc-tab-mine",
+  "name": "原子：个人任务中心-埋雷任务Tab文案验证",
+  "description": "验证'埋雷任务'Tab文案正确",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')); const mine = tabs.find(t => t.textContent.includes('埋雷')); return { found: !!mine, text: mine?.textContent?.trim() }; })()",
+      "description": "验证埋雷Tab",
+      "storeAs": "mineTab"
+    },
+    {
+      "type": "assertStore",
+      "key": "mineTab",
+      "path": "found",
+      "equals": true,
+      "description": "验证 验证埋雷Tab 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "mineTab",
+      "path": "found",
+      "equals": true
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-tab-mine",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

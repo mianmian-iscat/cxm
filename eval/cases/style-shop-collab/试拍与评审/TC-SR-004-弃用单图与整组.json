@@ -1,0 +1,63 @@
+{
+  "id": "TC-SR-004",
+  "name": "TC-SR-004 — 买手弃用单图/整组与撤销 [P0]",
+  "description": "验证弃用弹窗(4原因)、弃用整组、撤销弃用、状态点提示",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const discardBtns = Array.from(document.querySelectorAll('button, [class*=discard], [class*=action]')).filter(b => b.textContent.includes('弃用')); const discardGroup = discardBtns.find(b => b.textContent.includes('本组')); return { discardBtnCount: discardBtns.length, discardGroup: !!discardGroup }; })()",
+      "description": "查找弃用操作入口",
+      "storeAs": "discardBtns"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const discardBtn = Array.from(document.querySelectorAll('button, [class*=action]')).find(b => b.textContent.includes('弃用') && !b.textContent.includes('本组')); if (discardBtn) { discardBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击弃用单图",
+      "storeAs": "clickDiscard"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, [class*=modal]'); if (!modal) return { found: false }; const reasons = Array.from(modal.querySelectorAll('.ant-radio-wrapper, [class*=option]')).map(r => r.textContent.trim()); const expectedReasons = ['穿搭穿法', '模特长相', 'AI 感强', '其他']; const matched = expectedReasons.filter(e => reasons.some(r => r.includes(e))); return { found: true, reasons, matched, allMatched: matched.length === expectedReasons.length }; })()",
+      "description": "验证弃用原因弹窗4选项",
+      "storeAs": "reasonModal"
+    },
+    {
+      "type": "screenshot",
+      "label": "discard-reason-modal"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "IN_REVIEW状态，当前用户是买手，审核视图中",
+    "stepsText": "1. 点击弃用单图\n2. 验证弃用原因弹窗4选项\n3. 选择原因后确认弃用\n4. 验证图片标记为弃用\n5. 点击撤销弃用",
+    "expectedResult": "1. 弃用原因弹窗展示4选项：穿搭穿法、模特长相、AI感强、其他\n2. 确认后图片标记为弃用状态\n3. 图组导航状态点提示\n4. 可撤销单图弃用\n5. 可弃用本组/撤销本组弃用",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

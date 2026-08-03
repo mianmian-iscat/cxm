@@ -1,0 +1,147 @@
+{
+  "id": "normal_f88_template_pkg_detail_ops",
+  "name": "模版包管理 - 模板包卡片详情+筛选+分页",
+  "description": "进入店铺详情后，验证模板包卡片列表结构（图片轮播/标题/状态标签/应用环节标签/创建人/日期/操作按钮），筛选器（名称ID负责人/应用环节[搭配/视觉/套图]/应用场景[主图素材/种草素材]/所有状态[闲置中/使用中]），分页。实测2026-07-09: 点击模板包'查看详情'在同页面展开详情。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template",
+    "detail"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "打开模版包管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待店铺卡片列表加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard]'); for(const c of cards) { if(c.innerText?.includes('F88测试店铺')) { c.querySelector('button')?.click(); return 'F88测试店铺'; } } return false; })()",
+      "description": "进入F88测试店铺详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待模板包卡片列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-pkg-list",
+      "description": "截图-模板包卡片列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模版包列表",
+      "description": "验证面包屑包含'模版包列表'"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard], .ant-card'); const pkgCards = []; for(const c of cards) { const t = c.innerText?.substring(0,150); if(t?.includes('使用中') || t?.includes('闲置中')) { const btns = Array.from(c.querySelectorAll('button')).map(b => b.innerText?.trim()).filter(Boolean); pkgCards.push({ text: t.substring(0,100), buttons: btns }); } } return { count: pkgCards.length, cards: pkgCards.slice(0,5) }; })()",
+      "description": "采集模板包卡片结构（实测: 每卡含图片轮播/标题/状态标签/应用环节/创建人/日期/操作按钮）"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const filters = { search: !!document.querySelector('input[placeholder*=\"名称\"]'), selects: Array.from(document.querySelectorAll('.ant-select')).filter(s => s.offsetHeight > 0).map(s => ({ ph: s.querySelector('.ant-select-selection-placeholder')?.innerText?.trim() || s.innerText?.trim()?.substring(0,20) })) }; const btns = Array.from(document.querySelectorAll('button')).filter(b => b.offsetHeight > 0 && (b.innerText?.includes('导入') || b.innerText?.includes('新建') || b.innerText?.includes('重置'))).map(b => b.innerText?.trim()); return { filters, actionButtons: btns }; })()",
+      "description": "采集筛选器+操作按钮（实测: 名称/ID/负责人+应用环节+应用场景+所有状态）"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const nameInput = document.querySelector('input[placeholder*=\"名称\"]'); if(!nameInput) return { found: false }; const r = nameInput.getBoundingClientRect(); return { found: true, x: Math.round(r.x + r.width/2), y: Math.round(r.y + r.height/2) }; })()",
+      "description": "定位名称搜索输入框"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='名称']",
+      "value": "测试",
+      "react": true,
+      "description": "在名称搜索框输入'测试'"
+    },
+    {
+      "type": "pressKey",
+      "key": "Enter",
+      "description": "回车搜索"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待搜索结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-search-result",
+      "description": "截图-搜索结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-pagination, [class*=pagination]')?.innerText?.trim() || 'no pagination'",
+      "description": "采集分页信息"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "点击重置按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待重置后列表刷新"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-after-reset",
+      "description": "截图-重置后"
+    },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "within": ".ant-card",
+      "description": "点击第一个模板包的查看详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待详情加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-pkg-detail",
+      "description": "截图-模板包详情"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.body.innerText.substring(0, 2000)",
+      "description": "采集详情页全部文本"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭详情"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "实测2026-07-09: 两级结构:店铺卡片列表(shopCard)→点击'查看详情'→模板包卡片列表。模板包卡片含:图片轮播(1/N)/标题/状态标签(使用中绿/闲置中灰)/应用环节标签/应用场景标签/创建人/日期/ellipsis+查看详情+置为闲置(或立即使用)。筛选器:名称ID负责人(input)/应用环节(搭配/视觉/套图)/应用场景(主图素材/种草素材)/所有状态(闲置中/使用中)。按钮:导入模板包/新建模版包/重置。分页显示'共 N 条'。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，存在有模板包的店铺"
+}

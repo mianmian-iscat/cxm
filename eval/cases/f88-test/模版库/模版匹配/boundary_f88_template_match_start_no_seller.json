@@ -1,0 +1,244 @@
+{
+  "id": "boundary-f88-template-match-start-no-seller",
+  "name": "边界场景：Start节点未配置seller_id时保存模板匹配策略",
+  "description": "验证在Start节点未配置seller_id入参的情况下，保存包含模板匹配节点的策略会失败，API返回明确的错误提示。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle2",
+      "screenshot": true,
+      "description": "打开策略详情页（Start未配置seller_id）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "Start",
+      "description": "验证Start节点存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "暂未配置入参",
+      "description": "验证Start节点未配置入参"
+    },
+    {
+      "type": "screenshot",
+      "label": "start-no-seller",
+      "description": "截图-Start未配置seller_id"
+    },
+    {
+      "type": "clickText",
+      "text": "+ 新增节点",
+      "description": "点击新增节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗"
+    },
+    {
+      "type": "click",
+      "text": "模板匹配",
+      "within": ".ant-modal",
+      "description": "选择模板匹配节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('匹配模式')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { sel.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "点击匹配模式下拉框"
+    },
+    {
+      "type": "wait",
+      "ms": 1200,
+      "description": "等待下拉列表"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '规则匹配') { item.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择规则匹配"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待联动字段渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('数据来源')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { sel.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "点击数据来源下拉框"
+    },
+    {
+      "type": "wait",
+      "ms": 1200,
+      "description": "等待下拉列表"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '模板库') { item.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择模板库"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待选择生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('应用环节')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { sel.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "点击应用环节下拉框"
+    },
+    {
+      "type": "wait",
+      "ms": 1200,
+      "description": "等待下拉列表"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '视觉') { item.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择视觉"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待选择生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('应用场景')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { sel.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "点击应用场景下拉框"
+    },
+    {
+      "type": "wait",
+      "ms": 1200,
+      "description": "等待下拉列表"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '主图素材') { item.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择主图素材"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待选择生效"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-configured-no-seller",
+      "description": "截图-节点已配置但Start无seller_id"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const saveBtn = [...drawer.querySelectorAll('button')].find(b => b.textContent.trim() === '保存'); if (saveBtn && !saveBtn.disabled) { saveBtn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "保存节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点保存"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (drawer) { const close = drawer.querySelector('.ant-drawer-close'); if (close && close.offsetHeight > 0) close.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "关闭抽屉"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待关闭"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const desc = document.querySelector('textarea[placeholder*=\"策略说明\"]'); if (desc) { desc.value = '测试Start未配置seller_id的边界场景'; desc.dispatchEvent(new Event('input', { bubbles: true })); } return { ok: true }; })()",
+      "description": "填写策略说明"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待输入"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待保存完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "save-failed-no-seller",
+      "description": "截图-保存失败提示"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const msgs = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); return Array.from(msgs).map(m => m.textContent.trim()).filter(t => t.length > 0); })()",
+      "storeAs": "errorMessages",
+      "description": "获取错误提示"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "验证错误提示中包含seller_id"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "商家ID",
+      "description": "验证错误提示中包含商家ID"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass",
+    "expectedErrors": [
+      "seller_id",
+      "商家ID"
+    ]
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录，策略详情页已打开，Start节点未配置seller_id",
+    "riskPoints": [
+      "Start节点未配置seller_id时，保存API应返回明确错误",
+      "错误提示应包含'seller_id'或'商家ID'关键词",
+      "节点本身可以保存成功，但策略整体保存会失败"
+    ],
+    "expectedBehavior": "策略保存失败，返回错误提示：该策略中包括模板匹配，但策略入参中没有商家ID"
+  }
+}

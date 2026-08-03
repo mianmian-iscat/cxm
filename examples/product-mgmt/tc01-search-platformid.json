@@ -1,0 +1,76 @@
+{
+  "id": "xiaoer-adplacement-tc01-search-platformid",
+  "name": "TC01: 搜索平台商品ID 1039806673038，验证搜索结果",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=AqBQyXxR2LUF60UQqst4"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=AqBQyXxR2LUF60UQqst4",
+      "waitUntil": "networkidle2",
+      "timeout": 30000,
+      "description": "打开广告位报名页面"
+    },
+    {
+      "type": "screenshot",
+      "label": "01-page-loaded",
+      "description": "页面加载完成截图"
+    },
+    {
+      "type": "fill",
+      "selector": "input[type='text']",
+      "selectorIndex": 0,
+      "value": "1039806673038",
+      "react": true,
+      "description": "填入平台商品ID 1039806673038"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "screenshot",
+      "label": "02-filled-id",
+      "description": "填入商品ID后截图"
+    },
+    {
+      "type": "click",
+      "text": "搜 索",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "03-search-result",
+      "description": "搜索结果截图"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "1039806673038",
+      "description": "验证搜索结果中包含商品ID 1039806673038"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryItemSuperDiscountActivity",
+      "path": "data.data.items[0].platformItemId",
+      "description": "通过API验证平台商品ID是否正确返回"
+    }
+  ]
+}

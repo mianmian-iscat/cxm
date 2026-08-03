@@ -1,0 +1,116 @@
+{
+  "id": "normal_f88_audit_node_edit",
+  "name": "审核节点管理 - 编辑节点操作",
+  "description": "在审核节点管理页面验证编辑节点弹窗结构、关联审核标准字段、节点类型选择、操作后列表更新。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "audit-node",
+    "CRUD",
+    "edit"
+  ],
+  "timeout": 120000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "waitUntil": "networkidle",
+      "description": "打开审核节点管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核节点",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tr[data-row-key]'); return { rowCount: rows.length, firstRowBtns: rows.length ? Array.from(rows[0].querySelectorAll('button, a, [class*=btn]')).map(b=>b.textContent.trim()).filter(Boolean) : [], columns: Array.from(document.querySelectorAll('.ant-table-thead th')).map(th=>th.textContent.trim()) }; })()",
+      "description": "探查列表行数/列名/操作按钮"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "node|review|update",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑",
+      "within": ".ant-table, [class*=list]",
+      "data-test-target": "edit-btn",
+      "description": "点击编辑按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待编辑弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-edit-form",
+      "description": "截图-编辑表单"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m=document.querySelector('.ant-modal,.ant-drawer,form'); if(!m) return {found:false}; const inputs=m.querySelectorAll('input,textarea'); const selects=m.querySelectorAll('.ant-select,select'); return {found:true, inputs:Array.from(inputs).map(i=>({placeholder:i.placeholder,value:i.value})), selectCount:selects.length, selectTexts:Array.from(selects).map(s=>s.textContent.substring(0,40)), buttons:Array.from(m.querySelectorAll('button,.ant-btn')).map(b=>b.textContent.trim())}; })()",
+      "description": "探查编辑表单完整结构"
+    },
+    {
+      "type": "capture",
+      "selector": ".ant-modal, .ant-drawer, form",
+      "description": "捕获编辑表单DOM"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(节点名称|编辑|审核标准|节点)/",
+      "description": "验证编辑表单标题"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(审核标准|关联标准|标准|审核规则)/",
+      "description": "验证含关联审核标准字段"
+    },
+    {
+      "type": "clickText",
+      "text": "/(取消|关闭)/",
+      "within": ".ant-modal, .ant-drawer",
+      "description": "取消编辑"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "审核节点管理 /review/node-management；编辑为弹窗(ant-modal)；需验证关联审核标准字段(AntD Select)。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在一条审核节点"
+}

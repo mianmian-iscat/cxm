@@ -1,0 +1,15 @@
+{
+  "id": "feat_f88_audit_states",
+  "category": "features",
+  "title": "F88素材审核状态枚举",
+  "content": "{\"states\": [\"待审核\", \"审核通过\", \"审核驳回\", \"已撤回\"], \"material_types\": [\"主图\", \"详情页\", \"白底图\", \"场景图\", \"标题\", \"描述\"], \"page_url\": \"https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center\"}",
+  "tags": [
+    "F88",
+    "审核状态",
+    "素材类型"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.013545
+}

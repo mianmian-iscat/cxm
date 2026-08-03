@@ -1,0 +1,83 @@
+{
+  "name": "assertAPI",
+  "version": "1.0.0",
+  "description": "对已捕获的 API 响应做精确断言（status/jsonPath/contains/duration）",
+  "triggers": ["断言接口", "assertAPI", "验证API", "接口断言", "API断言"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "assertAPI" },
+      "urlPattern": {
+        "type": "string",
+        "description": "URL 关键词（可选，默认取最近一次 waitForAPI 命中的 last_api_entry）"
+      },
+      "status": {
+        "type": "integer",
+        "description": "期望 HTTP 状态码（如 200）"
+      },
+      "jsonPath": {
+        "type": "string",
+        "description": "点号路径提取（如 $.data.success），配合 equals/contains/matches/type 使用"
+      },
+      "equals": {
+        "description": "期望 jsonPath 提取后等于指定值（支持字符串/数字/bool/null）"
+      },
+      "contains": {
+        "type": "string",
+        "description": "期望响应体字符串化后包含指定子串；若同时指定 jsonPath 则对提取值做包含断言"
+      },
+      "matches": {
+        "type": "string",
+        "description": "正则表达式字符串，匹配响应体字符串化结果；若同时指定 jsonPath 则对提取值做正则断言"
+      },
+      "valueType": {
+        "type": "string",
+        "enum": ["string", "number", "boolean", "array", "object", "null"],
+        "description": "jsonPath 提取值的类型断言"
+      },
+      "exists": {
+        "type": "boolean",
+        "description": "true=验证 jsonPath 字段存在且非 null；false=验证字段不存在或为 null"
+      },
+      "maxDurationMs": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "响应耗时上限（毫秒），超过则断言失败"
+      },
+      "captureAll": {
+        "type": "boolean",
+        "default": false,
+        "description": "true 时返回所有匹配 urlPattern 的 entry 数组，供 expectAll 断言"
+      },
+      "expectAll": {
+        "type": "array",
+        "items": { "type": "object" },
+        "description": "仅 captureAll=true 时有效，对每个匹配 entry 做子断言"
+      },
+      "soft": {
+        "type": "boolean",
+        "default": false,
+        "description": "true 时断言失败不中断步骤链，累积到 _softFailures"
+      },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string" },
+      "status": { "type": "integer" },
+      "jsonPathValue": { "description": "jsonPath 提取后的值" },
+      "durationMs": { "type": "integer" },
+      "pass": { "type": "boolean" },
+      "failures": { "type": "array" },
+      "matchedCount": { "type": "integer" }
+    }
+  },
+  "timeout_ms": 15000,
+  "retry_policy": { "max_retries": 0 }
+}

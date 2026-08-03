@@ -1,0 +1,70 @@
+{
+  "id": "atom-f88-ptc-status-pending",
+  "name": "原子：个人任务中心-审核状态'待审核'选项验证",
+  "description": "验证审核状态下拉包含'待审核'选项",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "选择待审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; return { hasPending: text.includes('待审核') }; })()",
+      "description": "验证待审核筛选生效",
+      "storeAs": "pendingFilter"
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-status-pending",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

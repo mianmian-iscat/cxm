@@ -1,0 +1,75 @@
+{
+  "id": "normal-f88-image-type-back",
+  "name": "正常流程：背面图生产成功验证",
+  "description": "验证背面图生产成功，产出1-2张，带有【背面图素材】固定prompt字段标识，数据字段为back_img_url",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "背面图",
+      "description": "验证背面图类型标识存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "背面图素材",
+      "description": "验证固定prompt字段标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "back_img_url",
+      "description": "验证数据字段名"
+    },
+    {
+      "type": "screenshot",
+      "label": "image-type-back",
+      "description": "截图 - 背面图生产结果"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录，存在已完成背面图生产的任务",
+    "riskPoints": [
+      "背面图数量范围1-2张",
+      "固定prompt字段为【背面图素材】"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

@@ -1,0 +1,155 @@
+{
+  "id": "atomic-f88-link-stage-param-placeholder",
+  "name": "UI：环节参数详情-入参取值配置{{stage.xxx}}占位符渲染验证",
+  "description": "验证入参取值配置区域的参数值以Liquid模板语法{{stage.uuid.field}}格式渲染，且各字段占位符不重复",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "打开链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const el = spans.find(s => (s.textContent || '').trim() === '入参'); if (!el) return { found: false }; const rect = el.getBoundingClientRect(); return { found: true, x: rect.x + rect.width/2, y: rect.y + rect.height/2 }; })()",
+      "description": "定位第1个入参span",
+      "storeAs": "paramLink"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramLink",
+      "path": "found",
+      "equals": true,
+      "description": "入参链接存在"
+    },
+    {
+      "type": "click",
+      "description": "点击入参打开弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "paramLink"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const allText = drawer.textContent || ''; const hasConfig = allText.includes('入参取值配置'); // Find all input/textarea elements inside the drawer const inputs = Array.from(drawer.querySelectorAll('input:not([type=checkbox]), textarea')); const placeholders = inputs.map(inp => ({ value: inp.value || '', placeholder: inp.placeholder || '', type: inp.type, disabled: inp.disabled, readOnly: inp.readOnly })).filter(p => p.value.includes('{{') || p.value.includes('stage') || p.placeholder.includes('stage')); // Also check rendered text with {{}} pattern const allElements = Array.from(drawer.querySelectorAll('*')); const templateTexts = allElements.map(el => (el.textContent || '').trim()).filter(t => t.match(/\\{\\{.*stage.*\\}\\}/) && t.length < 200).slice(0, 20); return { open: true, hasConfig, inputCount: inputs.length, placeholderInputs: placeholders.length, placeholderSamples: placeholders.slice(0, 6), templateTexts: templateTexts.slice(0, 10) }; })()",
+      "description": "分析入参取值配置中的占位符",
+      "storeAs": "phCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "phCheck",
+      "path": "open",
+      "equals": true,
+      "description": "弹窗已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "phCheck",
+      "path": "hasConfig",
+      "equals": true,
+      "description": "入参取值配置板块存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return {}; // Find the config section specifically const configSection = Array.from(drawer.querySelectorAll('*')).find(el => (el.textContent || '').startsWith('入参取值配置')); // Get all form fields with their labels and values const fields = []; const labels = Array.from(drawer.querySelectorAll('[class*=label], [class*=Label], label, [class*=formItem], [class*=FormItem]')); for (const label of labels) { const text = (label.textContent || '').trim(); if (['seller_id', 'seed_image_url', 'tao_cate', 'item_id', 'back_img_url', 'skc_img_url'].some(p => text.includes(p))) { const input = label.querySelector('input, textarea') || label.nextElementSibling?.querySelector('input, textarea'); if (input) { fields.push({ label: text.substring(0, 30), value: (input.value || '').substring(0, 100), isTemplate: (input.value || '').includes('{{'), hasStage: (input.value || '').includes('stage') }); } } } return { fieldCount: fields.length, fields, templateFieldCount: fields.filter(f => f.isTemplate).length }; })()",
+      "description": "提取各参数字段的值和模板格式",
+      "storeAs": "fieldCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "fieldCheck",
+      "path": "fieldCount",
+      "gte": 1,
+      "description": "至少识别到1个表单字段"
+    },
+    {
+      "type": "assertStore",
+      "key": "fieldCheck",
+      "path": "templateFieldCount",
+      "gte": 1,
+      "description": "至少1个字段使用{{}}模板语法"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return {}; // Look for unique stage UUIDs in the values const allInputs = Array.from(drawer.querySelectorAll('input:not([type=checkbox]), textarea')); const uuids = new Set(); const stageRefs = []; for (const inp of allInputs) { const val = inp.value || ''; const matches = val.matchAll(/stage\\.([0-9a-f-]+)/g); for (const m of matches) { uuids.add(m[1]); stageRefs.push({ field: val.substring(0, 40), uuid: m[1] }); } } // Check that different fields reference different stage UUIDs (or same for chained) const uniqueCount = uuids.size; return { uniqueUuidCount: uniqueCount, uuids: Array.from(uuids).slice(0, 5), refs: stageRefs.slice(0, 10), allRefsHaveStage: stageRefs.length > 0 }; })()",
+      "description": "验证占位符中的stage UUID引用",
+      "storeAs": "uuidCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "uuidCheck",
+      "path": "allRefsHaveStage",
+      "equals": true,
+      "description": "占位符引用了stage上下文"
+    },
+    {
+      "type": "assertStore",
+      "key": "uuidCheck",
+      "path": "uniqueUuidCount",
+      "gte": 1,
+      "description": "至少有1个stage UUID引用"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn"
+    },
+    {
+      "type": "click",
+      "description": "关闭弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-param-placeholder",
+      "description": "入参取值配置占位符渲染截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180存在",
+    "realDomNotes": "入参取值配置区域使用input/textarea展示参数值；值格式为{{stage.uuid.field}} Liquid模板语法；不同字段引用前序环节的输出",
+    "riskPoints": [
+      "占位符是否被解析为实际值(预发环境可能未渲染)",
+      "多个字段是否引用同一个stage UUID(链路上下游依赖)",
+      "input是否readonly(入参取值通常不可编辑)"
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "m2-QA-NEW-002-小二端为已退出商家提交快审-待执行",
+  "name": "QA-NEW-002 — 小二端为已退出商家提交快审 [P1] 待执行",
+  "description": "seller 在 `yc_seller_enter_info` 中且 `status=NOT_ENTERED`（已退出）",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "module": "08-小二端快审入驻校验",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/08-小二端快审入驻校验",
+  "sourceIds": [
+    "08-小二端快审入驻校验/m2-QA-NEW-002-小二端为已退出商家提交快审-待执行"
+  ],
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "seller 在 `yc_seller_enter_info` 中且 `status=NOT_ENTERED`（已退出）",
+    "riskPoints": [],
+    "relatedDocs": [],
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/yc-protection-qa-workbench/skills/原创保护用例生成/references/test-cases/08-小二端快审入驻校验.md，2026-07-11T04:05:49.714625"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": "normal-f88-shop-strategy-mapping",
+  "name": "正常流程：店铺个性化生产策略配置映射验证",
+  "description": "验证维表支持 sellerid 与生产策略id 关联配置，生产环节根据维表读取策略id，未配置的环节应用默认策略",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略",
+      "description": "验证策略列表存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller",
+      "description": "验证sellerid关联字段存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "shop-strategy-mapping",
+      "description": "截图 - 店铺策略映射配置"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录，存在店铺-策略映射维表数据",
+    "riskPoints": [
+      "维表sellerid与策略id为逗号隔开的关联关系",
+      "未配置策略的环节应用链路默认策略",
+      "首图环节配置N个策略id则仅执行N个策略"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

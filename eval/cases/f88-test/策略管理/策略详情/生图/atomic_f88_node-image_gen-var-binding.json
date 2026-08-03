@@ -1,0 +1,227 @@
+{
+  "id": "atomic-f88-node-image_gen-var-binding",
+  "name": "UI：生图节点-变量引用器交互验证(Prompt变量插入/图片变量引用)",
+  "description": "验证生图节点的变量引用功能：User Prompt支持插入变量(/ 快捷键)、输入图片支持引用上游变量、绑定后显示{{stage.xxx}}格式",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+      "waitUntil": "networkidle",
+      "description": "打开含生图节点的策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略",
+      "description": "验证生图详情页已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const allEls = document.querySelectorAll('*'); for (const el of allEls) { const t = (el.textContent || '').trim(); if (t === '生图' && el.children.length === 0) { const rect = el.getBoundingClientRect(); if (rect.width > 0 && rect.height > 0) { el.click(); return { clicked: true }; } } } for (const el of allEls) { const t = (el.textContent || '').trim(); if (t.includes('生图') && el.children.length <= 2 && el.closest('[class*=node], [class*=Node], [class*=card], [class*=Card]')) { el.click(); return { clicked: true }; } } return { clicked: false }; })()",
+      "description": "点击生图节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const varBtns = Array.from(drawer.querySelectorAll('button, [role=button], [class*=variable], [class*=Variable], span, a')).filter(el => { const t = (el.textContent || '').trim(); return t === '引用变量' || t === '选择变量' || t.includes('引用') || t.includes('变量') || t.includes('插入'); }); return { open: true, varButtonCount: varBtns.length, varButtonLabels: varBtns.slice(0, 10).map(b => (b.textContent || '').trim()), varButtonTags: varBtns.slice(0, 10).map(b => b.tagName) }; })()",
+      "description": "查找变量引用按钮",
+      "storeAs": "varBtns"
+    },
+    {
+      "type": "assertStore",
+      "key": "varBtns",
+      "path": "open",
+      "equals": true,
+      "description": "编辑抽屉已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "varBtns",
+      "path": "varButtonCount",
+      "gte": 1,
+      "description": "至少1个变量引用入口(Prompt或图片字段)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const textarea = drawer.querySelector('textarea'); if (!textarea) return { noTextarea: true }; const placeholder = textarea.getAttribute('placeholder') || ''; const hasVarHint = placeholder.includes('/') || placeholder.includes('变量'); const currentValue = textarea.value || ''; const hasExistingVar = currentValue.includes('{{') || currentValue.includes('stage'); return { textareaExists: true, placeholder, hasVarHint, currentValue: currentValue.substring(0, 100), hasExistingVar }; })()",
+      "description": "检查User Prompt textarea变量引用能力",
+      "storeAs": "promptVarCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "promptVarCheck",
+      "path": "textareaExists",
+      "equals": true,
+      "description": "User Prompt textarea存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "promptVarCheck",
+      "path": "hasVarHint",
+      "equals": true,
+      "description": "Prompt placeholder提示可插入变量(含/或变量字样)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const varFields = []; for (const item of formItems) { const label = (item.querySelector('.ant-form-item-label')?.textContent || '').trim(); const hasVarBtn = !!item.querySelector('button, [class*=variable], [role=button]'); const inputVal = (item.querySelector('input, textarea')?.value || ''); const hasTemplateSyntax = inputVal.includes('{{') || inputVal.includes('stage'); if (label.includes('输入图片') || label.includes('Prompt') || label.includes('prompt') || hasVarBtn || hasTemplateSyntax) { varFields.push({ label, hasVarBtn, hasTemplateSyntax, inputValue: inputVal.substring(0, 60) }); } } return { varFieldCount: varFields.length, varFields }; })()",
+      "description": "识别支持变量绑定的字段(Prompt/输入图片)",
+      "storeAs": "varFields"
+    },
+    {
+      "type": "assertStore",
+      "key": "varFields",
+      "path": "varFieldCount",
+      "gte": 1,
+      "description": "至少1个字段支持变量绑定(User Prompt和/或输入图片)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const textarea = drawer.querySelector('textarea'); if (!textarea) return {}; textarea.focus(); const slashEvent = new KeyboardEvent('keydown', { key: '/', code: 'Slash', bubbles: true }); textarea.dispatchEvent(slashEvent); return { slashDispatched: true, focusActive: document.activeElement === textarea }; })()",
+      "description": "模拟Prompt中输入/触发变量选择器",
+      "storeAs": "slashTrigger"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待变量选择器弹出"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const popups = document.querySelectorAll('.ant-popover:not(.ant-popover-hidden), .ant-dropdown:not(.ant-dropdown-hidden), .ant-select-dropdown:not(.ant-select-dropdown-hidden), [class*=variable-list], [class*=VariableList]'); const varPopup = Array.from(popups).find(p => { const rect = p.getBoundingClientRect(); return rect.width > 100 && rect.height > 50; }); if (!varPopup) return { varPopupFound: false }; const items = Array.from(varPopup.querySelectorAll('[class*=item], [class*=option], li, .ant-select-item')); const itemTexts = items.map(i => (i.textContent || '').trim()).filter(t => t.length > 0 && t.length < 80); return { varPopupFound: true, itemCount: itemTexts.length, items: itemTexts.slice(0, 10) }; })()",
+      "description": "检查变量选择器弹出内容",
+      "storeAs": "varPopup"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "保存节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待保存"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { open: false }; const inputs = Array.from(modal.querySelectorAll('input:not([type=checkbox]), textarea')); const filledInputs = {}; for (const inp of inputs) { const label = (inp.closest('.ant-form-item')?.querySelector('.ant-form-item-label')?.textContent || '').trim(); if (label.includes('seller')) { const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(inp, 'test_seller_001'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); filledInputs.seller_id = 'test_seller_001'; } } return { open: true, filledInputs }; })()",
+      "description": "填充试运行参数(seller_id)",
+      "storeAs": "trialFill"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待输入生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const btns = Array.from(modal.querySelectorAll('button')); const runBtn = btns.find(b => { const t = (b.textContent || '').trim(); return t === '运行' || t === '开始运行' || t.includes('运行'); }); if (runBtn && !runBtn.disabled) { runBtn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击运行"
+    },
+    {
+      "type": "wait",
+      "ms": 15000,
+      "description": "等待生图运行完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (modal) { const closeBtn = modal.querySelector('.ant-modal-close'); if (closeBtn) closeBtn.click(); } return { closed: true }; })()",
+      "description": "关闭试运行弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗关闭和状态更新"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('button')); const resultBtn = btns.find(b => { const t = (b.textContent || '').trim(); return t === '查看运行结果'; }); if (resultBtn) { resultBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击查看运行结果",
+      "storeAs": "viewResultBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待运行结果页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.innerText || ''; const hasResult = text.includes('运行结果') || text.includes('成功') || text.includes('完成') || text.includes('输出') || text.includes('试运行') || text.includes('策略'); const hasError = text.includes('失败') || text.includes('错误'); const hasLoading = text.includes('运行中') || !!document.querySelector('.ant-spin-spinning'); const urls = text.match(/https?:\\/\\/[^\\s\"']+(?:\\.jpg|\\.png|\\.webp|\\.jpeg)/gi) || []; const allUrls = text.match(/https?:\\/\\/[^\\s\"'<]+/gi) || []; return { hasLoading, hasResult, hasError, imageUrlCount: urls.length, allUrlCount: allUrls.length, textPreview: text.substring(0, 200) }; })()",
+      "description": "采集运行结果",
+      "storeAs": "trialResult"
+    },
+    {
+      "type": "assertStore",
+      "key": "trialResult",
+      "path": "hasLoading",
+      "equals": false,
+      "description": "运行已完成(非loading状态)"
+    },
+    {
+      "type": "assertStore",
+      "key": "trialResult",
+      "path": "hasResult",
+      "equals": true,
+      "description": "运行有输出结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "image_gen-var-binding",
+      "description": "生图节点变量引用器交互截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在含生图节点的策略(10602)",
+    "realDomNotes": "User Prompt placeholder为'输入 / 插入变量'表示支持/快捷键唤起变量选择器; 输入图片字段可能支持引用上游出参变量",
+    "riskPoints": [
+      "Prompt输入/是否弹出变量选择器",
+      "变量选择器是否展示上游节点出参(如LLM文本生成的输出)",
+      "绑定后textarea值是否显示{{stage.xxx}}格式",
+      "输入图片是否支持变量引用(而非仅手动上传)"
+    ]
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "id": "normal-f88-match-target-count",
+  "name": "正常流程：模板匹配 - 目标匹配数量设置为2时输出2个图组",
+  "description": "验证目标匹配数量设置为2时，输出matchedImg1和matchedImg2两组图组，每组包含5张图，其中matchedImg1_nice和matchedImg2_nice为各自择优图",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击模板匹配"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待面板"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "目标匹配数量",
+      "description": "验证目标匹配数量字段存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1",
+      "description": "验证第一组图组输出变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg2",
+      "description": "验证第二组图组输出变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_nice",
+      "description": "验证第一组择优变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg2_nice",
+      "description": "验证第二组择优变量"
+    },
+    {
+      "type": "screenshot",
+      "label": "match-target-count",
+      "description": "截图 - 目标匹配数量=2"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录",
+    "riskPoints": [
+      "目标匹配数量设置为2时输出2个图组",
+      "每个图组含5张图，择优图单独记录为matchedImgN_nice"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

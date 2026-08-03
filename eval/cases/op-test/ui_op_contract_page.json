@@ -1,0 +1,71 @@
+{
+  "id": "ui-op-contract-page",
+  "name": "UI：原创保护商家端-合同页面结构验证（ContractPage）",
+  "description": "从商家端进入合同页面，全量验证 ContractPage：5张合同图片轮播、协议iframe嵌入、复选框确认（已阅读并同意）、确认按钮联动（勾选后才可用）。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "description": "打开原创保护商家端首页"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待商家端加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "淘天服饰原创保护",
+      "description": "验证商家端已加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "协议",
+      "description": "【合同入口】验证页面含协议入口"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "淘天服饰原创保护",
+      "description": "【合同入口2】验证仍在商家端页面内"
+    },
+    {
+      "type": "screenshot",
+      "label": "contract-entry",
+      "description": "截图-合同页面入口"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "isv测试账号已登录商家端。",
+    "realDomNotes": "ContractPage：5张合同图片轮播、协议iframe嵌入、复选框确认（已阅读并同意）、确认按钮联动（勾选后才可用）。入口可能在右上角「协议」链接。",
+    "riskPoints": [
+      "合同页面入口需探查真实文案和位置",
+      "iframe内操作前需page.frame()切换上下文",
+      "复选框确认后才能点击提交按钮"
+    ]
+  }
+}

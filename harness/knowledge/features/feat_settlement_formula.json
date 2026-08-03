@@ -1,0 +1,15 @@
+{
+  "id": "feat_settlement_formula",
+  "category": "features",
+  "title": "效果对赌结算公式",
+  "content": "{\"rule\": \"下架率≥70%全额确收; 30-70%按比例; <30%全额退款\", \"service_fee_test\": 10, \"service_fee_prod\": 50000}",
+  "tags": [
+    "结算",
+    "核心规则",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.4996932
+}

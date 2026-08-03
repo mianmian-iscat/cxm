@@ -1,0 +1,104 @@
+{
+  "id": "atomic-f88-mc-edit-textarea",
+  "name": "UI：店铺信息配置-编辑textarea字数计数器验证",
+  "description": "进入编辑表单，在视觉偏好textarea输入文本，验证字数计数器实时更新",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')).filter(el => el.textContent.trim() === '编辑'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "点击编辑进入表单"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待表单加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelector('textarea[placeholder*=\"室内\"]'); const counter = ta?.parentElement?.textContent?.match(/(\\d+)\\s*\\/\\s*(\\d+)/); return { foundTextarea: !!ta, counterBefore: counter ? counter[0] : 'not found' }; })()",
+      "description": "查找视觉偏好-场景textarea",
+      "storeAs": "taBefore"
+    },
+    {
+      "type": "fill",
+      "selector": "textarea[placeholder*='室内']",
+      "value": "室内浅色棚拍背景，简约纯色风格",
+      "react": true,
+      "description": "输入场景偏好文本"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待计数器更新"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelector('textarea[placeholder*=\"室内\"]'); const counter = ta?.parentElement?.textContent?.match(/(\\d+)\\s*\\/\\s*(\\d+)/); return { value: ta?.value || '', counterAfter: counter ? counter[0] : 'not found', currentCount: counter ? parseInt(counter[1]) : 0, maxCount: counter ? parseInt(counter[2]) : 0 }; })()",
+      "description": "验证字数计数器更新",
+      "storeAs": "taAfter"
+    },
+    {
+      "type": "assertStore",
+      "key": "taAfter",
+      "path": "currentCount",
+      "gt": 0,
+      "description": "字数计数器大于0"
+    },
+    {
+      "type": "assertStore",
+      "key": "taAfter",
+      "path": "maxCount",
+      "equals": 100,
+      "description": "最大字数为100"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-edit-textarea-counter",
+      "description": "textarea字数计数器"
+    },
+    {
+      "type": "clickText",
+      "text": "取 消",
+      "description": "取消返回列表"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在店铺配置数据",
+    "realDomNotes": "实测: 输入'室内浅色棚拍背景，简约纯色风格'(15字) → 计数器'15 / 100'实时更新",
+    "riskPoints": []
+  }
+}

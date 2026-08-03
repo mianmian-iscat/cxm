@@ -1,0 +1,113 @@
+{
+  "id": "ui-f88-sd-trial-run-tabs",
+  "name": "UI：策略详情-试运行弹窗Tabs验证",
+  "description": "打开策略详情页，点击试运行按钮，验证弹窗包含单次运行和批量运行两个Tab，单次运行Tab显示入参输入框。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)');\n        if (!modal) return { hasModal: false };\n        const text = modal.innerText;\n        const tabs = modal.querySelectorAll('.ant-tabs-tab');\n        const tabTexts = Array.from(tabs).map(t => t.textContent.trim());\n        const activeTab = modal.querySelector('.ant-tabs-tab-active');\n        const inputFields = modal.querySelectorAll('input:not([type=\"hidden\"])');\n        const runBtn = modal.querySelector('button[disabled]');\n        return {\n          hasModal: true,\n          hasTitle: text.includes('策略试运行') || text.includes('试运行'),\n          tabs: tabTexts,\n          activeTab: activeTab?.textContent.trim(),\n          inputCount: inputFields.length,\n          hasRunBtn: !!modal.querySelector('button'),\n          runBtnDisabled: !!runBtn,\n          hasSellerId: text.includes('seller_id'),\n        };\n      })()",
+      "storeAs": "trialRunModal",
+      "description": "验证试运行弹窗Tabs和字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "trial-run-tabs",
+      "description": "截图-试运行弹窗Tabs"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)');\n        if (!modal) return { ok: false };\n        const tabs = modal.querySelectorAll('.ant-tabs-tab');\n        for (const tab of tabs) {\n          if (tab.textContent.trim() === '批量运行') {\n            tab.click();\n            return { ok: true, clicked: '批量运行' };\n          }\n        }\n        return { ok: false, tabCount: tabs.length };\n      })()",
+      "description": "切换到批量运行Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待Tab切换"
+    },
+    {
+      "type": "screenshot",
+      "label": "trial-run-batch",
+      "description": "截图-批量运行Tab"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭试运行"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待关闭"
+    }
+  ]
+}

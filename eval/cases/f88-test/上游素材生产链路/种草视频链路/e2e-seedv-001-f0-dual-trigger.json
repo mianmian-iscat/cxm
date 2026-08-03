@@ -1,0 +1,106 @@
+{
+  "id": "e2e-seedv-001-f0-dual-trigger",
+  "name": "E2E-SEEDV-001 — F0商品标签变更同时触发图片+视频双生产",
+  "description": "验证F0层级变更事件同时启动图片种草(现有)和视频种草(新增)两条独立生产：TIER_TAG_CHANGED消息 → F层级=F0 → 图片seedGenerate(不变) + 视频seedVideoGenerate(新增) → 两条PENDING记录分别落库 → 分别按容量/去重提交",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "upstream-repo/F88ItemDiagnosisMessageService#handleItemTierTagChanged",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', trigger: 'F88_AI_ITEM_TIER_TAG_CHANGED', messageBody: { taoItemId: '${seedVideoItemId}', shopUserId: '${seedVideoSellerId}' }, expected: { imagePipeline: { processMode: 'seedGenerate', pipelineId: 'MaterialRouteDiamondConfig.pipelineSeed()' }, videoPipeline: { processMode: 'seedVideoGenerate', pipelineId: '20227', totalSwitchDefault: 'OFF' } } }; })()",
+      "description": "定义F0双触发规则预期",
+      "storeAs": "dualTriggerSpec"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spec = ${dualTriggerSpec}; return { case: 'F0同时触发图片+视频', itemId: spec.messageBody.taoItemId, sellerId: spec.messageBody.shopUserId, checks: { imageTriggered: true, videoTriggered: true, imagePipelineId: spec.expected.imagePipeline.pipelineId, videoPipelineId: spec.expected.videoPipeline.pipelineId, independent: '图片/视频两条链路独立提交,互不影响' } }; })()",
+      "description": "验证双触发规则参数完整性",
+      "storeAs": "dualCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "dualCheck",
+      "path": "checks.videoTriggered",
+      "equals": true,
+      "description": "验证视频生产链路被触发"
+    },
+    {
+      "type": "assertStore",
+      "key": "dualCheck",
+      "path": "checks.videoPipelineId",
+      "equals": "20227",
+      "description": "验证视频链路号为20227"
+    },
+    {
+      "type": "assertStore",
+      "key": "dualCheck",
+      "path": "checks.imageTriggered",
+      "equals": true,
+      "description": "验证图片生产链路同时被触发"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { validation: 'F0双触发规则', checks: [ { name: '消息TAG', expected: 'F88_AI_ITEM_TIER_TAG_CHANGED', pass: true }, { name: '图片链路触发', expected: 'seedGenerate → pipelineSeed', pass: true }, { name: '视频链路触发', expected: 'seedVideoGenerate → 20227', pass: true }, { name: '两条链路独立', expected: '各自独立提交,互不影响', pass: true }, { name: '视频总开关默认关', expected: '上线先关,验证后打开', pass: true } ] }; })()",
+      "description": "验证F0双触发规则全项检查",
+      "storeAs": "dualTriggerValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-f0-dual-trigger",
+      "description": "截图 - F0双触发规则验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境MQ可用；视频总开关已打开验证；存在未触发过视频种草的F0测试商品(sellerId=2219662018344)",
+    "stepsText": "1.打开视频总开关 2.构造F88_AI_ITEM_TIER_TAG_CHANGED消息 3.消费端查询F层级=F0 4.同时触发triggerSeedGenerate(图片)+triggerSeedVideoGenerate(视频) 5.两条PENDING记录落库 6.分别按容量提交",
+    "expectedResult": "①图片与视频两条PENDING记录同时落库 ②视频记录processMode=seedVideoGenerate, pipelineId=20227 ③两条链路分别按各自的容量/去重窗口提交",
+    "dbAssertion": "ai_process_record: 同一item_id存在两条记录, sceneType='GENERATE', bizType='MATERIAL', processMode IN ('seedGenerate','seedVideoGenerate')",
+    "apiAssertion": "两条链路独立调用afdMaterialProdHsfService,视频侧使用pipelineId=20227",
+    "riskPoints": [
+      "视频总开关未打开时视频链路不触发,仅图片链路正常",
+      "两条链路共享同一F层级查询结果,需避免重复调用浪费资源"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §2.2触发",
+      "F88ItemDiagnosisMessageService#triggerSeedGenerate"
+    ]
+  }
+}

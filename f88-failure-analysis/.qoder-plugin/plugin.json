@@ -1,0 +1,26 @@
+{
+  "name": "f88-failure-analysis",
+  "displayName": "F88 失败分析",
+  "version": "1.1.0",
+  "description": "Deep SQL-based failure analysis for i-FASHION strategy platform via dms-alibaba CLI",
+  "descriptionZh": "通过 dms-alibaba SQL 查询深度分析 i-FASHION 策略平台任意环节的失败数据，覆盖状态分布、错误分类、策略配置核查、输出物验证",
+  "author": {
+    "name": "caoxuemei"
+  },
+  "keywords": [
+    "qoder-plugin",
+    "skill",
+    "f88",
+    "failure-analysis",
+    "sql",
+    "ifashion"
+  ],
+  "category": "developer-tools",
+  "tags": [
+    "skill",
+    "qa",
+    "testing",
+    "database"
+  ],
+  "skills": "./skills/"
+}

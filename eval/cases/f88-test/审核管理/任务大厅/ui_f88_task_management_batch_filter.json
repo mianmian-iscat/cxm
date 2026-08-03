@@ -1,0 +1,100 @@
+{
+  "id": "ui-f88-task-management-batch-filter",
+  "name": "UI：任务管理-批次筛选功能验证",
+  "description": "验证批次输入框筛选：输入批次ID→列表过滤→数据一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder*=\\\"批次\\\"], input[placeholder*=\\\"请输入\\\"]'); const batchInput = inputs[0]; return batchInput ? { found: true, placeholder: batchInput.placeholder } : { found: false }; })()",
+      "description": "查找批次输入框",
+      "storeAs": "batchInput"
+    },
+    {
+      "type": "assertStore",
+      "key": "batchInput",
+      "path": "found",
+      "equals": true,
+      "description": "断言批次输入框存在"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='批次'], input[placeholder*='请输入']",
+      "value": "BT_",
+      "react": true,
+      "description": "输入批次ID前缀"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const nodes = document.querySelectorAll('.ant-tree-treenode'); return { count: nodes.length }; })()",
+      "description": "记录筛选后节点数",
+      "storeAs": "filteredCount"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "点击重置"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const nodes = document.querySelectorAll('.ant-tree-treenode'); return { count: nodes.length }; })()",
+      "description": "记录重置后节点数",
+      "storeAs": "resetCount"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-mgmt-batch-filter",
+      "description": "批次筛选验证截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在批次数据。",
+    "realDomNotes": "批次筛选为输入框，支持模糊搜索。重置按钮清空筛选条件。",
+    "riskPoints": [
+      "批次输入框placeholder需实际确认"
+    ]
+  }
+}

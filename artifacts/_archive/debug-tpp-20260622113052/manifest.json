@@ -1,0 +1,32 @@
+{
+  "run_id": "debug-tpp-20260622113052",
+  "created_at": "2026-06-22T11:30:52.006796Z",
+  "artifacts": [
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/debug-tpp-20260622113052/input.json",
+      "size_bytes": 799,
+      "created_at": "2026-06-22T11:30:52.007071Z"
+    },
+    {
+      "type": "screenshot",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/debug-tpp-20260622113052/screenshots/step2-tpp-layer.png",
+      "size_bytes": 78653,
+      "created_at": "2026-06-22T11:31:04.080574Z"
+    },
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/debug-tpp-20260622113052/capture.json",
+      "size_bytes": 2,
+      "created_at": "2026-06-22T11:31:04.080737Z"
+    },
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/debug-tpp-20260622113052/output.json",
+      "size_bytes": 1172,
+      "created_at": "2026-06-22T11:31:04.086219Z"
+    }
+  ],
+  "finalized_at": "2026-06-22T11:31:04.086243Z",
+  "artifact_count": 4
+}

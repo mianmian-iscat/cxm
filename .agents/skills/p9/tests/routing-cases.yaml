@@ -1,0 +1,243 @@
+# P9 skill 路由测试用例
+# 目标：验证”主领域单选 + 动作/产物/修饰条件叠加”。
+
+- id: okr-write-uses-internal-reference
+  input: “帮我写一下 Q3 OKR，目标是提升团队 AI 编码效率”
+  expect_refs:
+    - references/okr-writing.md
+  expect_refs_optional:
+    - references/planning-and-strategy.md
+    - references/okr-example-2026.md
+  must_not_route_to:
+    - references/templates-more.md
+  notes: “写 OKR 和 OKR 通晒要分开。写 OKR 加载 okr-writing.md，不是模板29。”
+
+- id: okr-public-review-template
+  input: "已有 OKR，帮我整理成一份 OKR 通晒材料"
+  expect_refs:
+    - references/templates-more.md
+  must_cover:
+    - 模板29
+    - 通晒表达
+  must_not_route_to:
+    - references/planning-and-strategy.md
+  notes: "已有 OKR 时只需要通晒模板，不重新做战略规划。"
+
+- id: ai-personal-positioning
+  input: "AI 时代工程师个人应该怎么定位？我该焦虑什么、补什么？"
+  expect_refs:
+    - references/directional-judgment.md
+    - references/ai-era-viewpoints.md
+    - references/mental-model.md
+  must_cover:
+    - 主动准备被蒸馏
+    - 世界模型吞噬内容
+    - 个人知识库议价权
+    - 修路架桥
+    - 系统孤岛之间的连接
+  must_not_route_to:
+    - references/ai-harness-data.md
+    - references/promotion-review.md
+
+- id: ai-team-transformation-plan
+  input: "我们团队要做 AI 转型规划，帮我设计一下抓手和阶段路径"
+  expect_refs:
+    - references/ai-era-viewpoints.md
+    - references/ai-harness-data.md
+  must_cover:
+    - harness 成熟度
+    - 2026 年 6 月数据口径
+    - 知识闭环
+    - 验证闭环
+    - 上下游闭环
+  must_not_route_to:
+    - references/directional-judgment.md
+  notes: "团队 AI 转型规划和个人 AI 应对互斥。"
+
+- id: ai-solution-judgment
+  input: "这个 AI coding 方案值不值得在团队里推？帮我判断风险和收益"
+  expect_refs:
+    - references/directional-judgment.md
+    - references/ai-era-viewpoints.md
+    - references/technical-leadership.md
+  must_cover:
+    - AI 方案判断
+    - 三轴诊断
+    - 风险和收益
+  must_not_route_to:
+    - references/ai-harness-data.md
+
+- id: architecture-decision-review
+  input: "帮我评审一下这个架构方案，看看技术选型是否靠谱"
+  expect_refs:
+    - references/technical-leadership.md
+    - references/review-checklists.md
+  must_cover:
+    - 架构或工程决策
+    - 方案评审
+    - 取舍
+  must_not_route_to:
+    - references/communication.md
+
+- id: technical-proposal-writing
+  input: "我要写一份技术方案文档，面向架构评审会"
+  expect_refs:
+    - references/technical-leadership.md
+    - references/templates.md
+  expect_refs_optional:
+    - references/communication.md
+  must_cover:
+    - 技术方案结构
+    - 评审受众
+  notes: "技术方案撰写不是纯沟通写作；技术决策是主领域。"
+
+- id: code-review-feedback
+  input: "帮我 review 这次代码改动，重点看风险和可维护性"
+  expect_refs:
+    - references/review-checklists.md
+  must_cover:
+    - 代码变更评审
+    - 风险
+    - 可维护性
+  must_not_route_to:
+    - references/templates.md
+
+- id: architecture-diagram
+  input: "帮我画一张端技术中台架构图，既要表达技术分层，也要说明和集团生态的关系"
+  expect_refs:
+    - references/architecture-diagram-style.md
+    - references/technical-leadership.md
+  must_cover:
+    - 技术分层
+    - 边界和依赖
+    - 取舍
+    - 组织或生态关系
+  must_not_route_to:
+    - references/templates.md
+  notes: "画架构图不是普通技术方案撰写；重点是把技术体系、边界、依赖和取舍画清楚。"
+
+- id: cross-team-campaign
+  input: "我们要推进一个跨三个团队的大型项目，帮我设计推进机制"
+  expect_refs:
+    - references/project-management-patterns.md
+    - references/leading-large-initiatives.md
+  must_cover:
+    - 跨团队
+    - 推进机制
+    - 负责人和依赖
+  notes: "跨团队是项目管理的规模修饰条件，不是独立主领域。"
+
+- id: project-kickoff
+  input: "下周项目 KO，帮我准备 kickoff 材料"
+  expect_refs:
+    - references/project-management-patterns.md
+    - references/templates-extended.md
+  must_cover:
+    - 模板13
+    - 项目启动
+  expect_refs_optional:
+    - references/leading-large-initiatives.md
+
+- id: project-stage-summary
+  input: "帮我写一份项目阶段性总结，同步给几个合作团队"
+  expect_refs:
+    - references/work-reviews.md
+  expect_refs_optional:
+    - references/leading-large-initiatives.md
+  must_cover:
+    - 阶段总结
+    - 项目进展
+    - 后续风险
+
+- id: project-final-postmortem
+  input: "项目结项了，帮我写一份复盘材料"
+  expect_refs:
+    - references/work-reviews.md
+    - references/review-checklists.md
+  must_cover:
+    - 结项
+    - 复盘
+    - 问题和改进
+  expect_refs_optional:
+    - references/templates-more.md
+  notes: "结项复盘是复盘精确场景，不走泛化复盘路由。"
+
+- id: upward-report
+  input: "帮我写一份给上级的决策备忘录，说明是否继续投入这个项目"
+  expect_refs:
+    - references/communication.md
+  expect_refs_optional:
+    - references/templates.md
+  must_cover:
+    - 向上汇报
+    - 决策诉求
+    - 证据
+    - 取舍
+
+- id: downward-bad-news
+  input: "项目延期了，帮我写一份向团队同步的坏消息通报"
+  expect_refs:
+    - references/work-reviews.md
+    - references/communication.md
+  must_cover:
+    - 向下汇报
+    - 坏消息通报
+    - 影响
+    - 后续安排
+
+- id: promotion-review
+  input: "帮我评审一下这个同学是否达到 P7 晋升要求"
+  expect_refs:
+    - references/promotion-review.md
+    - references/promotion-report-template.md
+    - references/promotion-evaluate-examples.md
+    - references/promotion-ai-coding-assessment.md
+  must_cover:
+    - 晋升层级
+    - 角色方向
+    - 信息不足标注
+
+- id: personal-promotion-prep
+  input: "我自己想准备晋升，帮我看看接下来半年怎么补能力"
+  expect_refs:
+    - references/personal-growth.md
+    - references/mental-model.md
+  expect_refs_optional:
+    - references/organization-and-people.md
+  must_cover:
+    - 个人成长
+    - 能力短板
+    - 晋升准备
+  must_not_route_to:
+    - references/promotion-review.md
+  notes: "自身晋升准备和评审他人是否达标不同。"
+
+- id: annual-team-summary
+  input: "帮我写年度团队总结，要真实一点，不要官话"
+  expect_refs:
+    - references/annual-team-summary.md
+    - references/work-reviews.md
+    - references/communication.md
+  must_cover:
+    - 年度团队总结
+    - 真实
+    - 向下沟通
+
+- id: daily-work-journal
+  input: "帮我把今天的工作随记整理一下，保留一点个人味道"
+  expect_refs:
+    - references/daily-work-journal-example.md
+  must_cover:
+    - 日常随记
+    - 结构和表达方式
+  must_not_route_to:
+    - references/templates.md
+
+- id: general-problem-definition
+  input: "这个问题我有点拿不准，你帮我拆一下真正的问题是什么"
+  expect_refs:
+    - references/mental-model.md
+  must_cover:
+    - 问题定义
+    - 主要矛盾
+    - 假设

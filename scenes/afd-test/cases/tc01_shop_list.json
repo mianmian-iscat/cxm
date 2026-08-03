@@ -1,0 +1,88 @@
+{
+  "id": "tc01-shop-list",
+  "name": "AFD 店铺列表工作台 - 冒烟测试",
+  "description": "验证店铺列表加载、筛选、租户验证、视觉状态展示",
+  "priority": "P0",
+  "category": "smoke",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开 AFD 店铺列表工作台"
+    },
+    {
+      "type": "assert",
+      "target": "text",
+      "value": "AFD",
+      "description": "验证页面左上角显示 AFD 租户标识"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待列表数据加载"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图店铺列表初始状态"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='店铺名称']",
+      "value": "测试",
+      "react": true,
+      "description": "搜索店铺名称"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('搜索')",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待搜索结果"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图搜索结果"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": ".ant-table-row",
+      "exists": true,
+      "description": "验证表格行存在"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "page_title_contains",
+      "value": "风格店铺"
+    },
+    {
+      "type": "tenant_identity",
+      "value": "AFD"
+    }
+  ],
+  "tags": [
+    "afd",
+    "smoke",
+    "shop-list",
+    "tenant"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "id": "ui-f88-strategy-detail-stage-change",
+  "name": "UI：F88 策略阶段/环节修改",
+  "description": "打开策略详情页，修改策略阶段和环节，保存后刷新验证变更持久化。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const stageEl = document.querySelector('.ant-select-selection-item'); if (!stageEl) return {}; return { currentStage: stageEl.textContent.trim() }; })()",
+      "storeAs": "beforeChange",
+      "description": "记录当前策略阶段"
+    },
+    {
+      "type": "screenshot",
+      "label": "before-stage-change",
+      "description": "截图-修改前"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); for (const s of selects) { const val = s.querySelector('.ant-select-selection-item'); if (val && val.textContent.trim() === '视觉') { const target = s.querySelector('.ant-select-selector') || s; target.click(); return { ok: true }; } } return { ok: false }; })()",
+      "description": "打开环节 Select 下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待环节下拉列表展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dropdowns = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const d of dropdowns) { const items = d.querySelectorAll('.ant-select-item-option'); for (const item of items) { const txt = item.textContent.trim(); if (txt === '图文' || txt === '视频') { item.click(); return { selected: txt }; } } } return { selected: null }; })()",
+      "description": "选择一个不同的环节"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待环节选择生效"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-stage-change",
+      "description": "截图-环节修改后"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略保存完成"
+    },
+    {
+      "type": "navigate",
+      "url": "current",
+      "waitUntil": "networkidle",
+      "description": "刷新页面验证持久化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面重新加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证详情页加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const formItems = document.querySelectorAll('.ant-form-item'); for (const item of formItems) { const label = item.querySelector('.ant-form-item-label'); if (label && label.textContent.includes('环节')) { const val = item.querySelector('.ant-select-selection-item'); return { stageValue: val?.textContent.trim() }; } } return {}; })()",
+      "storeAs": "afterRefresh",
+      "description": "获取刷新后的环节值"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-refresh",
+      "description": "截图-刷新后验证"
+    }
+  ]
+}

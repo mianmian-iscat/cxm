@@ -1,0 +1,51 @@
+{
+  "id": "smoke-search",
+  "name": "冒烟：商品列表搜索",
+  "description": "验证品质联盟商品列表搜索功能基本可用",
+  "businessType": "unknown",
+  "scene": "xiaoer",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "xiaoer.alibaba-inc.com"
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "click",
+      "text": "搜索",
+      "description": "点击搜索按钮",
+      "screenshot": true
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "SKC",
+      "description": "验证有结果"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "/cobweb/api/"
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "BUC 登录态有效",
+    "riskPoints": [
+      "搜索接口超时",
+      "结果未渲染"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

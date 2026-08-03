@@ -1,0 +1,77 @@
+{
+  "id": "tc13-terminate",
+  "name": "终止迭代",
+  "description": "终止进行中迭代，验证弹窗必填和终态只读",
+  "priority": "P1",
+  "category": "functional",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('终止')",
+      "description": "点击终止按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": ".ant-modal",
+      "exists": true,
+      "description": "验证终止弹窗"
+    },
+    {
+      "type": "fill",
+      "selector": ".ant-modal textarea[placeholder*='原因']",
+      "value": "业务需求变更",
+      "react": true
+    },
+    {
+      "type": "click",
+      "selector": ".ant-modal button:has-text('确定')"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "CANCELLED"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图终止后状态"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "state_is",
+      "value": "CANCELLED"
+    }
+  ],
+  "tags": [
+    "afd",
+    "functional",
+    "terminate"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

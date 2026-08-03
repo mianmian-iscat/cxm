@@ -1,0 +1,69 @@
+{
+  "id": "atom-f88-tm-remaining-time",
+  "name": "原子：任务管理-剩余时间文案验证",
+  "description": "验证任务行显示'剩余：X小时X分钟'文案",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)').forEach(a => a.click()); })()",
+      "description": "展开"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const match = text.match(/剩余[：:]\\s*\\d+小时/); return { hasRemaining: !!match, text: match ? match[0] : null }; })()",
+      "description": "验证剩余时间",
+      "storeAs": "remainingTime"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-remaining-time",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

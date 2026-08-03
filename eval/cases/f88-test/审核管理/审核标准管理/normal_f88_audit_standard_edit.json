@@ -1,0 +1,137 @@
+{
+  "id": "normal_f88_audit_standard_edit",
+  "name": "审核标准管理 - 编辑/启用/禁用操作",
+  "description": "在审核标准管理页面验证编辑标准弹窗结构、启用/禁用状态切换、必填字段、操作后列表更新。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "audit-standard",
+    "CRUD",
+    "edit",
+    "toggle"
+  ],
+  "timeout": 120000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "waitUntil": "networkidle",
+      "description": "打开审核标准管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核标准",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "screenshot",
+      "label": "std-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tr[data-row-key]'); return { rowCount: rows.length, firstRowBtns: rows.length ? Array.from(rows[0].querySelectorAll('button, a, [class*=btn]')).map(b=>b.textContent.trim()).filter(Boolean) : [] }; })()",
+      "description": "探查列表行数和操作按钮"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "standard|review|update|toggle",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑",
+      "within": ".ant-table, [class*=list]",
+      "data-test-target": "edit-btn",
+      "description": "点击编辑按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待编辑弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "std-edit-form",
+      "description": "截图-编辑表单"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m=document.querySelector('.ant-modal,.ant-drawer,form'); if(!m) return {found:false}; const inputs=m.querySelectorAll('input,textarea'); const selects=m.querySelectorAll('.ant-select,select'); const switches=m.querySelectorAll('.ant-switch,[class*=switch]'); return {found:true, inputs:Array.from(inputs).map(i=>({placeholder:i.placeholder,value:i.value,type:i.type})), selectCount:selects.length, switchCount:switches.length, buttons:Array.from(m.querySelectorAll('button,.ant-btn')).map(b=>b.textContent.trim())}; })()",
+      "description": "探查编辑表单完整结构"
+    },
+    {
+      "type": "capture",
+      "selector": ".ant-modal, .ant-drawer, form",
+      "description": "捕获编辑表单DOM"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(标准名称|规则名称|编辑|审核标准)/",
+      "description": "验证编辑表单标题"
+    },
+    {
+      "type": "clickText",
+      "text": "/(取消|关闭)/",
+      "within": ".ant-modal, .ant-drawer",
+      "description": "取消编辑（不实际修改）"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "std-after-cancel",
+      "description": "截图-取消后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const switches = document.querySelectorAll('.ant-switch'); const toggles = document.querySelectorAll('[class*=toggle],[class*=enable],[class*=disable]'); return { switchCount: switches.length, switchStates: Array.from(switches).map(s=>({checked:s.classList.contains('ant-switch-checked'),class:s.className.substring(0,50)})), toggleCount: toggles.length }; })()",
+      "description": "查找启用/禁用开关组件"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const sw = document.querySelector('.ant-switch'); if(sw) { const wasChecked = sw.classList.contains('ant-switch-checked'); sw.click(); return { clicked: true, beforeState: wasChecked ? 'enabled' : 'disabled' }; } return { clicked: false }; })()",
+      "data-test-target": "toggle-switch",
+      "description": "切换启用/禁用状态"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待状态切换API"
+    },
+    {
+      "type": "screenshot",
+      "label": "std-toggled",
+      "description": "截图-切换后"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-message,.ant-notification,[class*=message]')?.textContent || 'no message'",
+      "description": "获取操作结果提示"
+    }
+  ],
+  "realDomNotes": "审核标准管理 /review/standard-management；编辑可能为弹窗或行内编辑；启用/禁用通常为 AntD Switch 组件。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在一条审核标准"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "normal-f88-view-run-results-dialog",
+  "name": "正常流程：F88 链路详情-查看运行结果弹窗结构验证",
+  "description": "打开链路详情页，点击查看运行结果按钮，验证弹窗展示5环节/任务列表/状态/出参/终止/添加策略区域。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路详情页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待详情页加载" },
+    { "type": "assert", "target": "page", "contains": "运行", "description": "验证运行结果入口存在" },
+    {
+      "type": "clickText",
+      "text": "查看运行结果",
+      "description": "点击查看运行结果"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待弹窗渲染" },
+    { "type": "assert", "target": "page", "contains": "运行", "description": "验证运行结果弹窗已打开" },
+    { "type": "assert", "target": "page", "contains": "任务", "description": "验证任务列表区域" },
+    { "type": "screenshot", "label": "f88-view-run-results", "description": "截图-运行结果弹窗" },
+    { "type": "clickText", "text": "取消", "description": "关闭弹窗" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180存在且有运行数据。",
+    "realDomNotes": "tc18_view_run_results 对应；弹窗展示5环节/任务列表/状态/出参/终止/添加策略。",
+    "riskPoints": ["按钮文案可能是'查看运行结果'或'运行结果'（需确认空格）", "无运行数据时弹窗内容区为空"]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "pat_first_publish_all_editable",
+  "category": "patterns",
+  "title": "预发首发字段全部可编辑BUG",
+  "content": "{\"error\": \"预发环境所有记录的首发字段均显示可编辑\", \"root_cause\": \"预发代码未部署类目校验逻辑\", \"fix\": \"确认预发是否已部署最新代码; 此为已知BUG(截至2026-06-23)\"}",
+  "tags": [
+    "首发",
+    "预发BUG",
+    "P2",
+    "已知缺陷"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.4997
+}

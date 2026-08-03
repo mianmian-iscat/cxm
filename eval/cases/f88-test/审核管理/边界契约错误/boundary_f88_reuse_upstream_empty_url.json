@@ -1,0 +1,90 @@
+{
+  "id": "boundary-f88-reuse-upstream-empty-url",
+  "name": "边界条件：复用上游模式 - 参考图url为空时校验拦截",
+  "description": "验证复用上游匹配模式下，参考图url为空时应校验拦截不允许提交",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击模板匹配"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待面板"
+    },
+    {
+      "type": "selectOption",
+      "label": "匹配模式",
+      "option": "复用上游",
+      "description": "选择复用上游"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待字段更新"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "参考图url",
+      "description": "验证参考图url字段存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "必填",
+      "description": "验证参考图url为必填"
+    },
+    {
+      "type": "screenshot",
+      "label": "reuse-empty-url",
+      "description": "截图 - 复用上游参考图url为空"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录",
+    "riskPoints": [
+      "复用上游需参考图url，为空时应校验拦截"
+    ],
+    "boundaryType": "required_field_empty",
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

@@ -1,0 +1,15 @@
+{
+  "id": "feat_subsidy_trigger",
+  "category": "features",
+  "title": "补贴触发条件与时序",
+  "content": "{\"rule\": \"init_allowance_start_time IS NOT NULL 即触发; 必须先设补贴时间再设到期时间\"}",
+  "tags": [
+    "补贴",
+    "时序规则",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499695
+}

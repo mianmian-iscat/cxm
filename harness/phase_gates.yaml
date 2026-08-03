@@ -1,0 +1,154 @@
+# phase_gates.yaml — 阶段门禁配置
+# 每个 Phase 结束后的质量关卡，必须通过才能进入下一阶段
+# 借鉴 cloth-test-memory 的 Gate 机制
+
+name: phase_gates
+version: "1.0"
+description: "测试流程阶段门禁：确保每个阶段的产物质量达标后才进入下一阶段"
+
+# ============================================================
+# 门禁定义
+# ============================================================
+
+gates:
+  # Phase 0: 环境准备 → Phase 1: 用例设计
+  - id: gate_p0_to_p1
+    from_phase: 0
+    to_phase: 1
+    name: "环境就绪门禁"
+    checks:
+      - id: browser_connected
+        description: "浏览器 CDP 连接正常"
+        tool: cdp.health_check
+        on_fail: block
+      - id: login_verified
+        description: "登录态验证通过"
+        tool: auth.verify_session
+        on_fail: block
+      - id: target_url_accessible
+        description: "目标页面可访问"
+        tool: http.ping
+        on_fail: warn
+
+  # Phase 1: 用例设计 → Phase 2: 数据构造+执行
+  - id: gate_p1_to_p2
+    from_phase: 1
+    to_phase: 2
+    name: "用例就绪门禁"
+    checks:
+      - id: cases_generated
+        description: "测试用例已生成"
+        tool: artifacts.check_exists
+        params:
+          path: "artifacts/test-cases.json"
+        on_fail: block
+      - id: cases_reviewed
+        description: "用例已评审（人工确认或自动检查覆盖率）"
+        tool: cases.validate_coverage
+        params:
+          min_coverage: 0.6  # 至少 60% PRD 功能点覆盖
+        on_fail: warn
+      - id: data_readiness
+        description: "数据构造计划已就绪"
+        tool: artifacts.check_exists
+        params:
+          path: "artifacts/data-supply-plan.json"
+        on_fail: warn
+
+  # Phase 2: 数据构造 → Phase 2: UI 执行
+  - id: gate_data_to_exec
+    from_phase: 2
+    to_phase: 2
+    name: "数据就绪门禁（造数→执行）"
+    sub_phase: "data_prep → execution"
+    checks:
+      - id: data_constructed
+        description: "测试数据已构造完成"
+        tool: data_setup.verify
+        on_fail: block
+      - id: data_persisted
+        description: "数据已持久化到 DB（DB 层验证）"
+        tool: db.verify_data_exists
+        on_fail: block
+      - id: data_fresh
+        description: "数据为本次会话创建（非历史数据）"
+        tool: data_setup.verify_freshness
+        params:
+          max_age_minutes: 30
+        on_fail: warn
+
+  # Phase 2: UI 执行 → Phase 3: 报告
+  - id: gate_p2_to_p3
+    from_phase: 2
+    to_phase: 3
+    name: "执行完成门禁"
+    checks:
+      - id: all_cases_executed
+        description: "所有用例已执行（通过/失败/跳过）"
+        tool: execution.check_completion
+        on_fail: block
+      - id: screenshots_saved
+        description: "关键截图已保存"
+        tool: artifacts.check_screenshots
+        params:
+          min_per_case: 1
+        on_fail: warn
+      - id: evidence_collected
+        description: "证据链已收集"
+        tool: evidence_store.check_completeness
+        on_fail: warn
+
+  # Phase 3: 报告 → Phase 4: 知识沉淀
+  - id: gate_p3_to_p4
+    from_phase: 3
+    to_phase: 4
+    name: "报告完成门禁"
+    checks:
+      - id: report_generated
+        description: "测试报告已生成"
+        tool: artifacts.check_exists
+        params:
+          path: "artifacts/report.md"
+        on_fail: block
+      - id: bugs_submitted
+        description: "发现的 Bug 已提交（如有）"
+        tool: aone.check_bugs_submitted
+        on_fail: warn
+
+  # Phase 4: 知识沉淀 → 归档
+  - id: gate_p4_to_archive
+    from_phase: 4
+    to_phase: 5
+    name: "沉淀完成门禁"
+    checks:
+      - id: learnings_extracted
+        description: "失败模式已提取并写入 learnings"
+        tool: knowledge.extract_learnings
+        on_fail: skip
+      - id: knowledge_updated
+        description: "知识库已更新（如有新发现）"
+        tool: knowledge.check_updates
+        on_fail: skip
+
+# ============================================================
+# 门禁行为配置
+# ============================================================
+
+gate_behavior:
+  # 门禁未通过时的行为
+  on_block:
+    notify: true              # 通知用户
+    notify_channel: dingtalk  # 通知渠道
+    wait_for_human: true      # 等待人工确认
+    timeout_minutes: 30       # 超时时间
+
+  # 警告时的行为
+  on_warn:
+    notify: true
+    continue: true            # 继续执行但记录警告
+    log_level: warn
+
+  # 跳过时的行为
+  on_skip:
+    log_level: info
+    record_reason: true       # 记录跳过原因

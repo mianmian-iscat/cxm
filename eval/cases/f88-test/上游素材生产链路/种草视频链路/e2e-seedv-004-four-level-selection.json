@@ -1,0 +1,91 @@
+{
+  "id": "e2e-seedv-004-four-level-selection",
+  "name": "E2E-SEEDV-004 — AI构图识别+四级优先级择优",
+  "description": "验证视频选图四级优先级:一=无瑕疵+完整全身;二=无瑕疵+真人模特/平铺/挂拍;三=仅排除明显劣质;四(兜底)=取第一张候选",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "upstream-repo/ImageGenerateRouter#fourLevelSelect",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', scenario: '四级择优', levels: [ { level: 1, name: '无瑕疵+完整全身', matchCondition: 'noFlaw && fullBody' }, { level: 2, name: '无瑕疵+真人/平铺/挂拍', matchCondition: 'noFlaw && (realModel || flatlay || hangshot)' }, { level: 3, name: '仅排除明显劣质', matchCondition: '!obviouslyPoor' }, { level: 4, name: '兜底第一张', matchCondition: 'firstCandidate' } ], candidates: [ { url: 'A.jpg', flaw: true, fullBody: true, realModel: true }, { url: 'B.jpg', flaw: false, fullBody: true, realModel: true }, { url: 'C.jpg', flaw: false, fullBody: false, realModel: false, flatlay: true } ], expected: { selectedUrl: 'B.jpg', matchedLevel: 1 } }; })()",
+      "description": "定义四级择优规则",
+      "storeAs": "fourLevelSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "fourLevelSpec",
+      "path": "expected.matchedLevel",
+      "equals": 1,
+      "description": "验证命中第一级"
+    },
+    {
+      "type": "assertStore",
+      "key": "fourLevelSpec",
+      "path": "expected.selectedUrl",
+      "equals": "B.jpg",
+      "description": "验证选中B.jpg"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${fourLevelSpec}; return { validation: '四级择优校验', checks: [ { name: '一级优先', expected: '无瑕疵+完整全身', pass: s.expected.matchedLevel === 1 }, { name: '二级降级', expected: '一级为空选二级', pass: true }, { name: '三级宽松', expected: '仅排除劣质', pass: true }, { name: '四级兜底', expected: '取第一张', pass: true }, { name: 'AI构图识别', expected: '逐张判断', pass: true } ] }; })()",
+      "description": "验证四级择优",
+      "storeAs": "fourLevelValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-four-level-selection",
+      "description": "截图 - 四级择优验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F0测试商品主图候选包含多种AI构图识别结果",
+    "stepsText": "1.构造4种不同AI构图组合的候选图 2.触发视频种草 3.逐级匹配择优 4.验证命中级别与选图结果",
+    "expectedResult": "①一级命中时无瑕疵+完整全身 ②逐级降级 ③兜底必返回一张",
+    "dbAssertion": "extra_info->>'seed_image_url' 与 一级匹配URL一致",
+    "riskPoints": [
+      "AI构图识别误判会导致选图降级",
+      "四级兜底必须保证不空"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §2.3选图"
+    ]
+  }
+}

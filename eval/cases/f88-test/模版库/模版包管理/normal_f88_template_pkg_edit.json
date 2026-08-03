@@ -1,0 +1,151 @@
+{
+  "id": "normal_f88_template_pkg_edit",
+  "name": "模版包管理 - 编辑模板包 + 状态回退验证",
+  "description": "进入模版包详情页，找到编辑入口，修改模板包配置后保存，验证修改生效且状态回退（IDLE→DRAFT，风险点#20）。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template",
+    "CRUD",
+    "edit",
+    "risk-20"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "打开模版包管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "edit-pkg-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards=document.querySelectorAll('.ant-card,[class*=card]'); return Array.from(cards).slice(0,3).map(c => ({text:c.textContent.substring(0,120), buttons:Array.from(c.querySelectorAll('button,a,[class*=btn]')).map(b=>b.textContent.trim()).filter(Boolean)})); })()",
+      "description": "探查卡片操作按钮"
+    },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "within": ".ant-card, [class*=card]",
+      "data-test-target": "detail-entry",
+      "description": "点击进入详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待详情页加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "edit-pkg-detail",
+      "description": "截图-详情页"
+    },
+    {
+      "type": "capture",
+      "selector": "main, .ant-layout-content, [class*=detail]",
+      "description": "捕获详情页DOM"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-tag,[class*=tag],[class*=status]')).map(el=>el.textContent.trim()).filter(Boolean)",
+      "description": "快照-编辑前状态标签"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|package|update|edit",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "/(编辑|修改)/",
+      "description": "点击编辑按钮（详情页或卡片）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待编辑表单"
+    },
+    {
+      "type": "screenshot",
+      "label": "edit-pkg-form",
+      "description": "截图-编辑表单"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const f=document.querySelector('.ant-modal,.ant-drawer,form,[class*=edit]'); if(!f) return {found:false}; const inputs=f.querySelectorAll('input,textarea'); const selects=f.querySelectorAll('.ant-select,select'); return {found:true, inputCount:inputs.length, inputValues:Array.from(inputs).map(i=>({placeholder:i.placeholder,value:i.value})), selectCount:selects.length}; })()",
+      "description": "探查编辑表单结构+当前值"
+    },
+    {
+      "type": "fill",
+      "selector": ".ant-modal input, .ant-drawer input, form input",
+      "selectorIndex": 0,
+      "value": "编辑后_自动化测试_0710",
+      "react": true,
+      "data-test-target": "edit-pkg-name",
+      "description": "修改模板包名称（React受控）"
+    },
+    {
+      "type": "screenshot",
+      "label": "edit-pkg-modified",
+      "description": "截图-修改后"
+    },
+    {
+      "type": "clickText",
+      "text": "/(保存|确定|提交|确认|更新)/",
+      "within": ".ant-modal, .ant-drawer, form",
+      "data-test-target": "edit-submit-btn",
+      "description": "点击保存"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待保存API返回"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "edit-pkg-saved",
+      "description": "截图-保存后"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(编辑后_自动化测试_0710|成功|已保存|已更新)/",
+      "description": "验证修改已保存"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-tag,[class*=tag],[class*=status]')).map(el=>el.textContent.trim()).filter(Boolean)",
+      "description": "快照-编辑后状态标签（验证回退）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(草稿|DRAFT|待审核|审核中|未使用|停用)/",
+      "description": "验证编辑后状态回退为草稿/待审核（风险点#20）"
+    }
+  ],
+  "realDomNotes": "编辑入口可能在详情页或卡片；编辑后触发 IDLE→DRAFT 状态回退（风险点#20）；React受控Input需react:true。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在一个模板包"
+}

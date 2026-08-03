@@ -1,0 +1,126 @@
+{
+  "id": "regression-op-apply-list-status",
+  "name": "回归：原创保护申请列表与状态流转",
+  "description": "验证小二端申请列表页核心功能：页面加载、状态筛选、列表数据展示、申请详情查看",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开原创保护小二端申请列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "申请状态",
+      "description": "验证申请列表页已加载（含状态筛选字段）"
+    },
+    {
+      "type": "screenshot",
+      "label": "op-apply-list-initial",
+      "description": "截图-申请列表初始状态"
+    },
+    {
+      "type": "selectOption",
+      "label": "申请状态",
+      "option": "专利申请中",
+      "labelClass": "tbd-formily-item-label",
+      "description": "【TC_APPLY_001】筛选「专利申请中」状态的申请（原「审核中」在真实UI无此选项，勘误为真实选项）"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "选择状态后自动筛选（该页无独立搜索按钮，勘误）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "op-apply-list-filtered",
+      "description": "截图-按状态筛选后的申请列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "专利申请中",
+      "description": "验证筛选结果展示专利申请中的申请"
+    },
+    {
+      "type": "assert",
+      "assertion": "paginationConsistency",
+      "expected": "申请列表分页总数 vs 每页条数 vs 当前页实际行数一致",
+      "description": "数据一致性：校验分页「共X条」与当前页表格数据行数是否对得上（暴露分页/总数统计bug）"
+    },
+    {
+      "type": "click",
+      "text": "查看",
+      "description": "【TC_APPLY_002】点击查看第一条申请详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待详情页/Drawer加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "op-apply-detail",
+      "description": "截图-申请详情"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "商家",
+      "description": "验证申请详情包含商家信息"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "taotian-apparel-original-protection",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "预发环境可访问，存在审核中状态的测试申请数据",
+    "riskPoints": [
+      "申请状态筛选联动",
+      "列表→详情跳转",
+      "快审/普通审核状态区分"
+    ],
+    "qoderworkRef": "yc-child-shoes-testcases/test_04_patent_apply.py TC_APPLY_001/002"
+  },
+  "source": "qoderwork/yc-child-shoes-testcases/test_04_patent_apply.py",
+  "sourceIds": [
+    "TC_APPLY_001",
+    "TC_APPLY_002"
+  ]
+}

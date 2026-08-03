@@ -1,0 +1,73 @@
+{
+  "id": "normal-f88-dashboard-timeout-suite",
+  "name": "正常流程：看板-套图生图超时(72h)状态展示",
+  "description": "验证生产看板超时任务数中包含套图生图超时，超时阈值72小时",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图生图超时",
+      "description": "验证套图生图超时"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "72",
+      "description": "验证72"
+    },
+    {
+      "type": "screenshot",
+      "label": "normal-f88-dashboard-timeout-suite",
+      "description": "截图 - 正常流程：看板-套图生图超时(72h)状态展示"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录",
+    "riskPoints": [
+      "套图生图超时阈值为72h"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

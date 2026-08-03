@@ -1,0 +1,96 @@
+{
+  "id": "normal-f88-template-match-reuse-upstream",
+  "name": "正常流程：模板匹配节点 - 复用上游匹配模式",
+  "description": "验证模板匹配节点「复用上游」模式能正确引用上游环节输出的参考图模板匹配图组数据，实现首图模板组在套图环节复用",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待策略详情页渲染"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击套图环节的模板匹配节点"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待配置面板加载"
+    },
+    {
+      "type": "selectOption",
+      "label": "匹配模式",
+      "option": "复用上游",
+      "description": "选择匹配模式为「复用上游」"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待字段更新"
+    },
+    {
+      "type": "screenshot",
+      "label": "reuse-upstream-config",
+      "description": "截图 - 复用上游模式配置"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "参考图",
+      "description": "验证需要输入参考图url字段"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "复用上游",
+      "description": "验证复用上游模式已选中"
+    },
+    {
+      "type": "screenshot",
+      "label": "reuse-upstream-complete",
+      "description": "截图 - 复用上游配置完成"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录，策略中已配置首图环节且存在模板匹配输出",
+    "riskPoints": [
+      "复用上游模式依赖上游首图环节的模板匹配输出",
+      "首图应用且通过审核的模板组才能在套图环节复用",
+      "参考图url字段必须正确关联上游输出"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

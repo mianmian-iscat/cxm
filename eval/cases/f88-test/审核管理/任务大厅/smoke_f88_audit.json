@@ -1,0 +1,109 @@
+{
+  "id": "smoke-f88-audit-list",
+  "name": "F88 素材审核列表查询 - 冒烟测试",
+  "description": "验证 F88 素材审核列表能加载、筛选可执行、API 响应正常",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task/list?taskType=audit",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task/list?taskType=audit",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开 F88 素材审核列表页面"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditList",
+      "timeout": 15000,
+      "description": "等待审核列表初始加载接口响应"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待表格渲染完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-list-initial",
+      "description": "截图 - 审核列表初始状态"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "共",
+      "description": "验证审核列表有数据"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "value": "待审核",
+      "selector": ".ant-select",
+      "description": "筛选「待审核」状态的素材"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": ".ant-btn-primary",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditList",
+      "timeout": 15000,
+      "description": "等待筛选后接口响应"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待表格刷新"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-list-filtered",
+      "description": "截图 - 筛选后审核列表"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryMaterialAuditList",
+      "contains": "totalCount",
+      "description": "验证接口返回包含总数"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "BUC 登录态有效，预发环境可用",
+    "riskPoints": [
+      "审核列表接口超时",
+      "筛选下拉组件漂移"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

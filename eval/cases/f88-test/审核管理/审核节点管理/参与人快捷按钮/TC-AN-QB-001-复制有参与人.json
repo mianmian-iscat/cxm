@@ -1,0 +1,60 @@
+{
+  "id": "TC-AN-QB-001",
+  "name": "TC-AN-QB-001 — 复制按钮：有已选参与人时成功复制 [P0]",
+  "description": "审核节点编辑页已打开，已选参与人区域有至少1位参与人",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮",
+  "page": "审核节点编辑页",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "waitUntil": "networkidle",
+      "description": "打开审核节点管理页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待页面加载" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false, error: '无可编辑节点' }; })()",
+      "description": "点击第一个节点的编辑按钮",
+      "storeAs": "openEdit"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待编辑页加载" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const label = Array.from(document.querySelectorAll('*')).find(el => (el.textContent || '').trim().startsWith('已选参与人')); if (!label) return { found: false, error: '未找到已选参与人标签' }; const parent = label.closest('[class*=participantSection]') || label.closest('.ant-form-item') || label.parentElement; const btns = parent ? Array.from(parent.querySelectorAll('button')) : []; const copyBtn = btns.find(b => (b.textContent || '').includes('复制')); return { found: !!copyBtn, btnText: copyBtn ? copyBtn.textContent.trim() : '', parentText: parent ? parent.textContent.substring(0, 200) : '' }; })()",
+      "description": "探查已选参与人区域及复制按钮",
+      "storeAs": "probeCopyBtn"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const copyBtn = btns.find(b => (b.textContent || '').includes('复制')); if (!copyBtn) return { clicked: false, error: '未找到复制按钮' }; copyBtn.click(); return { clicked: true }; })()",
+      "description": "点击复制按钮",
+      "storeAs": "clickCopy"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待toast出现" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const toasts = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); const hasSuccessToast = toastTexts.some(t => t.includes('已复制') && t.includes('位参与人')); return { toasts: toastTexts, hasSuccessToast }; })()",
+      "description": "验证toast提示'已复制 N 位参与人'",
+      "storeAs": "verifyToast"
+    },
+    { "type": "screenshot", "label": "copy-btn-toast", "description": "复制成功截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开，已选参与人区域有至少1位参与人",
+    "stepsText": "1. 进入审核节点编辑页\\n2. 确认已选参与人区域有人员\\n3. 点击「复制」按钮",
+    "expectedResult": "1. 已选参与人数据被复制到剪贴板，格式为[{empId,empName}]的JSON数组\\n2. 页面toast提示「已复制 N 位参与人」",
+    "priority": "P0",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

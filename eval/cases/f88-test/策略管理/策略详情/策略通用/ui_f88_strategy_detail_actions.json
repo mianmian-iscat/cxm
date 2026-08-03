@@ -1,0 +1,195 @@
+{
+  "id": "ui-f88-strategy-detail-actions",
+  "name": "UI：F88 策略详情页操作按钮",
+  "description": "打开策略详情页，验证返回列表、试运行、查看运行结果等操作按钮功能正常。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "返回列表",
+      "description": "验证返回列表按钮存在"
+    },
+    {
+      "type": "clickText",
+      "text": "返回列表",
+      "description": "点击返回列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待列表页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证回到策略列表页"
+    },
+    {
+      "type": "screenshot",
+      "label": "back-to-list",
+      "description": "截图-返回列表"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "重新打开策略"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入详情页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查看运行结果",
+      "description": "验证查看运行结果按钮存在"
+    },
+    {
+      "type": "clickText",
+      "text": "查看运行结果",
+      "description": "点击查看运行结果"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); return { hasModal: !!modal, hasDrawer: !!drawer, modalTitle: modal?.querySelector('.ant-modal-title')?.textContent.trim() }; })()",
+      "storeAs": "runResultUI",
+      "description": "检查运行结果弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "run-results",
+      "description": "截图-运行结果弹窗"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭运行结果"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待关闭"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "试运行",
+      "description": "验证试运行按钮存在"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (modal) return { hasModal: true, title: modal.querySelector('.ant-modal-title')?.textContent.trim() }; return { hasModal: false }; })()",
+      "storeAs": "trialRunUI",
+      "description": "检查试运行弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "trial-run",
+      "description": "截图-试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const btn = [...modal.querySelectorAll('button')].find(b => b.textContent.replace(/\\s/g, '').includes('取消')); if (btn) { btn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "取消试运行"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待弹窗关闭"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证回到详情页"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-final",
+      "description": "截图-详情页最终状态"
+    }
+  ]
+}

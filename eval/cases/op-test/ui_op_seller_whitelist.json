@@ -1,0 +1,35 @@
+{
+  "id": "ui-op-seller-whitelist",
+  "name": "UI：原创保护商家端-白名单店铺管理页面验证",
+  "description": "从商家端首页点击「管理白名单店铺」，验证白名单管理页面：页面标题、白名单列表、店铺信息、添加店铺入口、删除操作、搜索功能。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 5000,
+    "auth": "taobao"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开商家端首页" },
+    { "type": "wait", "ms": 5000, "description": "等待首页加载" },
+    { "type": "assert", "target": "page", "contains": "管理白名单店铺", "description": "验证白名单入口可见" },
+    { "type": "clickText", "text": "管理白名单店铺", "description": "点击管理白名单店铺" },
+    { "type": "wait", "ms": 3000, "description": "等待白名单页面渲染" },
+    { "type": "screenshot", "label": "seller-whitelist-page", "description": "截图-白名单管理页面" },
+    { "type": "assert", "target": "page", "contains": "白名单", "description": "【页面标题】验证白名单管理页已打开" },
+    { "type": "assert", "target": "page", "contains": "店铺", "description": "【列表内容】验证含店铺信息" },
+    { "type": "assert", "target": "page", "contains": "新增店铺", "description": "【操作按钮】验证含新增店铺按钮" },
+    { "type": "screenshot", "label": "seller-whitelist-full", "description": "截图-白名单管理完整" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "淘宝SSO已登录商家端。",
+    "realDomNotes": "白名单管理页面：列表(店铺名/状态/操作)+添加+删除+搜索。入口在商家端首页「管理白名单店铺」按钮。",
+    "riskPoints": ["白名单页面可能是新页面或弹窗", "无白名单数据时为空态"]
+  }
+}

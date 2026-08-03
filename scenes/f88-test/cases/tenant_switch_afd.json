@@ -1,0 +1,93 @@
+{
+  "id": "tenant-switch-afd-f88",
+  "name": "F88↔AFD 租户切换验证",
+  "description": "验证同一域名下 F88 和 AFD 租户身份切换的正确性，包括页面标识、数据隔离和路由切换",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开 F88 审核管理页面"
+    },
+    {
+      "type": "assert",
+      "target": "text",
+      "value": "F88",
+      "description": "验证 F88 租户标识"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "导航到 AFD 风格店铺协作平台"
+    },
+    {
+      "type": "assert",
+      "target": "text",
+      "value": "AFD",
+      "description": "验证 AFD 租户标识"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": ".ant-table",
+      "exists": true,
+      "description": "验证 AFD 店铺列表表格存在"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图 AFD 店铺列表页面"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "切回 F88 审核管理页面"
+    },
+    {
+      "type": "assert",
+      "target": "text",
+      "value": "F88",
+      "description": "验证切回后 F88 租户标识恢复"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待页面完全加载"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": ".ant-table",
+      "exists": true,
+      "description": "验证 F88 审核列表表格存在"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图 F88 审核列表（切回后）"
+    }
+  ],
+  "assertions": [
+    {"type": "tenant_switch", "from": "F88", "to": "AFD", "back_to": "F88"},
+    {"type": "data_isolation", "description": "AFD页面只显示风格店铺数据，F88页面只显示审核数据"}
+  ],
+  "tags": ["tenant", "cross-domain", "afd", "f88", "smoke"]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "clickText",
+  "version": "1.0.0",
+  "description": "点击包含指定文本的元素",
+  "triggers": ["点击文本", "文字按钮", "clickText"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "text"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "clickText" },
+      "text": { "type": "string", "description": "要点击的文本" },
+      "selector": { "type": "string", "default": "button, a, [role=\"button\"], [class*=\"btn\"], span" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "clicked": { "type": "boolean" } } },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 500 }
+}

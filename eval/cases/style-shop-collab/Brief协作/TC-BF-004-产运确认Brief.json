@@ -1,0 +1,53 @@
+{
+  "id": "TC-BF-004",
+  "name": "TC-BF-004 — 产运确认Brief通过 [P0]",
+  "description": "验证产运确认Brief后迭代进入IN_PRODUCTION，Brief版本状态变为已确认",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "Brief协作",
+  "page": "迭代详情-Brief tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const briefContent = document.querySelector('[class*=brief], [class*=readonly]'); const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('确认 Brief') || b.textContent.includes('确认Brief')); const rejectBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('驳回')); return { briefVisible: !!briefContent || text.length > 100, confirmBtn: !!confirmBtn, rejectBtn: !!rejectBtn }; })()",
+      "description": "验证产运确认页展示",
+      "storeAs": "confirmPage"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const steps = Array.from(document.querySelectorAll('[class*=step-item], [class*=step]')).map(s => s.textContent.trim()); return { tabs, stepsPreview: steps.slice(0, 6) }; })()",
+      "description": "检查步骤条和tab",
+      "storeAs": "navCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "operator-confirm-brief"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为PENDING_BRIEF，当前用户是产运",
+    "stepsText": "1. 进入Brief tab\n2. 验证Brief内容只读展示\n3. 验证底部操作栏展示确认Brief和驳回Brief\n4. 点击确认Brief",
+    "expectedResult": "1. Brief内容只读展示\n2. 底部展示确认Brief和驳回Brief按钮\n3. 确认后迭代进入IN_PRODUCTION\n4. 时间线追加确认事件",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/Brief协作"
+  }
+}

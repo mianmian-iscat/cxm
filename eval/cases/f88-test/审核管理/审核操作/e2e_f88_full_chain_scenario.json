@@ -1,0 +1,181 @@
+{
+  "id": "e2e-f88-full-chain-scenario",
+  "name": "全链路场景：F88 任务大厅 → 个人任务中心 → 审核详情 → 操作 → 通过/驳回 → 进度/通过率一致性",
+  "description": "从任务大厅切入，遍历四种构造来源（策略平台-F88/策略平台-测试/手动创建/模版库），进入个人任务中心选取有数据的审核任务，进入审核详情页验证工具栏按钮，执行通过或驳回，最后回个人任务中心校验进度与通过率是否同步更新。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务大厅"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务大厅加载" },
+
+    { "type": "assert", "target": "page", "contains": "策略平台-F88", "description": "验证策略平台-F88 tab存在" },
+    { "type": "assert", "target": "page", "contains": "策略平台", "description": "验证策略平台相关tab存在" },
+    { "type": "assert", "target": "page", "contains": "手动创建", "description": "验证手动创建tab存在" },
+    { "type": "assert", "target": "page", "contains": "模版库", "description": "验证模版库tab存在" },
+
+    {
+      "type": "clickText",
+      "text": "策略平台-测试",
+      "description": "切换到策略平台-测试来源tab"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待切换" },
+    { "type": "screenshot", "label": "fullchain-tab-test", "description": "截图-策略平台-测试tab" },
+
+    {
+      "type": "clickText",
+      "text": "手动创建",
+      "description": "切换到手動创建来源tab"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待切换" },
+    { "type": "screenshot", "label": "fullchain-tab-manual", "description": "截图-手动创建tab" },
+
+    {
+      "type": "clickText",
+      "text": "模版库",
+      "description": "切换到模版库来源tab"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待切换" },
+    { "type": "screenshot", "label": "fullchain-tab-template", "description": "截图-模版库tab" },
+
+    {
+      "type": "clickText",
+      "text": "策略平台-F88",
+      "description": "切回策略平台-F88来源tab"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待切换" },
+    { "type": "screenshot", "label": "fullchain-tab-f88", "description": "截图-策略平台-F88 tab" },
+
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "进入个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待个人任务中心加载" },
+    { "type": "assert", "target": "page", "contains": "审核任务", "description": "验证审核任务Tab" },
+    { "type": "assert", "target": "page", "contains": "抽检任务", "description": "验证抽检任务Tab" },
+    { "type": "assert", "target": "page", "contains": "埋雷任务", "description": "验证埋雷任务Tab" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; if (!row) return null; const cells = row.querySelectorAll('td'); const progressCell = Array.from(cells).find(c => /进行|完成|待开始|\\d\\/\\d/.test(c.innerText)); const passRateCell = Array.from(cells).find(c => /%|通过/.test(c.innerText)); const opCell = Array.from(cells).find(c => c.innerText.includes('查看详情')); const detailLink = opCell ? opCell.querySelector('a') : null; const href = detailLink?.getAttribute('href') || ''; const taskIdMatch = href.match(/[?&]taskId=([^&]+)/); return { taskName: cells[0]?.innerText?.trim(), progressText: progressCell?.innerText?.trim(), passRateText: passRateCell?.innerText?.trim(), detailHref: href, taskId: taskIdMatch ? taskIdMatch[1] : '' }; })()",
+      "storeAs": "firstTask",
+      "description": "读取首个审核任务信息"
+    },
+
+    {
+      "type": "assertStore",
+      "key": "firstTask",
+      "path": "taskName",
+      "notEmpty": true,
+      "description": "断言有审核任务"
+    },
+
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "description": "进入任务详情"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务详情页加载" },
+    { "type": "screenshot", "label": "fullchain-task-detail", "description": "截图-任务详情页" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const links = Array.from(document.querySelectorAll('a')); const detailLink = links.find(a => a.href.includes('task/detail') || a.textContent.includes('审核详情')); return { detailHref: detailLink?.href, hasDetail: !!detailLink }; })()",
+      "storeAs": "detailLink",
+      "description": "查找审核详情链接"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img[src*=\"imgextra\"], img[src*=\"oss\"], video')); const first = imgs[0]; return { src: first?.src || first?.getAttribute('src'), tag: first?.tagName }; })()",
+      "storeAs": "firstMedia",
+      "description": "查找第一个素材"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const toolbar = document.querySelector('[class*=\"toolbar\"], [class*=\"action-bar\"], [class*=\"bottom-bar\"]'); if (toolbar) return { hasToolbar: true, toolbarText: toolbar.innerText }; const btns = Array.from(document.querySelectorAll('button')).filter(b => /编辑|下载|替换|裁剪|局部修改|高清化|负反馈|复位|复制|剪辑/.test(b.innerText)); return { hasToolbar: btns.length > 0, buttonCount: btns.length, buttons: btns.map(b => b.innerText.trim()) }; })()",
+      "storeAs": "toolbarInfo",
+      "description": "检测工具栏按钮"
+    },
+
+    { "type": "screenshot", "label": "fullchain-audit-toolbar", "description": "截图-审核工具栏" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const passBtn = btns.find(b => b.innerText.includes('通过')); const rejectBtn = btns.find(b => b.innerText.includes('驳回') || b.innerText.includes('不通过')); return { hasPass: !!passBtn, hasReject: !!rejectBtn, passText: passBtn?.innerText?.trim(), rejectText: rejectBtn?.innerText?.trim() }; })()",
+      "storeAs": "auditButtons",
+      "description": "检测通过/驳回按钮"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const passBtn = btns.find(b => b.innerText.includes('通过')); if (passBtn) { passBtn.click(); return { clicked: 'pass' }; } return { clicked: null }; })()",
+      "description": "点击通过按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待确认弹窗" },
+    { "type": "screenshot", "label": "fullchain-pass-confirm", "description": "截图-通过确认弹窗" },
+
+    {
+      "type": "clickText",
+      "text": "确定",
+      "description": "确认通过"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待通过操作完成" },
+    { "type": "screenshot", "label": "fullchain-pass-done", "description": "截图-通过完成" },
+
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "返回个人任务中心校验进度/通过率"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待列表刷新" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; if (!row) return null; const cells = row.querySelectorAll('td'); const progressCell = Array.from(cells).find(c => /进行|完成|待开始|\\d\\/\\d/.test(c.innerText)); const passRateCell = Array.from(cells).find(c => /%|通过/.test(c.innerText)); return { progressText: progressCell?.innerText?.trim(), passRateText: passRateCell?.innerText?.trim() }; })()",
+      "storeAs": "afterTask",
+      "description": "读取操作后的进度/通过率"
+    },
+    { "type": "screenshot", "label": "fullchain-after-pass", "description": "截图-操作后进度/通过率" },
+    {
+      "type": "assertStore",
+      "key": "afterTask",
+      "path": "progressText",
+      "notEmpty": true,
+      "description": "断言操作后进度已更新"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心至少有1个含数据的审核任务。",
+    "realDomNotes": "任务大厅4个来源tab；个人任务中心3个任务类型tab；审核详情页工具栏；通过/驳回按钮。",
+    "riskPoints": [
+      "无审核任务时无法进入详情",
+      "工具栏按钮DOM结构可能因素材类型变化",
+      "通过/驳回确认弹窗文案可能为'确认'而非'确定'",
+      "进度/通过率可能异步刷新需要额外等待"
+    ]
+  }
+}

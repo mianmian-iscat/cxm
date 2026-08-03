@@ -1,0 +1,16 @@
+{
+  "id": "feat_f88_react_antd",
+  "category": "features",
+  "title": "F88页面React+Ant Design交互规范",
+  "content": "{\"framework\": \"react-antd\", \"search_input\": \"React受控组件, fill必须react:true (native setter + dispatchEvent)\", \"audit_detail\": \"Drawer抽屉组件(.ant-drawer), 需等动画完成~300ms\", \"reject_reason\": \"必填项, 不填时确认按钮disabled\", \"image_lazy_load\": \"素材大图懒加载, 截图前需等图片加载完成\", \"watermark\": \".wm_div_id 每次操作前清除\", \"screenshot\": \"CDP Page.captureScreenshot\"}",
+  "tags": [
+    "F88",
+    "React",
+    "Ant Design",
+    "交互规范"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.0135539
+}

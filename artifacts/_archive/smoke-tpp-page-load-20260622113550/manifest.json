@@ -1,0 +1,32 @@
+{
+  "run_id": "smoke-tpp-page-load-20260622113550",
+  "created_at": "2026-06-22T11:35:50.848680Z",
+  "artifacts": [
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/smoke-tpp-page-load-20260622113550/input.json",
+      "size_bytes": 907,
+      "created_at": "2026-06-22T11:35:50.849036Z"
+    },
+    {
+      "type": "screenshot",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/smoke-tpp-page-load-20260622113550/screenshots/step2-tpp-layer-loaded.png",
+      "size_bytes": 67086,
+      "created_at": "2026-06-22T11:36:12.329547Z"
+    },
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/smoke-tpp-page-load-20260622113550/capture.json",
+      "size_bytes": 2,
+      "created_at": "2026-06-22T11:36:12.329802Z"
+    },
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/smoke-tpp-page-load-20260622113550/output.json",
+      "size_bytes": 1301,
+      "created_at": "2026-06-22T11:36:12.336268Z"
+    }
+  ],
+  "finalized_at": "2026-06-22T11:36:12.336299Z",
+  "artifact_count": 4
+}

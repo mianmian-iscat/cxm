@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.webautomation.framework-audit</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>scripts/framework-audit.py</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/caoxuemei/Downloads/web-automation 2</string>
+
+  <!-- 每天 22:00 跑评估（避开 04:00 的 daily-regression） -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>22</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <!-- Mac 睡眠错过后唤醒补跑 -->
+  <key>StartInterval</key>
+  <integer>0</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/caoxuemei/Downloads/web-automation 2/artifacts/framework-audit/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/caoxuemei/Downloads/web-automation 2/artifacts/framework-audit/launchd.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    <key>PYTHONPATH</key>
+    <string>/Users/caoxuemei/Downloads/web-automation 2</string>
+  </dict>
+</dict>
+</plist>

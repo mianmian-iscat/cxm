@@ -1,0 +1,19 @@
+# Devix 打包排除文件
+node_modules/
+.git/
+.gitignore
+artifacts/
+.pytest_cache/
+__pycache__/
+.qoder/
+.agents/
+archive/
+.qoderwork/
+.cache/
+deploy/
+*.pyc
+*.pem
+*.key
+*.env
+.DS_Store
+config.local.yaml

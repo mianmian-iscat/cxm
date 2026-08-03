@@ -1,0 +1,160 @@
+name: 专利申请状态机
+version: "1.0"
+description: 原创保护专利申请完整状态流转定义（10状态 × 20+转换）
+
+state_machine:
+  entity: patent_application
+  id_field: application_id
+  initial_state: SUBMITTED
+
+  states:
+    - SAVING                 # 草稿中
+    - SUBMITTED              # 已提交
+    - QUICK_AUDITING         # 快审中（PRD: 资料快审，预估2小时）
+    - QUICK_AUDIT_REJECTED   # 快审驳回
+    - PRE_EXAM_PASSED        # 预审通过
+    - PRE_EXAM_REJECTED      # 预审驳回
+    - FIRST_EXAM_IN_PROGRESS # 初审中
+    - FIRST_EXAM_PASSED      # 初审通过
+    - FIRST_EXAM_REJECTED    # 初审驳回
+    - AUTHORIZED             # 已授权
+    - PROTECTION_ACTIVE      # 保护中
+    - PROTECTION_EXPIRED     # 保护期届满
+    - ABANDONED              # 已放弃
+
+  transitions:
+    # ── 草稿 → 提交 ──
+    - from: SAVING
+      to: SUBMITTED
+      trigger: "商家提交申请"
+      guard: "材料必填字段完整"
+
+    # ── 提交 → 快审（PRD新增节点）──
+    - from: SUBMITTED
+      to: QUICK_AUDITING
+      trigger: "小二发起快审"
+      guard: "商家已入驻 AND 主视图已上传"
+      side_effects:
+        - set: quick_audit_start_time = now
+        - log: audit_trail
+
+    # ── 快审通过 → 预审 ──
+    - from: QUICK_AUDITING
+      to: PRE_EXAM_PASSED
+      trigger: "快维中心快审通过"
+      guard: "快审时效未超时"
+      side_effects:
+        - set: quick_audit_end_time = now
+
+    # ── 快审驳回 ──
+    - from: QUICK_AUDITING
+      to: QUICK_AUDIT_REJECTED
+      trigger: "快维中心快审驳回"
+      side_effects:
+        - set: quick_audit_reject_reason = 驳回原因
+        - set: to_regular_status = TODO
+
+    # ── 快审驳回 → 转普通申请 ──
+    - from: QUICK_AUDIT_REJECTED
+      to: FIRST_EXAM_IN_PROGRESS
+      trigger: "商家提交普通申请（转回）"
+      guard: "to_regular_status == TODO AND balance >= fee"
+      side_effects:
+        - set: to_regular_status = DONE
+        - deduct: charge_order
+        - log: audit_trail
+
+    # ── 原有路径保留：直接提交预审 ──
+    - from: SUBMITTED
+      to: PRE_EXAM_PASSED
+      trigger: "快维中心预审通过（普通流程）"
+      guard: "材料完整性校验通过 AND 非快审入口"
+
+    - from: SUBMITTED
+      to: PRE_EXAM_REJECTED
+      trigger: "快维中心预审驳回"
+      side_effects:
+        - set: to_regular_status = TODO
+        - set: to_regular_suggest_reason = 驳回原因
+
+    # ── 预审驳回 → 初审（转普通申请）──
+    - from: PRE_EXAM_REJECTED
+      to: FIRST_EXAM_IN_PROGRESS
+      trigger: "商家提交普通申请"
+      guard: "to_regular_status == TODO AND balance >= fee"
+      side_effects:
+        - set: to_regular_status = DONE
+        - deduct: charge_order
+        - log: audit_trail
+
+    # ── 预审驳回 → 超时 ──
+    - from: PRE_EXAM_REJECTED
+      to: PRE_EXAM_REJECTED
+      trigger: "定时任务扫描(TODO超2天)"
+      guard: "to_regular_status == TODO AND created_before_2d"
+      side_effects:
+        - set: to_regular_status = TIMEOUT
+
+    # ── 预审通过 → 初审 ──
+    - from: PRE_EXAM_PASSED
+      to: FIRST_EXAM_IN_PROGRESS
+      trigger: "自动进入初审"
+
+    # ── 初审结果 ──
+    - from: FIRST_EXAM_IN_PROGRESS
+      to: FIRST_EXAM_PASSED
+      trigger: "国知局初审通过"
+
+    - from: FIRST_EXAM_IN_PROGRESS
+      to: FIRST_EXAM_REJECTED
+      trigger: "国知局初审驳回"
+      side_effects:
+        - set: rejection_reason = 驳回通知
+
+    # ── 初审驳回 → 放弃 ──
+    - from: FIRST_EXAM_REJECTED
+      to: ABANDONED
+      trigger: "商家放弃复审"
+      side_effects:
+        - refund: charge_order
+
+    # ── 初审通过 → 授权 ──
+    - from: FIRST_EXAM_PASSED
+      to: AUTHORIZED
+      trigger: "国知局授权通知"
+      side_effects:
+        - set: authorization_date = now
+        - log: audit_trail
+
+    # ── 授权 → 保护中 ──
+    - from: AUTHORIZED
+      to: PROTECTION_ACTIVE
+      trigger: "签署保护协议"
+      guard: "电子签章有效"
+      side_effects:
+        - set: protection_start_date = now
+        - set: protection_end_date = now + 180d
+
+    # ── 保护中 → 保护期届满 ──
+    - from: PROTECTION_ACTIVE
+      to: PROTECTION_EXPIRED
+      trigger: "保护期到期"
+      guard: "protection_end_date <= now"
+      side_effects:
+        - set: expired_date = now
+        - log: settlement_trigger
+
+    # ── 保护中 → 放弃（主动终止）──
+    - from: PROTECTION_ACTIVE
+      to: ABANDONED
+      trigger: "商家主动终止"
+      side_effects:
+        - refund: partial_charge_order
+        - log: audit_trail
+
+    # ── 授权后 → 放弃（未缴费等）──
+    - from: AUTHORIZED
+      to: ABANDONED
+      trigger: "未缴年费"
+      side_effects:
+        - set: abandon_reason = 未缴年费

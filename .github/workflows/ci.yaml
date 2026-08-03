@@ -1,0 +1,253 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
+
+jobs:
+  # ─── Python 单测 ───
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          pip install pyyaml pytest pytest-cov
+
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/ -q --tb=short --cov=core --cov-report=term-missing
+
+      - name: Check coverage threshold
+        run: |
+          python -m pytest tests/ --cov=core --cov-fail-under=80 -q
+
+  # ─── Node.js 依赖 + 用例校验 ───
+  node-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate JSON schemas
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const schemaDir = './harness/schemas';
+            const files = fs.readdirSync(schemaDir).filter(f => f.endsWith('.json'));
+            let errors = 0;
+            files.forEach(f => {
+              try {
+                JSON.parse(fs.readFileSync(path.join(schemaDir, f), 'utf8'));
+                console.log('✓', f);
+              } catch (e) {
+                console.error('✗', f, e.message);
+                errors++;
+              }
+            });
+            if (errors > 0) process.exit(1);
+            console.log('All', files.length, 'schemas valid');
+          "
+
+  # ─── 回归用例校验（不连浏览器，仅验证 JSON 结构）───
+  case-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate regression cases (--validate)
+        run: node scripts/run-op-regression.js --validate
+
+      - name: Validate eval case JSON files
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const dirs = ['./eval/cases/op-test', './eval/cases/f88-test'];
+            let errors = 0, total = 0;
+            for (const dir of dirs) {
+              if (!fs.existsSync(dir)) continue;
+              const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+              for (const f of files) {
+                total++;
+                try {
+                  const data = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+                  if (!data.id) { console.log('✗', f, 'missing id'); errors++; }
+                  else if (!data.steps) { console.log('✗', f, 'missing steps'); errors++; }
+                  else console.log('✓', f);
+                } catch (e) {
+                  console.log('✗', f, e.message);
+                  errors++;
+                }
+              }
+            }
+            if (errors > 0) { console.error(errors + '/' + total + ' invalid'); process.exit(1); }
+            console.log('All', total, 'eval cases valid');
+          "
+
+  # ─── 冒烟检查：配置一致性 ───
+  smoke-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Version consistency check
+        run: |
+          python3 -c "
+          import json, sys
+          try:
+              import yaml
+          except ImportError:
+              print('SKIP: pyyaml not installed')
+              sys.exit(0)
+
+          pkg = json.load(open('package.json'))
+          manifest = yaml.safe_load(open('manifest.yaml'))
+
+          pkg_ver = pkg['version']
+          manifest_ver = manifest.get('version', 'MISSING')
+
+          print(f'package.json: {pkg_ver}')
+          print(f'manifest.yaml: {manifest_ver}')
+
+          if pkg_ver != manifest_ver:
+              print(f'ERROR: Version mismatch! package.json={pkg_ver} manifest.yaml={manifest_ver}')
+              sys.exit(1)
+          print('✓ Versions consistent')
+          "
+
+      - name: Knowledge index path check
+        run: |
+          python3 -c "
+          import json, os, sys
+
+          index = json.load(open('knowledge/index.json'))
+          errors = 0
+          for entry in index['entries']:
+              fpath = entry.get('file', '')
+              if not os.path.exists(fpath):
+                  print(f'✗ {entry[\"id\"]}: {fpath} NOT FOUND')
+                  errors += 1
+              else:
+                  print(f'✓ {entry[\"id\"]}: {fpath}')
+          if errors > 0:
+              print(f'ERROR: {errors} broken path(s)')
+              sys.exit(1)
+          print('✓ All knowledge paths valid')
+          "
+
+      - name: Harness registry validation
+        run: |
+          python3 -c "
+          import json, os, sys
+
+          registry = json.load(open('harness/registry.json'))
+          errors = 0
+          tools = registry.get('_legacy_flat_tools', [])
+          for tool in tools:
+              spath = os.path.join('harness', tool['schema_path'].lstrip('./'))
+              if not os.path.exists(spath):
+                  print(f'✗ {tool[\"name\"]}: {spath} NOT FOUND')
+                  errors += 1
+              else:
+                  print(f'✓ {tool[\"name\"]}: {spath}')
+          if errors > 0:
+              print(f'ERROR: {errors} missing schema(s)')
+              sys.exit(1)
+          print('✓ All tool schemas exist')
+          "
+
+  # ─── 回归测试 (本地 Chrome + 报告生成) ───
+  # 注意：此 job 需要内网环境（alibaba-inc.com），GitHub Actions 无法直接访问
+  # 保留此 job 定义作为内部 CI（如 Aone/GitLab CI）参考模板
+  # 本地运行命令：
+  #   node scripts/run-op-regression.js --out artifacts/op-results.json
+  #   node scripts/generate-regression-report.js artifacts/op-results.json --out artifacts/report.html
+  ui-regression-local:
+    if: false  # 在 GitHub Actions 中跳过，仅内部 CI 启用
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Launch Chrome with CDP
+        run: |
+          # 启动 Chrome 并开放调试端口（需已登录业务系统）
+          CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+          "$CHROME_PATH" --remote-debugging-port=9222 --no-first-run --user-data-dir=/tmp/chrome-cdp &
+          sleep 3
+
+      - name: Run regression tests (operator)
+        run: |
+          node scripts/run-op-regression.js \
+            --out artifacts/op-results.json
+        env:
+          WEB_AUTO_CDP_URL: http://127.0.0.1:9222
+
+      - name: Run regression tests (merchant)
+        run: |
+          node scripts/run-op-regression.js \
+            --out artifacts/op-merchant-results.json
+        env:
+          WEB_AUTO_CDP_URL: http://127.0.0.1:9223
+
+      - name: Generate HTML reports
+        run: |
+          node scripts/generate-regression-report.js artifacts/op-results.json --out artifacts/op-report.html
+          node scripts/generate-regression-report.js artifacts/op-merchant-results.json --out artifacts/op-merchant-report.html
+
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-reports
+          path: |
+            artifacts/*-report.html
+            artifacts/*-results.json
+          retention-days: 14

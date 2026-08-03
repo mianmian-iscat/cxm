@@ -1,0 +1,128 @@
+# 性能基线配置 — 接口/场景 RT 阈值
+# 版本：v1.0 | 生成：2026-07-23
+# 对齐：8维度提升 §维度8 — 性能/耗时测试自动化
+# 说明：P50/P99 目标值待实测校准，当前为初始上限（超过即 FAIL）
+
+global:
+  sample_size: 10              # 每个接口采集次数
+  warmup_runs: 2               # 预热轮次（不计入统计）
+  timeout_ms: 30000            # 单次请求超时
+  concurrency: 5               # 并发数
+
+# ── 原创保护 (OP) ──────────────────────────────────────────────────────────
+original_protection:
+  interfaces:
+    - name: settlement_calc
+      display: 结算金额计算（SettlementCalcJob 单条）
+      method: HSF
+      service: com.alibaba.cloth.ai.op.settle.SettlementService
+      method_name: calcSettlement
+      p50_target_ms: 500
+      p99_target_ms: 2000
+      notes: 资损核心，BigDecimal 精度校验
+
+    - name: tort_create
+      display: 维权记录创建
+      method: HSF
+      service: com.alibaba.cloth.ai.op.tort.TortService
+      method_name: createTortRecord
+      p50_target_ms: 1000
+      p99_target_ms: 3000
+      notes: 含 6 平台对接，超时需区分平台
+
+    - name: right_bind
+      display: 商品绑定
+      method: HSF
+      service: com.alibaba.cloth.ai.op.right.RightService
+      method_name: bindProduct
+      p50_target_ms: 800
+      p99_target_ms: 2000
+
+    - name: contract_sign
+      display: 签约
+      method: HSF
+      service: com.alibaba.cloth.ai.op.contract.ContractService
+      method_name: signContract
+      p50_target_ms: 500
+      p99_target_ms: 1500
+
+    - name: first_launch_check
+      display: 首发窗口检查
+      method: HSF
+      service: com.alibaba.cloth.ai.op.right.RightService
+      method_name: checkFirstLaunch
+      p50_target_ms: 300
+      p99_target_ms: 1000
+
+# ── F88 素材生产 ────────────────────────────────────────────────────────────
+f88_material:
+  interfaces:
+    - name: audit_submit
+      display: 审核提交（含图片 OSS 上传）
+      method: HTTP
+      url_pattern: /api/review/submitTask
+      p50_target_ms: 2000
+      p99_target_ms: 5000
+      notes: 含图片上传，网络抖动影响大
+
+    - name: task_create
+      display: 审核任务创建
+      method: HTTP
+      url_pattern: /api/review/createTask
+      p50_target_ms: 1000
+      p99_target_ms: 3000
+
+    - name: batch_run
+      display: 批次运行
+      method: HTTP
+      url_pattern: /api/strategy/batch/run
+      p50_target_ms: 2000
+      p99_target_ms: 5000
+
+    - name: gen_video_query
+      display: GenVideo 全量查询（内存过滤）
+      method: HSF
+      service: com.alibaba.stylespot.video.GenVideoService
+      method_name: queryActiveVideos
+      p50_target_ms: 1000
+      p99_target_ms: 3000
+      notes: 全量内存过滤，活跃任务多时 RT 线性增长
+
+    - name: batch_terminate
+      display: 批次终止（Tair 幂等 + 任务终止）
+      method: HTTP
+      url_pattern: /api/strategy/batch/terminate
+      p50_target_ms: 3000
+      p99_target_ms: 10000
+      notes: Tair 20min TTL 幂等，并发终止仅 1 次生效
+
+  pages:
+    - name: audit_detail
+      display: 审核详情页加载
+      url_pattern: /review/task-detail/*
+      metric: FCP
+      p50_target_ms: 2000
+      p99_target_ms: 5000
+
+    - name: strategy_detail
+      display: 策略链路详情加载
+      url_pattern: /strategy/linkDetail/*
+      metric: FCP
+      p50_target_ms: 2000
+      p99_target_ms: 5000
+
+# ── 定时任务 ────────────────────────────────────────────────────────────────
+scheduled_jobs:
+    - name: FirstLaunchExpireJob
+      display: 首发到期摘标
+      schedule: ScheduleX
+      p50_target_ms: 5000
+      p99_target_ms: 30000
+      notes: 批量摘标，数据量大时耗时长
+
+    - name: SettlementCalcJob
+      display: 结算计算
+      schedule: ScheduleX
+      p50_target_ms: 10000
+      p99_target_ms: 60000
+      notes: 资损核心，含金额精度校验

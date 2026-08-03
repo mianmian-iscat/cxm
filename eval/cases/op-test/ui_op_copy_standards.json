@@ -1,0 +1,50 @@
+{
+  "id": "ui-op-copy-standards",
+  "name": "UI：原创保护-全平台文案/空格/tooltips易错点专项验证",
+  "description": "专项校验原创保护两端文案规范性：1)TBD按钮空格（搜 索/返 回/确 定/提 交）2)小二端vs商家端tooltip差异（经第三方机构核实 vs 由第三方服务机构提供）3)状态标签完整文案 4)平台标题准确性（淘天服饰原创保护 vs 淘天服饰原创保护平台管理）5)占位符文案。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list", "waitUntil": "networkidle", "description": "打开小二端列表页" },
+    { "type": "wait", "ms": 4000, "description": "等待列表加载" },
+
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护平台管理", "description": "【文案1-小二端标题】验证小二端标题为「淘天服饰原创保护平台管理」（含平台管理）" },
+    { "type": "assert", "target": "page", "contains": "经第三方机构核实", "description": "【文案2-小二端tooltip】验证小二端tooltip为「经第三方机构核实」（少了「服务」两字）" },
+    { "type": "assert", "target": "page", "contains": "重置筛选", "description": "【文案3-重置按钮】验证按钮文案为「重置筛选」（非「清空筛选」）" },
+    { "type": "assert", "target": "page", "contains": "发起快审", "description": "【文案4-快审按钮】验证按钮文案为「发起快审」（非「快审」）" },
+    { "type": "assert", "target": "page", "contains": "查看申请详情", "description": "【文案5-详情入口】验证入口文案为「查看申请详情」（非「查看详情」）" },
+    { "type": "assert", "target": "page", "contains": "查看维权记录", "description": "【文案6-维权入口】验证入口文案为「查看维权记录」" },
+    { "type": "assert", "target": "page", "contains": "查看白名单", "description": "【文案7-白名单入口】验证入口文案为「查看白名单」" },
+    { "type": "screenshot", "label": "copy-xiaoer-page", "description": "截图-小二端文案验证" },
+
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开商家端首页" },
+    { "type": "wait", "ms": 5000, "description": "等待商家端加载" },
+
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护", "description": "【文案8-商家端标题】验证商家端标题为「淘天服饰原创保护」（不含平台管理）" },
+    { "type": "assert", "target": "page", "contains": "由第三方服务机构提供", "description": "【文案9-商家端tooltip】验证商家端tooltip为「由第三方服务机构提供」（含「服务」两字）" },
+    { "type": "assert", "target": "page", "contains": "新增专利申请", "description": "【文案10-申请入口】验证入口文案为「新增专利申请」" },
+    { "type": "assert", "target": "page", "contains": "管理白名单店铺", "description": "【文案11-白名单入口】验证入口文案为「管理白名单店铺」" },
+    { "type": "assert", "target": "page", "contains": "查看详情", "description": "【文案12-详情入口】验证商家端详情入口为「查看详情」（非「查看申请详情」）" },
+    { "type": "screenshot", "label": "copy-seller-page", "description": "截图-商家端文案验证" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "小二端BUC + 商家端淘宝SSO均已登录。",
+    "realDomNotes": "文案差异：小二端标题「淘天服饰原创保护平台管理」vs商家端「淘天服饰原创保护」;小二端tooltip「经第三方机构核实」vs商家端「由第三方服务机构提供」;小二端详情入口「查看申请详情」vs商家端「查看详情」;TBD按钮含空格「搜 索」「返 回」「确 定」。",
+    "riskPoints": [
+      "TBD双字按钮渲染为含空格（搜→搜 索、返→返 回、确→确 定）",
+      "两端标题/tooltip/入口文案故意不同，需分别断言",
+      "搜索按钮含空格不可clickText精确匹配"
+    ]
+  }
+}

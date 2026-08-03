@@ -1,0 +1,63 @@
+{
+  "id": "TC-VA-002",
+  "name": "TC-VA-002 — 归档页与审核页信息差异 [P1]",
+  "description": "验证归档页只展示最终基准包快照，不展示审核操作和评审过程流转",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "视觉归档",
+  "page": "迭代详情-归档基准包 tab",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const archiveTab = Array.from(document.querySelectorAll('.ant-tabs-tab')).find(t => t.textContent.includes('归档')); if (archiveTab) archiveTab.click(); return { clicked: true }; })()",
+      "description": "切换到归档基准包tab",
+      "storeAs": "switchTab"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const noReviewAction = !text.includes('提交审核') && !text.includes('确认通过') && !text.includes('打回买手'); const noUploadAction = !text.includes('补充上传') && !text.includes('发起评审'); const hasPackage = text.includes('基准包') || text.includes('归档'); return { noReviewAction, noUploadAction, hasPackage }; })()",
+      "description": "验证归档页无审核/上传操作",
+      "storeAs": "noActions"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const sampleTab = Array.from(document.querySelectorAll('.ant-tabs-tab')).find(t => t.textContent.includes('试拍')); if (sampleTab) { sampleTab.click(); return { canSwitchToSample: true }; } return { canSwitchToSample: false }; })()",
+      "description": "验证可回看试拍与评审tab",
+      "storeAs": "tabSwitch"
+    },
+    {
+      "type": "screenshot",
+      "label": "archive-vs-review"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为ARCHIVED",
+    "stepsText": "1. 切换到归档基准包tab\n2. 验证不展示审核/上传操作\n3. 切换到试拍与评审tab回看",
+    "expectedResult": "1. 归档页不展示提交审核/确认通过/打回/补充上传等操作\n2. 可切换到试拍与评审tab回看评审记录\n3. 归档页只展示最终基准包快照",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/视觉归档"
+  }
+}

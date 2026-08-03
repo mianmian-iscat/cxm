@@ -1,0 +1,101 @@
+{
+  "id": "normal-f88-production-flow-e2e",
+  "name": "正常流程：F88 主图素材供给端到端链路验证",
+  "description": "验证从商品提报 → 入参图锁定 → 模板匹配 → 首图生成审核 → 套图生成审核 → 主图上架的完整业务流程（覆盖一/二/三节核心需求）",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 50, "outputCompact": true },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "第一步：打开策略列表页（商品每日定时提报入口）"
+    },
+    {
+      "type": "wait", "ms": 2000, "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "策略",
+      "description": "验证策略列表页正常加载"
+    },
+    {
+      "type": "screenshot", "label": "step1-strategy-list", "description": "截图 - 第一步：策略列表"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "第二步：打开淘内资源池（自动锁定优质入参图/视觉模板匹配）"
+    },
+    {
+      "type": "wait", "ms": 2500, "description": "等待模板库加载"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "模版",
+      "description": "验证模板库页面正常加载"
+    },
+    {
+      "type": "screenshot", "label": "step2-template-library", "description": "截图 - 第二步：模板库/视觉模板"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "第三步：打开审核任务中心（首图机审去劣&人审择优）"
+    },
+    {
+      "type": "wait", "ms": 2000, "description": "等待审核任务中心加载"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "审核",
+      "description": "验证审核任务中心正常加载"
+    },
+    {
+      "type": "screenshot", "label": "step3-review-center", "description": "截图 - 第三步：审核任务中心"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "第四步：打开生产看板（数据监控 & 主图上架监控）"
+    },
+    {
+      "type": "wait", "ms": 2000, "description": "等待生产看板加载"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "生产",
+      "description": "验证生产看板正常加载"
+    },
+    {
+      "type": "screenshot", "label": "step4-production-dashboard", "description": "截图 - 第四步：生产看板"
+    }
+  ],
+  "capture": { "enabled": true, "filter": "bzb.api.fsyx_quality_guard", "captureBody": true },
+  "screenshot": { "onError": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录，存在测试商品和策略数据",
+    "riskPoints": [
+      "端到端链路涉及多个子系统跳转（策略→模板库→审核→生产看板）",
+      "各步骤之间的数据流转一致性",
+      "业务流程：商品提报→入参图锁定→模板匹配→首图生成审核→套图生成审核→主图上架",
+      "链路流程图中的6个步骤需完整覆盖"
+    ],
+    "relatedDocs": ["F88主图素材供给产品方案 v3.0 20260623"]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

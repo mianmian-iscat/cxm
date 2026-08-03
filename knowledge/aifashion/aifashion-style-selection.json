@@ -1,0 +1,144 @@
+{
+  "id": "aifashion-style-selection",
+  "description": "AI Fashion - 选款页",
+  "uiFramework": "tbd-select + React",
+  "captureFilter": "pre-aifashion.taobao.com/api",
+  "lastUpdated": "2026-04-25",
+  "notes": [
+    "执行方式：必须用 puppeteer（CDP 9222），禁止用 OpenClaw 内置 browser 工具（无登录态无法访问预发页面）",
+    "首次进入需签署服务协议：勾选同意 checkbox → 点「一键签约」（按钮默认 disabled）",
+    "类目下拉：使用 tbd-select-prefix 定位（prefix 文字为「类目」），非 formily-item-label",
+    "到手价：两个 text input，placeholder 分别为「最低价」「最高价」",
+    "预发环境账号若 selectableStyleCount=0，任何筛选结果都是「暂无款式哦」",
+    "搜索按钮文字含空格：「搜 索」（不是「搜索」）"
+  ],
+  "prerequisites": {
+    "协议签署": {
+      "check": "页面出现「去签署」按钮",
+      "steps": [
+        {
+          "type": "clickText",
+          "text": "去签署"
+        },
+        {
+          "type": "wait",
+          "ms": 500
+        },
+        {
+          "action": "勾选协议checkbox",
+          "selector": ".tbd-drawer-body input[type='checkbox']"
+        },
+        {
+          "type": "wait",
+          "ms": 300
+        },
+        {
+          "type": "clickText",
+          "text": "一键签约"
+        },
+        {
+          "type": "wait",
+          "ms": 2000
+        }
+      ],
+      "note": "一键签约按钮在未勾选 checkbox 时为 disabled"
+    }
+  },
+  "fields": {
+    "类目": {
+      "type": "selectOption",
+      "labelClass": "tbd-select-prefix",
+      "note": "级联选择，数据来自 mtop.taobao.tpn.category.query；预发环境可能无数据",
+      "knownOptions": []
+    },
+    "标签": {
+      "type": "selectOption",
+      "labelClass": "tbd-select-prefix",
+      "subFields": [
+        "剔除",
+        "保留"
+      ],
+      "note": "两个标签 select，分别对应剔除/保留"
+    },
+    "最低价": {
+      "type": "fill",
+      "selector": "input[placeholder='最低价']",
+      "note": "到手价区间下限，React state 需通过 fiber onChange 同步"
+    },
+    "最高价": {
+      "type": "fill",
+      "selector": "input[placeholder='最高价']",
+      "note": "到手价区间上限"
+    },
+    "仅看可选款式": {
+      "type": "uncheckCheckbox",
+      "labelText": "仅看可选款式",
+      "note": "radio 类型，非 checkbox"
+    },
+    "仅看选款成功": {
+      "type": "uncheckCheckbox",
+      "labelText": "仅看选款成功"
+    }
+  },
+  "actions": {
+    "搜索": {
+      "type": "clickText",
+      "text": "搜 索",
+      "waitAfter": 3000,
+      "note": "文字含全角空格「搜 索」，不是「搜索」"
+    },
+    "重置筛选": {
+      "type": "clickText",
+      "text": "重置筛选",
+      "waitAfter": 600
+    }
+  },
+  "apis": {
+    "获取款式列表": {
+      "name": "batch/list",
+      "method": "POST",
+      "urlKeyword": "api/afd/select/style/batch/list",
+      "requestFields": {
+        "页码": "pageNo",
+        "每页数量": "pageSize",
+        "是否初始加载": "isInitialLoad"
+      },
+      "responseFields": {
+        "款式列表": "data[]",
+        "成功标志": "success"
+      },
+      "note": "筛选参数（类目/价格）应出现在 body 中，若为空说明前端 state 未同步"
+    },
+    "获取账户信息": {
+      "name": "getAccountInfo",
+      "method": "GET",
+      "urlKeyword": "api/account/getAccountInfo",
+      "responseFields": {
+        "可选款式数": "data.selectableStyleCount",
+        "已选款式数": "data.selectedStyleCount",
+        "剩余折扣款数": "data.remainDiscountStyleCount"
+      },
+      "note": "selectableStyleCount=0 时页面必然暂无数据"
+    }
+  },
+  "assertHints": {
+    "有款式数据": {
+      "target": "page",
+      "contains": "款式费"
+    },
+    "无数据": {
+      "target": "page",
+      "contains": "暂无款式哦"
+    },
+    "签约成功": {
+      "target": "page",
+      "contains": "签约成功"
+    }
+  },
+  "knownIssues": [
+    "搜索按钮文字是「搜 索」（中间有空格），用 clickText 需完全匹配",
+    "类目下拉 labelClass 是 tbd-select-prefix，不是 tbd-formily-item-label",
+    "预发环境账号 selectableStyleCount 可能为 0，导致任何筛选均无结果",
+    "价格 input 需通过 React fiber onChange 触发，普通 input.value= 赋值不生效"
+  ]
+}

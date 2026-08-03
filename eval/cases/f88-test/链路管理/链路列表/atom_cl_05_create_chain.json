@@ -1,0 +1,84 @@
+{
+  "id": "atom-cl-05-create-chain",
+  "name": "原子：新建链路（自造数据）",
+  "description": "点击新建链路，填写表单提交创建，验证创建成功",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "clickText",
+      "text": "新建链路",
+      "description": "点击新建链路"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "create-dialog"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer-open'); const newPage = document.querySelector('input#name') || document.querySelector('input[placeholder*=\"链路\"]'); return { hasModal: !!modal, hasDrawer: !!drawer, hasNewPage: !!newPage, url: window.location.href }; })()",
+      "storeAs": "createForm"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input#name') || document.querySelector('input[id*=\"name\"]'); if (!input) return { ok: false, msg: 'no name input' }; const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(input, '自动化测试-临时链路-' + Date.now().toString().slice(-6)); input.dispatchEvent(new Event('input', {bubbles:true})); input.dispatchEvent(new Event('change', {bubbles:true})); return { ok: true, value: input.value }; })()",
+      "storeAs": "nameInput"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "screenshot",
+      "label": "name-filled"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const btns = modal ? [...modal.querySelectorAll('button')] : [...document.querySelectorAll('button')]; for (const b of btns) { const txt = b.textContent.replace(/\\s/g, ''); if ((txt === '确定' || txt === '创建') && b.offsetHeight > 0 && !b.disabled) { b.click(); return { ok: true, text: b.textContent.trim() }; } } return { ok: false }; })()",
+      "storeAs": "submitResult"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "chain-created"
+    }
+  ]
+}

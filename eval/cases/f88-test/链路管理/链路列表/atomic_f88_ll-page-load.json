@@ -1,0 +1,76 @@
+{
+  "id": "atomic-f88-ll-page-load",
+  "name": "UI：链路列表-页面加载与文案完整性",
+  "description": "验证页面标题、链路卡片字段(名称/生命周期/描述/提交人/更新时间)",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路",
+      "description": "验证页面包含链路"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = Array.from(document.querySelectorAll('[class*=card],[class*=link]')).slice(0,5).map(c => c.textContent.trim().substring(0,120)); return { cards, count: cards.length }; })()",
+      "description": "提取链路卡片",
+      "storeAs": "linkCards"
+    },
+    {
+      "type": "assertStore",
+      "key": "linkCards",
+      "path": "count",
+      "notEmpty": true,
+      "description": "验证链路卡片非空"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const fields = ['链路名称','生命周期','描述','提交人','更新时间']; const found = fields.filter(f => t.includes(f)); return { fields, found, coverage: found.length+'/'+fields.length }; })()",
+      "description": "验证字段文案",
+      "storeAs": "fieldCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "ll-page-load",
+      "description": "链路列表页面"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在链路数据",
+    "realDomNotes": "字段: 链路名称/生命周期/描述/策略一致性/提交人/更新时间",
+    "riskPoints": []
+  }
+}

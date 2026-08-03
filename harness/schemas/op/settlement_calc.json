@@ -1,0 +1,30 @@
+{
+  "name": "op_settlement_calc",
+  "version": "1.0.0",
+  "description": "原创保护结算计算器，支持效果对赌公式校验、权益扣除原子性验证、退款边界值校验",
+  "triggers": ["校验结算金额", "效果对赌", "权益扣除验证"],
+  "parameters": {
+    "type": "object",
+    "required": ["charge_order_id"],
+    "properties": {
+      "charge_order_id": { "type": "string", "description": "扣费单ID" },
+      "expected_amount": { "type": "number", "description": "期望金额（精确到分）" },
+      "expected_status": { "type": "string", "enum": ["PENDING", "DEDUCTED", "REFUNDED", "FAILED"] },
+      "service_fee": { "type": "number", "description": "服务费" },
+      "takedown_count": { "type": "integer", "description": "维权下架数" },
+      "total_count": { "type": "integer", "description": "维权总数" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "passed": { "type": "boolean" },
+      "check_type": { "type": "string" },
+      "expected": { "type": "string" },
+      "actual": { "type": "string" },
+      "deviation": { "type": "number" }
+    }
+  },
+  "dependencies": ["dms-mcp"],
+  "timeout_ms": 30000
+}

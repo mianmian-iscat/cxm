@@ -1,0 +1,59 @@
+{
+  "id": "dual-merchant-trial-20180",
+  "name": "双商家试运行造数 → 审核任务聚合验证",
+  "businessType": "f88_material_audit",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "打开链路详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待试运行弹窗"
+    },
+    {
+      "type": "uploadFile",
+      "selector": ".ant-modal:not(.ant-modal-hidden) input[type=file]",
+      "filePath": "/Users/caoxuemei/Downloads/web-automation 2/test-fixtures/dual-merchant-trial-data.xlsx",
+      "description": "上传双商家Excel"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待上传完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-uploaded",
+      "description": "上传后截图"
+    }
+  ],
+  "_meta": {
+    "generatedBy": "generate-dual-merchant-trial-data.js",
+    "merchants": [
+      "2219662018344",
+      "2219635649153"
+    ],
+    "totalRows": 4,
+    "businessRule": "一个批次双商家只产生1个审核任务"
+  }
+}

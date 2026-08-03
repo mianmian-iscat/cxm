@@ -1,0 +1,65 @@
+{
+  "id": "regression-f88-material-review-stream",
+  "name": "回归：F88 流式审核任务查看与详情验证",
+  "description": "验证个人任务中心-审核任务列表加载（含流式任务），进入审核任务详情验证审核标准/审核状态等字段。基于预发真实结构重写（原用例的'审核状态'下拉/'搜索'按钮/详情'素材'字段均与真实UI不符已勘误）。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待任务列表渲染" },
+    { "type": "assert", "target": "page", "contains": "个人任务中心", "description": "验证个人任务中心已加载" },
+    { "type": "assert", "target": "page", "contains": "审核任务", "description": "验证含审核任务分类" },
+    { "type": "assert", "target": "page", "contains": "任务状态", "description": "验证含任务状态筛选项（原'审核状态'勘误）" },
+    { "type": "assert", "target": "page", "contains": "任务状态&进度", "description": "【MR-120】验证列表含任务状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "通过率", "description": "【MR-132】验证列表含通过率列" },
+    { "type": "screenshot", "label": "review-task-list", "description": "截图-审核任务列表" },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "description": "点击第一条任务查看审核详情（首条为流式任务）"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待审核详情加载" },
+    { "type": "screenshot", "label": "review-stream-detail", "description": "截图-审核任务详情" },
+    { "type": "assert", "target": "page", "contains": "审核标准", "description": "【MR-130】验证审核详情含审核标准" },
+    { "type": "assert", "target": "page", "contains": "审核状态", "description": "【MR-132】验证审核详情含审核状态" }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard.f88|review|task",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，个人任务中心-审核任务下存在任务数据（含STREAM流式任务，首条即流式）。",
+    "realDomNotes": "真实路由 /review/personal-task-center；子分类:任务大厅/个人任务中心+审核任务/抽检任务/埋雷任务；筛选下拉真实label为'任务状态'(非'审核状态'),按钮为'查 询'(非'搜索');表格列:任务名称/优先级/任务状态&进度/任务时长/通过率/预期交付时间/创建人/操作;操作列'查看详情'进 /review/task/detail?taskType=audit,详情页字段为审核标准/商家名称/商家ID/任务ID/审核状态/审核人/类目(为'图片'审核非'素材')。",
+    "riskPoints": ["依赖审核任务列表首条数据存在", "流式子任务同步时机", "详情字段随任务类型(图片/视频)变化"],
+    "qoderworkRef": "testcases_material_review.json MR-120/MR-121/MR-130/MR-132"
+  },
+  "source": "qoderwork/f88-test/testcases_material_review.json",
+  "sourceIds": ["MR-120", "MR-121", "MR-130", "MR-132"]
+}

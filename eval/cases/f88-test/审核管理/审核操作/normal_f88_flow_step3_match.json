@@ -1,0 +1,73 @@
+{
+  "id": "normal-f88-flow-step3-match",
+  "name": "正常流程：第三步-多模态生成搭配方案",
+  "description": "验证基于指定诉求/原参考图/店铺基因匹配生成搭配方案",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "搭配方案",
+      "description": "验证搭配方案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生成",
+      "description": "验证生成"
+    },
+    {
+      "type": "screenshot",
+      "label": "normal-f88-flow-step3-match",
+      "description": "截图 - 正常流程：第三步-多模态生成搭配方案"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录",
+    "riskPoints": [
+      "第三步：多模态生成优质搭配方案"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

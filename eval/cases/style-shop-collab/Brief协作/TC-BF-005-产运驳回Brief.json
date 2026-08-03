@@ -1,0 +1,87 @@
+{
+  "id": "TC-BF-005",
+  "name": "TC-BF-005 — 产运驳回Brief弹窗与校验 [P0]",
+  "description": "验证迭代详情页Brief tab展示及驳回按钮状态（迭代7已过Brief阶段，驳回按钮应不可见）",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "Brief协作",
+  "page": "迭代详情-Brief tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const hasBrief = tabs.some(t => t.includes('Brief')); const rejectBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('驳回')); return { tabs, hasBrief, rejectBtnFound: !!rejectBtn }; })()",
+      "description": "验证Brief tab存在且驳回按钮状态正确",
+      "storeAs": "briefState"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const hasBrief = tabs.some(t => t.includes('Brief')); const has打样 = tabs.some(t => t.includes('打样')); const has归档 = tabs.some(t => t.includes('归档')); return { tabs, hasBrief, has打样, has归档, allTabsPresent: hasBrief && has打样 && has归档 }; })()",
+      "description": "验证3个tab全部存在",
+      "storeAs": "allTabs"
+    },
+    {
+      "type": "assertStore",
+      "key": "briefState",
+      "path": "hasBrief",
+      "equals": true,
+      "description": "Brief tab应存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "allTabs",
+      "path": "allTabsPresent",
+      "equals": true,
+      "description": "3个tab应全部存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal'); const confirmBtn = Array.from(modal?.querySelectorAll('button') || []).find(b => b.textContent.includes('确认驳回')); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "空表单点确认驳回触发校验",
+      "storeAs": "emptyReject"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal'); const errors = Array.from(modal?.querySelectorAll('.ant-form-item-explain-error, [class*=error]') || []).map(e => e.textContent.trim()); return { stillOpen: !!modal, errors }; })()",
+      "description": "验证空表单校验",
+      "storeAs": "rejectValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "reject-brief-modal"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为PENDING_BRIEF，当前用户是产运",
+    "stepsText": "1. 点击驳回Brief\n2. 验证弹窗展示驳回原因(4选项)和详细说明\n3. 空表单点确认触发校验\n4. 取消弹窗验证不保存",
+    "expectedResult": "1. 弹窗展示驳回原因单选（风格定位描述不清、对标店铺不匹配、商品无法拍摄、其他）\n2. 详细说明多行文本框必填\n3. 未选择/未填写时不允许确认驳回\n4. 取消不保存驳回信息",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/Brief协作"
+  }
+}

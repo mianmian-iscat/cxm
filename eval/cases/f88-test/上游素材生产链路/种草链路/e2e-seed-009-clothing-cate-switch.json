@@ -1,0 +1,70 @@
+{
+  "id": "e2e-seed-009-clothing-cate-switch",
+  "name": "E2E-SEED-009 — 种草类目开关SEED_CLOTHING_LEVEL1_CATE_IDS动态修改",
+  "description": "验证Diamond开关SEED_CLOTHING_LEVEL1_CATE_IDS支持运行时动态推送修改。默认值[16](女装)，P1级别支持Diamond推送，修改后立即生效。空列表=全部剔除(含女装)。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草链路",
+  "priority": "P1",
+  "category": "boundary",
+  "source": "upstream-repo/F88AiSwitch#SEED_CLOTHING_LEVEL1_CATE_IDS",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开F88策略列表(建立页面上下文)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'switch-validation', scenario: '种草类目开关动态修改', switchName: 'SEED_CLOTHING_LEVEL1_CATE_IDS', switchType: 'List<Long>', defaultValue: [16], level: 'P1', appName: 'taobao-cloth-ai-op-serverless', machineGroup: 'ai_op_prehost', behaviors: { default: '默认[16]=仅女装', addCate: '添加cate_level1_id→扩大允许范围(如加30=男装)', removeCate: '移除cate_level1_id→缩小允许范围', emptyList: '空列表→全部剔除(含女装!)', multipleValues: '多值如[16,30]→女装+男装都允许' }, diamondPush: { annotation: '@AppSwitch(level=P1)', platform: 'switch.pre.alibaba-inc.com', effect: '运行时推送,无需重启', verification: '推送后下一批次立即生效' } }; })()",
+      "description": "定义类目开关规则",
+      "storeAs": "switchSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "switchSpec",
+      "path": "switchName",
+      "equals": "SEED_CLOTHING_LEVEL1_CATE_IDS",
+      "description": "验证开关名称正确"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${switchSpec}; return { validation: '类目开关规则', checks: [ { name: '默认值', expected: '[16]', rule: 'singletonList(16L)=女装', pass: true }, { name: 'P1级别', expected: '支持Diamond推送', rule: '@AppSwitch(level=P1)', pass: true }, { name: '空列表危险', expected: '全部剔除(含女装)', rule: 'allowedLevel1s为空→filterClothingCateIds返回空集', pass: true }, { name: '多值扩展', expected: '[16,30]=女装+男装', rule: 'filterClothingCateIds按列表匹配', pass: true }, { name: '实时生效', expected: '推送后无需重启', rule: 'Diamond运行时推送,下一批次生效', pass: true } ] }; })()",
+      "description": "验证类目开关规则全项",
+      "storeAs": "switchValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seed-clothing-cate-switch",
+      "description": "截图 - 类目开关验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "Switch平台可访问；taobao-cloth-ai-op-serverless应用已部署",
+    "stepsText": "1.查看Switch平台确认开关默认值[16] 2.验证P1级别支持Diamond推送 3.验证推送后实时生效 4.验证空列表=全剔除边界",
+    "expectedResult": "①开关默认值[16]与代码一致 ②Diamond推送后下一批次立即生效 ③空列表时全部商品被过滤",
+    "riskPoints": [
+      "空列表语义危险,运维误清空会导致全量过滤",
+      "推送错误cate_level1_id可能放行非女装商品"
+    ],
+    "relatedDocs": [
+      "F88AiSwitch#SEED_CLOTHING_LEVEL1_CATE_IDS",
+      "SeedClothingCategoryFilter"
+    ]
+  }
+}

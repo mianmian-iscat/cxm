@@ -1,0 +1,94 @@
+{
+  "id": "e2e-f88-template-match-model-library-visual",
+  "name": "E2E：模板匹配策略端到端测试 - 模型匹配×模板库×视觉×主图素材",
+  "description": "完整的端到端测试流程：配置Start节点(seller_id) → 添加模板匹配节点(模型匹配+模板库+视觉+主图素材) → 保存节点(验证\"节点已更新\") → 保存策略(验证\"保存成功\") → 试运行 → 验证运行结果",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10639",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10639", "waitUntil": "networkidle2", "screenshot": true, "description": "打开策略详情页" },
+    { "type": "wait", "ms": 3000, "description": "等待页面加载" },
+    { "type": "assert", "target": "page", "contains": "Start", "description": "验证Start节点" },
+    { "type": "assert", "target": "page", "contains": "seller_id", "description": "验证seller_id已配置" },
+
+    { "type": "clickText", "text": "+ 新增节点", "description": "点击新增节点" },
+    { "type": "wait", "ms": 2000, "description": "等待弹窗" },
+    { "type": "click", "text": "模板匹配", "within": ".ant-modal", "description": "选择模板匹配" },
+    { "type": "wait", "ms": 3000, "description": "等待抽屉" },
+
+    { "type": "comment", "text": "========== 配置：模型匹配×模板库×视觉×主图素材 ==========" },
+
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return null; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('匹配模式')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "modePos", "description": "定位匹配模式" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${modePos}"], "description": "点击匹配模式" },
+    { "type": "wait", "ms": 1200, "description": "等待下拉" },
+    { "type": "evaluate", "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '模型匹配') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "modelModePos", "description": "定位模型匹配" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${modelModePos}"], "description": "选择模型匹配" },
+    { "type": "wait", "ms": 1500, "description": "等待联动" },
+
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return null; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('数据来源')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "dataSourcePos", "description": "定位数据来源" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${dataSourcePos}"], "description": "点击数据来源" },
+    { "type": "wait", "ms": 1200, "description": "等待下拉" },
+    { "type": "evaluate", "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '模板库') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "libraryPos", "description": "定位模板库" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${libraryPos}"], "description": "选择模板库" },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return null; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('应用环节')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "stagePos", "description": "定位应用环节" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${stagePos}"], "description": "点击应用环节" },
+    { "type": "wait", "ms": 1200, "description": "等待下拉" },
+    { "type": "evaluate", "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '视觉') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "visualPos", "description": "定位视觉" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${visualPos}"], "description": "选择视觉" },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return null; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('应用场景')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "scenePos", "description": "定位应用场景" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${scenePos}"], "description": "点击应用场景" },
+    { "type": "wait", "ms": 1200, "description": "等待下拉" },
+    { "type": "evaluate", "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '主图素材') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()", "storeAs": "mainImagePos", "description": "定位主图素材" },
+    { "type": "evaluate", "expression": "((pos) => pos && pos.x ? { ok: true, x: pos.x, y: pos.y } : { ok: false })", "args": ["${mainImagePos}"], "description": "选择主图素材" },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const input = drawer.querySelector('input[placeholder*=\"目标匹配数量\"]'); if (input) { input.value = '4'; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true }; } return { ok: false }; })()", "description": "设置目标匹配数量" },
+    { "type": "wait", "ms": 500, "description": "等待输入" },
+
+    { "type": "screenshot", "label": "node-configured-model", "description": "截图-节点已配置（模型匹配）" },
+
+    { "type": "comment", "text": "========== 保存节点配置 ==========" },
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const saveBtn = [...drawer.querySelectorAll('button')].find(b => b.textContent.trim() === '保存'); if (saveBtn && !saveBtn.disabled) { saveBtn.click(); return { ok: true }; } return { ok: false }; })()", "description": "点击保存按钮" },
+    { "type": "wait", "ms": 2000, "description": "等待保存" },
+    { "type": "waitForFunction", "expression": "() => { const notices = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); for (const notice of notices) { if (notice.textContent.includes('节点已更新')) { return true; } } return false; }", "timeout": 5000, "description": "等待节点已更新" },
+    { "type": "wait", "ms": 1000, "description": "等待提示" },
+    { "type": "screenshot", "label": "node-updated-model", "description": "截图-节点已更新" },
+    { "type": "evaluate", "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (drawer) { const close = drawer.querySelector('.ant-drawer-close'); if (close && close.offsetHeight > 0) close.click(); return { ok: true }; } return { ok: false }; })()", "description": "关闭抽屉" },
+    { "type": "wait", "ms": 1500, "description": "等待关闭" },
+
+    { "type": "comment", "text": "========== 保存策略配置 ==========" },
+    { "type": "evaluate", "expression": "(() => { const desc = document.querySelector('textarea[placeholder*=\"策略说明\"]'); if (desc) { desc.value = '自动化测试-模型匹配×模板库×视觉×主图素材'; desc.dispatchEvent(new Event('input', { bubbles: true })); } return { ok: true }; })()", "description": "填写策略说明" },
+    { "type": "wait", "ms": 1000, "description": "等待输入" },
+    { "type": "clickText", "text": "保 存", "description": "点击保存按钮" },
+    { "type": "wait", "ms": 3000, "description": "等待保存" },
+    { "type": "waitForFunction", "expression": "() => { const notices = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); for (const notice of notices) { if (notice.textContent.includes('保存成功')) { return true; } } return false; }", "timeout": 5000, "description": "等待保存成功" },
+    { "type": "wait", "ms": 1000, "description": "等待提示" },
+    { "type": "screenshot", "label": "strategy-saved-model", "description": "截图-保存成功" },
+
+    { "type": "comment", "text": "========== 试运行 ==========" },
+    { "type": "clickText", "text": "试运行", "description": "点击试运行" },
+    { "type": "wait", "ms": 2000, "description": "等待弹窗" },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const inputs = modal.querySelectorAll('input'); for (const input of inputs) { if (input.placeholder?.includes('seller_id')) { input.value = 'test_seller_model_1'; input.dispatchEvent(new Event('input', { bubbles: true })); return { ok: true }; } } return { ok: false }; })()", "description": "填写seller_id" },
+    { "type": "wait", "ms": 800, "description": "等待输入" },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const buttons = Array.from(modal.querySelectorAll('button')); const runBtn = buttons.find(btn => btn.textContent.includes('单次运行') || btn.textContent.includes('运行')); if (runBtn && !runBtn.disabled) { runBtn.click(); return { ok: true }; } return { ok: false }; })()", "description": "点击单次运行" },
+    { "type": "wait", "ms": 5000, "description": "等待运行" },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return null; const successMsg = modal.querySelector('.ant-message-success, .ant-alert-success'); const errorMsg = modal.querySelector('.ant-message-error, .ant-alert-error'); return { success: !!successMsg, error: !!errorMsg, successText: successMsg?.textContent || '', errorText: errorMsg?.textContent || '' }; })()", "storeAs": "runResult", "description": "获取运行结果" },
+    { "type": "screenshot", "label": "run-result-model", "description": "截图-运行结果" },
+    { "type": "assert", "target": "page", "contains": "运行成功", "description": "验证运行成功" }
+  ],
+  "capture": { "enabled": true, "filter": "workflow2|strategy", "captureBody": true },
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" }
+}

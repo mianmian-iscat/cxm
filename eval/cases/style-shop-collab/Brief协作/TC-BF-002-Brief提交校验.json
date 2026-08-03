@@ -1,0 +1,63 @@
+{
+  "id": "TC-BF-002",
+  "name": "TC-BF-002 — Brief提交前必填字段校验 [P0]",
+  "description": "验证Brief提交时必填校验：迭代名称、风格定位(20-200字)、上新节奏、对标店铺、参考视觉图、首次试拍商品(10条)",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "Brief协作",
+  "page": "迭代详情-Brief tab",
+  "priority": "P0",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const submitBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('提交产运确认') || b.textContent.includes('提交')); if (submitBtn) { submitBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "空表单点击提交触发校验",
+      "storeAs": "triggerValidation"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const errors = Array.from(document.querySelectorAll('.ant-form-item-explain-error, .ant-form-item-explain, [class*=error]')).map(e => e.textContent.trim()).filter(e => e.length > 0); const firstError = document.querySelector('.ant-form-item-explain-error, [class*=error]'); return { errorCount: errors.length, errors: errors.slice(0, 10), hasFirstError: !!firstError }; })()",
+      "description": "检查校验错误提示",
+      "storeAs": "errors"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const styleField = document.querySelector('textarea, [class*=textarea]'); if (styleField) { const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(styleField, '短'); styleField.dispatchEvent(new Event('input', {bubbles: true})); return { input: '短', length: 1 }; } return { found: false }; })()",
+      "description": "风格定位输入少于20字测试最小长度",
+      "storeAs": "minLengthTest"
+    },
+    {
+      "type": "screenshot",
+      "label": "brief-validation-errors"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在DRAFT_BRIEF状态迭代，当前用户是买手",
+    "stepsText": "1. 空表单直接点提交\n2. 验证必填字段错误提示\n3. 风格定位输入少于20字验证\n4. 品类占比合计不到100%验证",
+    "expectedResult": "1. 必填字段缺失时展示错误提示\n2. 风格定位少于20字提示不满足\n3. 对标店铺少于1家提示\n4. 参考视觉图少于1张提示\n5. 首次试拍商品少于10条提示\n6. 页面滚动到第一个错误字段",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/Brief协作"
+  }
+}

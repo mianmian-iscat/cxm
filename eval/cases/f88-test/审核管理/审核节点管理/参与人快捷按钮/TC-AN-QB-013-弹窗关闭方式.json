@@ -1,0 +1,37 @@
+{
+  "id": "TC-AN-QB-013",
+  "name": "TC-AN-QB-013 — 弹窗关闭方式：Escape/遮罩/关闭按钮 [P1]",
+  "description": "审核节点编辑页已打开",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P1", "category": "edge_case",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const batchBtn = btns.find(b => (b.textContent || '').includes('批量填写')); if (!batchBtn) return { clicked: false }; batchBtn.click(); return { clicked: true }; })()", "description": "点击批量填写打开弹窗", "storeAs": "openModal" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { /* 验证弹窗出现 */ const modal = document.querySelector('.ant-modal'); if (!modal) return { hasModal: false }; const closeBtn = modal.querySelector('.ant-modal-close'); return { hasModal: true, hasCloseBtn: !!closeBtn, hasMask: !!document.querySelector('.ant-modal-mask') }; })()", "description": "验证弹窗结构(关闭按钮+遮罩)", "storeAs": "verifyModalStructure" },
+    { "type": "evaluate", "expression": "(() => { /* 按Escape键关闭弹窗 */ document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true })); return { escapeSent: true }; })()", "description": "按Escape键关闭弹窗", "storeAs": "pressEscape" },
+    { "type": "wait", "ms": 1000 },
+    { "type": "evaluate", "expression": "(() => { const modalRoot = document.querySelector('.ant-modal-root'); const visible = modalRoot && modalRoot.offsetHeight > 0; return { modalVisibleAfterEscape: visible }; })()", "description": "验证Escape后弹窗状态", "storeAs": "verifyEscape" },
+    { "type": "evaluate", "expression": "(() => { /* 如果弹窗还在，用取消按钮关闭 */ const modal = document.querySelector('.ant-modal'); if (modal) { const cancelBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.trim().includes('取消')); if (cancelBtn) cancelBtn.click(); } return { dismissed: true }; })()", "description": "确保弹窗已关闭", "storeAs": "ensureClose" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { /* 再次打开弹窗，测试点击遮罩关闭 */ const btns = Array.from(document.querySelectorAll('button')); const batchBtn = btns.find(b => (b.textContent || '').includes('批量填写')); if (batchBtn) batchBtn.click(); return { reopened: true }; })()", "description": "再次打开弹窗", "storeAs": "reopenModal" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { /* 点击遮罩层 */ const mask = document.querySelector('.ant-modal-mask'); if (mask) { mask.click(); return { maskClicked: true }; } /* 尝试点击wrap */ const wrap = document.querySelector('.ant-modal-wrap'); if (wrap) { wrap.click(); return { wrapClicked: true }; } return { maskClicked: false }; })()", "description": "点击遮罩层关闭弹窗", "storeAs": "clickMask" },
+    { "type": "wait", "ms": 1000 },
+    { "type": "evaluate", "expression": "(() => { const modalRoot = document.querySelector('.ant-modal-root'); const visible = modalRoot && modalRoot.offsetHeight > 0; return { modalVisibleAfterMask: visible }; })()", "description": "验证遮罩点击后弹窗状态", "storeAs": "verifyMask" },
+    { "type": "screenshot", "label": "modal-close-methods", "description": "弹窗关闭方式验证截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开",
+    "stepsText": "1. 打开批量填写弹窗\\n2. 验证弹窗含关闭按钮和遮罩\\n3. 按Escape键关闭\\n4. 重新打开后点击遮罩层关闭\\n5. 重新打开后点击右上角X关闭",
+    "expectedResult": "1. 弹窗结构完整（有关闭按钮+遮罩层）\\n2. Escape/遮罩点击/X按钮均可关闭弹窗\\n3. 关闭后数据不变（未导入的内容不生效）",
+    "priority": "P1",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

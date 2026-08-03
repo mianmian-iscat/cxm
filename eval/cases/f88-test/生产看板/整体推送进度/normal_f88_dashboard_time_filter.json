@@ -1,0 +1,73 @@
+{
+  "id": "normal-f88-dashboard-time-filter",
+  "name": "正常流程：生产看板时间周期筛选验证",
+  "description": "验证生产看板新增时间周期筛选，支持自定义by天-天进行筛选统计",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "时间",
+      "description": "验证时间周期筛选入口存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "筛选",
+      "description": "验证筛选功能存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "dashboard-time-filter",
+      "description": "截图 - 生产看板时间筛选"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录",
+    "riskPoints": [
+      "新增时间周期筛选：支持自定义by天进行筛选统计"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

@@ -1,0 +1,85 @@
+{
+  "id": "e2e-seedv-003-image-selection-1x1-fallback",
+  "name": "E2E-SEEDV-003 — 视频选图规则：无3:4时降级到1:1",
+  "description": "验证商品仅有1:1方图候选时,视频首帧降级选中1:1;每个商品至少选出一张,不会空手",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "upstream-repo/ImageGenerateRouter#selectBestImage",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', scenario: '选图画幅降级', candidates: [ { url: 'img_1x1_a.jpg', ratio: '1:1', type: '方图', aiComposition: '完整全身+真人模特+无瑕疵' }, { url: 'img_1x1_b.jpg', ratio: '1:1', type: '方图', aiComposition: '平铺+有瑕疵' } ], expected: { selectedRatio: '1:1', atLeastOne: true, rule: '无3:4时用1:1,每个商品至少选一张' } }; })()",
+      "description": "定义选图画幅降级规则",
+      "storeAs": "fallbackSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "fallbackSpec",
+      "path": "expected.selectedRatio",
+      "equals": "1:1",
+      "description": "验证降级到1:1"
+    },
+    {
+      "type": "assertStore",
+      "key": "fallbackSpec",
+      "path": "expected.atLeastOne",
+      "equals": true,
+      "description": "验证每个商品至少选出一张"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-image-selection-1x1-fallback",
+      "description": "截图 - 视频选图降级到1:1"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F0测试商品主图仅有1:1候选",
+    "stepsText": "1.触发视频种草 2.查询候选图全为1:1 3.验证降级选中1:1方图 4.验证未出现空选",
+    "expectedResult": "①视频首帧=1:1方图 ②未触发空手兜底失败",
+    "dbAssertion": "ai_process_record.extra_info->>'seed_image_url' IS NOT NULL",
+    "riskPoints": [
+      "候选图全为劣质时进入三级宽松去劣",
+      "兜底策略必须保证不返回空"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §2.3选图"
+    ]
+  }
+}

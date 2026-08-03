@@ -1,0 +1,90 @@
+{
+  "id": "atomic-f88-std-add",
+  "name": "UI：审核标准管理-新增标准弹窗验证",
+  "description": "点击新增标准，验证弹窗出现及表单字段",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核标准管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新增标准",
+      "description": "点击新增标准"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); return { hasModal: !!m, title: m ? m.querySelector('.ant-modal-title')?.textContent?.trim() : null }; })()",
+      "description": "验证弹窗",
+      "storeAs": "addModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "addModal",
+      "path": "hasModal",
+      "equals": true,
+      "description": "验证弹窗出现"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!m) return { fields: [] }; const inputs = Array.from(m.querySelectorAll('input,textarea,select')).map(i => ({ placeholder: i.placeholder || '', type: i.type, label: i.closest('.ant-form-item')?.querySelector('label')?.textContent?.trim() || '' })); return { fields: inputs }; })()",
+      "description": "探查表单字段",
+      "storeAs": "formFields"
+    },
+    {
+      "type": "screenshot",
+      "label": "std-add-modal",
+      "description": "新增标准弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const c = document.querySelector('.ant-modal-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在审核标准数据",
+    "realDomNotes": "新增标准弹窗含表单字段",
+    "riskPoints": []
+  }
+}

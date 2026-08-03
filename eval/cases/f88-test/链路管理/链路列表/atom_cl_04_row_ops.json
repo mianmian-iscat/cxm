@@ -1,0 +1,68 @@
+{
+  "id": "atom-cl-04-row-ops",
+  "name": "原子：链路列表行操作按钮验证",
+  "description": "验证每行数据的编辑、复制按钮可见可点击",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const rows = document.querySelectorAll('table tbody tr'); const dataRows = [...rows].filter(r => r.querySelectorAll('td').length > 0); const results = []; for (const row of dataRows.slice(0, 3)) { const ops = row.querySelector('td:last-child'); const btns = ops ? [...ops.querySelectorAll('button')].map(b => ({ text: b.textContent.trim(), visible: b.offsetHeight > 0, disabled: b.disabled })) : []; const name = row.querySelector('td')?.textContent.trim(); results.push({ name: name?.substring(0, 30), buttons: btns }); } return results; })()",
+      "storeAs": "rowOperations"
+    },
+    {
+      "type": "assertStore",
+      "key": "rowOperations",
+      "path": "found",
+      "equals": true,
+      "description": "验证 rowOperations 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "row-ops-visible"
+    }
+  ]
+}

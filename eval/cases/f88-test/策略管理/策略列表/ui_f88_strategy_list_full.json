@@ -1,0 +1,147 @@
+{
+  "id": "ui-f88-strategy-list-full",
+  "name": "UI：F88 策略列表页完整功能验证",
+  "description": "打开策略列表页，验证所有表格列头、每行操作按钮、搜索框、分页器、新建入口等完整功能。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略名称",
+      "description": "验证列头-策略名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略阶段",
+      "description": "验证列头-策略阶段"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "创建时间",
+      "description": "验证列头-创建时间"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "更新时间",
+      "description": "验证列头-更新时间"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "提交人",
+      "description": "验证列头-提交人"
+    },
+    {
+      "type": "screenshot",
+      "label": "list-columns",
+      "description": "截图-列表列头"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "打开",
+      "description": "验证操作按钮-打开"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "复制",
+      "description": "验证操作按钮-复制"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略名称",
+      "description": "验证搜索框标签存在"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder=\"搜索策略名称\"]",
+      "value": "自动化测试",
+      "description": "输入搜索关键词"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待搜索结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "search-result",
+      "description": "截图-搜索结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input[placeholder=\"搜索策略名称\"]'); if (!input) return false; const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(input, ''); input.dispatchEvent(new Event('input', {bubbles:true})); input.dispatchEvent(new Event('change', {bubbles:true})); return true; })()",
+      "description": "清空搜索"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待列表恢复"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const pagination = document.querySelector('.ant-pagination'); if (!pagination) return { hasPagination: false }; const items = pagination.querySelectorAll('.ant-pagination-item'); return { hasPagination: true, pageCount: items.length }; })()",
+      "storeAs": "pagination",
+      "description": "检查分页器"
+    },
+    {
+      "type": "screenshot",
+      "label": "list-full",
+      "description": "截图-列表页完整视图"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "新建策略",
+      "description": "验证新建策略按钮存在"
+    }
+  ]
+}

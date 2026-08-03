@@ -1,0 +1,82 @@
+{
+  "id": "atomic-f88-tmgmt-card-menu",
+  "name": "UI：模版包管理-卡片操作菜单完整性验证",
+  "description": "验证店铺卡片包含查看详情/编辑/激活/停用操作",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const actions = Array.from(document.querySelectorAll('a,button')).filter(el => { const t = el.textContent.trim(); return ['查看详情','编辑','激活','停用'].some(k => t.includes(k)); }); return { actions: actions.map(a => a.textContent.trim()), count: actions.length }; })()",
+      "description": "提取卡片操作",
+      "storeAs": "cardOps"
+    },
+    {
+      "type": "assertStore",
+      "key": "cardOps",
+      "path": "found",
+      "equals": true,
+      "description": "验证 提取卡片操作 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模版",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "cardOps",
+      "path": "count",
+      "notEmpty": true,
+      "description": "验证卡片操作按钮存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmgmt-card-menu",
+      "description": "卡片操作菜单"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模版包数据",
+    "realDomNotes": "操作: 查看详情/编辑/激活/停用",
+    "riskPoints": []
+  }
+}

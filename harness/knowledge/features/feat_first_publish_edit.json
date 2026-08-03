@@ -1,0 +1,15 @@
+{
+  "id": "feat_first_publish_edit",
+  "category": "features",
+  "title": "首发标签编辑权限规则",
+  "content": "{\"rule\": \"运营端可编辑需同时满足: 9类白名单商家 + to_regular_status≠DONE; T+3内可编辑\"}",
+  "tags": [
+    "首发",
+    "权限",
+    "P1"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499696
+}

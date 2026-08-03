@@ -1,0 +1,82 @@
+{
+  "id": "atom-cl-03-lifecycle-filter",
+  "name": "原子：链路列表生命周期筛选",
+  "description": "选择生命周期下拉，验证列表按生命周期过滤",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const labels = document.querySelectorAll('strong, span, div'); for (const el of labels) { if (el.textContent.trim() === '生命周期：') { const parent = el.closest('.ant-row') || el.parentElement?.parentElement; if (parent) { const select = parent.querySelector('.ant-select'); if (select) { select.querySelector('.ant-select-selector')?.click(); return { ok: true }; } } } } return { ok: false }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dropdowns = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); const options = []; for (const dd of dropdowns) { const items = dd.querySelectorAll('.ant-select-item'); items.forEach(i => options.push(i.textContent.trim())); } return { dropdownVisible: dropdowns.length > 0, options }; })()",
+      "storeAs": "dropdownOptions"
+    },
+    {
+      "type": "screenshot",
+      "label": "lifecycle-dropdown"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dropdowns = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dropdowns) { const items = dd.querySelectorAll('.ant-select-item'); for (const item of items) { if (item.textContent.trim() === '实验') { item.click(); return { ok: true, selected: '实验' }; } } } return { ok: false }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('table tbody tr'); const dataRows = [...rows].filter(r => r.querySelectorAll('td').length > 0); const lifecycles = dataRows.map(r => r.querySelectorAll('td')[1]?.textContent.trim()); const allExperiment = lifecycles.every(l => l === '实验'); return { rowCount: dataRows.length, lifecycles, allExperiment }; })()",
+      "storeAs": "filterResult"
+    },
+    {
+      "type": "screenshot",
+      "label": "filtered-experiment"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const labels = document.querySelectorAll('strong, span, div'); for (const el of labels) { if (el.textContent.trim() === '生命周期：') { const parent = el.closest('.ant-row') || el.parentElement?.parentElement; if (parent) { const clear = parent.querySelector('.ant-select-clear'); if (clear) { clear.click(); return { ok: true }; } } } } return { ok: false }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    }
+  ]
+}

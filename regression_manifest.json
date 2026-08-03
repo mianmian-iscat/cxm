@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-07-09",
+  "description": "F88素材生产回归测试套件清单与调度配置",
+
+  "suites": {
+    "f88-smoke": {
+      "description": "冒烟测试 - 核心页面可达性",
+      "cases": [
+        "smoke_f88_audit.json",
+        "smoke_hjratingconsole_bill_query.json"
+      ],
+      "schedule": "daily 08:00",
+      "timeout_ms": 120000,
+      "max_failures_before_abort": 2
+    },
+    "f88-regression-core": {
+      "description": "核心回归 - regression_* + e2e_* 用例",
+      "cases_glob": ["regression_f88_*.json", "e2e_f88_*.json"],
+      "schedule": "daily 02:00",
+      "timeout_ms": 300000,
+      "max_failures_before_abort": 10
+    },
+    "f88-regression-ui": {
+      "description": "UI回归 - ui_* 页面级用例",
+      "cases_glob": ["ui_f88_*.json"],
+      "schedule": "daily 03:00",
+      "timeout_ms": 600000,
+      "max_failures_before_abort": 20
+    },
+    "f88-regression-atom": {
+      "description": "原子回归 - atom_* + atomic_* 原子级用例",
+      "cases_glob": ["atom_f88_*.json", "atom_*_*.json", "atomic_f88_*.json"],
+      "schedule": "daily 04:00",
+      "timeout_ms": 600000,
+      "max_failures_before_abort": 30
+    },
+    "f88-regression-normal": {
+      "description": "正常流程回归 - normal_* 用例",
+      "cases_glob": ["normal_f88_*.json"],
+      "schedule": "daily 05:00",
+      "timeout_ms": 900000,
+      "max_failures_before_abort": 20
+    },
+    "f88-full-weekly": {
+      "description": "全量回归 - 所有用例",
+      "cases_glob": ["*.json"],
+      "include_subdirs": true,
+      "schedule": "weekly sun 02:00",
+      "timeout_ms": 3600000,
+      "max_failures_before_abort": 50
+    }
+  },
+
+  "promotion_rules": {
+    "auto_promote_on": "all_pass",
+    "require_manual_review": false,
+    "tag_prefix": "regression_",
+    "target_dir": "eval/cases/f88-test",
+    "update_skill_md": true,
+    "git_commit": true,
+    "commit_message_template": "chore: promote {count} cases from PRD-{prd_id} to regression"
+  },
+
+  "reporting": {
+    "dingtalk_doc": true,
+    "html_report": true,
+    "json_results": true,
+    "artifacts_dir": "artifacts/regression",
+    "retention_days": 30
+  },
+
+  "execution": {
+    "cdp_url_env": "WEB_AUTO_CDP_URL",
+    "cdp_url_default": "http://127.0.0.1:9222",
+    "base_url": "https://pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc",
+    "screenshot_on_error": true,
+    "network_capture": true,
+    "self_healing": true,
+    "retry_on_failure": 1,
+    "parallel_limit": 1
+  }
+}

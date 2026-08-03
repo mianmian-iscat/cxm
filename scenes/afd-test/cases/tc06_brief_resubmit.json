@@ -1,0 +1,64 @@
+{
+  "id": "tc06-brief-resubmit",
+  "name": "Brief 驳回后重新提交",
+  "description": "驳回后fork新版本，版本侧栏对比，重新提交",
+  "priority": "P1",
+  "category": "functional",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "REJECTED_BRIEF"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('重新编辑Brief')",
+      "description": "买手点击重新编辑(fork新版本)"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": "[class*='version-sidebar']",
+      "exists": true,
+      "description": "验证版本侧栏出现"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图版本侧栏"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "element_exists",
+      "selector": "[class*='version']"
+    }
+  ],
+  "tags": [
+    "afd",
+    "functional",
+    "brief",
+    "version"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "normal-f88-strategy-detail-nodes",
+  "name": "正常流程：F88 策略详情-节点编排与落库配置验证",
+  "description": "从策略列表打开一条策略详情页，验证节点编排区域（节点卡片列表）、落库配置入口渲染。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待策略列表加载" },
+    { "type": "assert", "target": "page", "contains": "策略", "description": "验证策略列表页" },
+    {
+      "type": "clickText",
+      "text": "详情",
+      "description": "点击第一条策略的详情按钮"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待策略详情页加载" },
+    { "type": "assert", "target": "page", "contains": "节点", "description": "验证节点编排区域渲染" },
+    { "type": "screenshot", "label": "f88-strategy-detail-nodes", "description": "截图-策略详情节点编排" },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "返回列表"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待列表重新加载" },
+    { "type": "assert", "target": "page", "contains": "策略列表", "description": "验证回到策略列表" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；策略列表须有数据。",
+    "realDomNotes": "tc14_strategy_list 对应；策略详情页含节点编排（节点卡片/起点/添加节点）和落库配置；返回列表需page.goto（SPA导航）。",
+    "riskPoints": ["详情按钮文案可能是'查看'而非'详情'", "列表无数据时点击失败"]
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "_comment": "全局页面知识库索引。匹配规则：URL 同时包含 host 且包含 route 时命中。knowledge 文件可跨 skill 目录引用（path 字段为绝对路径或相对 workspace 的路径）。",
+  "entries": [
+    {
+      "id": "hjratingconsole-bill-query",
+      "platform": "汇金 Rating Console",
+      "description": "账单查询页面（通过外部订单号查询账单明细）",
+      "host": "hjratingconsole.alibaba-inc.com",
+      "hostPre": "pre-hjratingconsole.alibaba-inc.com",
+      "route": "hjratingconsole/faq/billQuery.htm",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO，登录态失效时页面跳转到 login.alibaba-inc.com"
+      },
+      "skill": null,
+      "file": "knowledge/hjratingconsole/hjratingconsole-bill-query.json",
+      "covers": [
+        "外部订单号查询",
+        "消息查询结果",
+        "详单查询结果",
+        "账单查询结果",
+        "按业务类型筛选"
+      ]
+    },
+    {
+      "id": "xiaoer-product-mgmt",
+      "platform": "品质联盟运营工作台",
+      "description": "平台商品管理（含 SKU 详情与上下架、调价接口）",
+      "host": "xiaoer.alibaba-inc.com",
+      "hostPre": "pre-xiaoer.alibaba-inc.com",
+      "route": "quality-pulse/product-management",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO，登录态失效时页面跳转到 login.alibaba-inc.com"
+      },
+      "skill": "product-management-test",
+      "file": "knowledge/xiaoer/xiaoer-product-mgmt.json",
+      "aliases": ["品质联盟", "平台商品", "商品管理"],
+      "covers": [
+        "商品列表搜索",
+        "筛选",
+        "状态Tab",
+        "更多菜单",
+        "SKU详情弹窗",
+        "SKU上下架",
+        "日销价调价"
+      ]
+    },
+    {
+      "id": "qianniu-material",
+      "platform": "千牛商家工作台",
+      "description": "素材管理页（搭配创建/编辑/删除、图片上传、商品关联）",
+      "host": "qn.wapa.taobao.com",
+      "route": "material-center/material-management",
+      "auth": {
+        "type": "taobao",
+        "note": "淘宝商家账号登录，浏览器已登录时免登，也可配置 loginCredentials 自动登录"
+      },
+      "skill": "qianniu-test",
+      "file": "scenes/qianniu-test/knowledge/qianniu-material.json",
+      "covers": [
+        "搭配创建",
+        "搭配编辑",
+        "图片上传",
+        "裁剪",
+        "商品锚点",
+        "素材列表"
+      ]
+    },
+    {
+      "id": "xiaoer-adplacement",
+      "platform": "运营工作台",
+      "description": "平台商品报名（广告位）",
+      "host": "pre-xiaoer.alibaba-inc.com",
+      "route": "product-batch-registration/adPlacement",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO，登录态失效时页面跳转到 login.alibaba-inc.com"
+      },
+      "skill": null,
+      "file": "knowledge/xiaoer/xiaoer-adplacement.json",
+      "covers": [
+        "商品列表搜索",
+        "筛选（类目/店铺/报名状态/买手/招商/时间/商品状态）",
+        "商品报名",
+        "查看 SKU 详情",
+        "商品清退",
+        "导入商品表格"
+      ]
+    },
+    {
+      "id": "f88-material-audit",
+      "platform": "F88运营平台",
+      "description": "审核管理模块（个人任务中心 / 审核标准 / 审核节点 / 任务管理 / 重生图）",
+      "host": "pre-aifashion-xiaoer.alibaba-inc.com",
+      "route": "review/personal-task-center",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO，登录态失效时页面跳转登录页"
+      },
+      "skill": "f88-test",
+      "file": "scenes/f88-test/knowledge/f88-material-audit.json",
+      "aliases": ["F88审核", "F88 audit", "素材审核", "审核管理", "审核任务", "个人任务中心"],
+      "covers": [
+        "个人任务中心",
+        "审核任务列表",
+        "审核标准管理",
+        "审核节点管理",
+        "任务管理",
+        "租户身份验证",
+        "重生图流程",
+        "负反馈",
+        "任务排期"
+      ]
+    },
+    {
+      "id": "f88-material-production",
+      "platform": "F88策略平台",
+      "description": "素材生产模块（策略配置/批次管理/CRM/看板/模板库/素材写入）",
+      "host": "pre-aifashion-xiaoer.alibaba-inc.com",
+      "route": "strategy/config",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO"
+      },
+      "skill": "f88-test",
+      "file": "knowledge/f88/f88-material-production.json",
+      "aliases": ["F88策略", "F88素材生产", "素材生产", "策略平台", "F88", "素材配置", "策略配置"],
+      "covers": [
+        "策略配置",
+        "生图节点(gen_img/map_gen_img)",
+        "LLM文本生成(llm_text)",
+        "图片高清化(image_enhance)",
+        "AI机审(auto_review)",
+        "试运行",
+        "批次管理(STREAM/BATCH)",
+        "素材写入",
+        "CRM leads管理",
+        "实时看板",
+        "模板库",
+        "模板匹配节点(TemplateMatchProcessor)",
+        "匹配模式(规则匹配/模型匹配)",
+        "模型匹配(AI模型选择+数据来源+应用环节+应用场景)",
+        "规则匹配(seller_id+排序维度+硬匹配字段)",
+        "模板包 vs 模板库配置差异",
+        "视觉企划配置",
+        "17种节点类型创建用例",
+        "策略详情页9大功能用例",
+        "组合型策略用例(生图三段式/审核/链路管理)",
+        "策略链路搭配模式(5环节流水线)"
+      ]
+    },
+    {
+      "id": "xiaoer-original-protection",
+      "platform": "品质联盟运营工作台",
+      "description": "原创保护平台（签约入驻/权利申请/结算管理/维权保护）",
+      "host": "pre-xiaoer.alibaba-inc.com",
+      "hostPre": "pre-xiaoer.alibaba-inc.com",
+      "route": "quality-pulse/original-protection",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO；商家视角通过千牛入口(TTYCBH白名单)"
+      },
+      "skill": "op-test",
+      "file": "knowledge/xiaoer/xiaoer-original-protection.json",
+      "aliases": ["原创保护", "OP", "original protection", "维权", "侵权", "签约入驻"],
+      "covers": [
+        "签约入驻(9类/非9类/童装童鞋)",
+        "权利申请(首发/非首发)",
+        "结算管理(335/33/133/退款)",
+        "维权保护(线索/巡检/提交维权)",
+        "商家签约API",
+        "HSF服务集成",
+        "DB表结构"
+      ]
+    },
+    {
+      "id": "afd-knowledge-framework",
+      "platform": "AFD风格店铺协作平台",
+      "description": "AFD完整知识框架（F88素材生产+审核管理+模板库+风格店铺协作平台+选款页）",
+      "host": "pre-aifashion-xiaoer.alibaba-inc.com",
+      "route": "styleShopCollab",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO，通过 X-AFD-Emp-Identity 租户头切换 AFD/F88 身份"
+      },
+      "skill": "afd-test",
+      "file": "knowledge/afd/afd-knowledge-framework.json",
+      "aliases": ["AFD", "风格店铺", "视觉协作", "aifashion"],
+      "covers": [
+        "素材生产引擎(18种NodeProcessor)",
+        "审核管理(审核/抽检/埋雷)",
+        "模板库(三种模板池)",
+        "风格店铺协作平台(店铺列表+迭代详情+Brief+试拍评审+归档)",
+        "迭代状态机(10状态)",
+        "角色权限矩阵(5类角色)",
+        "视觉基准包",
+        "选款页",
+        "数据模型与统计指标"
+      ]
+    },
+    {
+      "id": "afd-style-shop-collab",
+      "platform": "AFD风格店铺协作平台",
+      "description": "风格店铺协作平台页面级知识（店铺列表工作台+迭代详情+Brief+试拍评审+归档基准包）",
+      "host": "pre-aifashion-xiaoer.alibaba-inc.com",
+      "route": "styleShopCollab/shopList",
+      "auth": {
+        "type": "buc",
+        "note": "阿里员工内网 SSO，租户头 X-AFD-Emp-Identity"
+      },
+      "skill": "afd-test",
+      "file": "scenes/afd-test/knowledge/afd-style-shop-collab.json",
+      "covers": [
+        "店铺列表工作台",
+        "筛选(名称/SellerID/买手/视觉状态)",
+        "添加风格店铺",
+        "新增视觉迭代",
+        "迭代详情-Brief(5大区块表单)",
+        "Brief版本管理(fork/对比)",
+        "试拍上传(5坑位/最小集校验)",
+        "Excel批量导入",
+        "买手审核(逐组大图/弃用/判定规则)",
+        "Leader复核(三选一决策)",
+        "视觉归档+基准包",
+        "终止迭代",
+        "权限矩阵(5角色×11状态)",
+        "时间线",
+        "租户切换验证"
+      ]
+    }
+  ],
+  "_authTypes": {
+    "_comment": "登录方式全局注册表。每个 entry 的 auth.type 必须在这里有对应记录。",
+    "taobao": "淘宝账号登录（.taobao.com 等淘系域名）。已登录浏览器可免登，也可提供 context.loginCredentials 自动登录。",
+    "buc": "阿里员工 BUC/SSO 登录（.alibaba-inc.com 等内网域名）。已登录浏览器可免登，暂无法自动登录，登录态失效时需人工重新登录。",
+    "none": "无需登录。"
+  }
+}

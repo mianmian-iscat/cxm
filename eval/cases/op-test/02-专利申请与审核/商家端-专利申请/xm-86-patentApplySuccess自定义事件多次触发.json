@@ -1,0 +1,87 @@
+{
+  "id": "xm-86-patentApplySuccess自定义事件多次触发",
+  "name": "patentApplySuccess自定义事件多次触发",
+  "description": "连续多次提交申请",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "module": "02-专利申请与审核",
+  "page": "商家端-专利申请",
+  "testScope": "ui",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/02-专利申请与审核",
+  "sourceIds": [
+    "02-专利申请与审核/商家端-专利申请/xm-86-patentApplySuccess自定义事件多次触发"
+  ],
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-fsyc.taobao.com/",
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')); const target = tabs.find(t => (t.textContent || '').includes('')); if(target) { target.click(); return { tabClicked: true, text: '' }; } return { tabClicked: false, availableTabs: tabs.map(t => t.textContent.trim()).slice(0, 10) }; })()",
+      "description": "操作1: 提交后立即关页 2.提交后切Tab",
+      "storeAs": "action1"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作1结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const checks = [\"事件正确触发列表刷新\"]; const results = checks.map(c => ({ check: c, found: text.includes(c) })); const passCount = results.filter(r => r.found).length; return { totalChecks: checks.length, passCount, results, pageTextPreview: text.substring(0, 300) }; })()",
+      "description": "验证预期结果",
+      "storeAs": "resultCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "连续多次提交申请",
+    "stepsText": "1.提交后立即关页 2.提交后切Tab",
+    "expectedResult": "事件正确触发列表刷新",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": [
+      "商家端#25"
+    ],
+    "relatedDocs": [],
+    "sourceType": "xmind",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/yc-protection-qa-workbench/skills/原创保护用例生成/references/test-cases/02-专利申请与审核.xmind，2026-07-11T05:02:12.780165"
+  }
+}

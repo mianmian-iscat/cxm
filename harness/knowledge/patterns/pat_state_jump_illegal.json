@@ -1,0 +1,15 @@
+{
+  "id": "pat_state_jump_illegal",
+  "category": "patterns",
+  "title": "申请状态非法跳跃",
+  "content": "{\"error\": \"SAVING直接跳到CERT_AUTHED\", \"root_cause\": \"跳过快审/预审环节\", \"fix\": \"状态机校验每步转换合法性\"}",
+  "tags": [
+    "状态机",
+    "非法跳跃",
+    "P1"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499698
+}

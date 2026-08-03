@@ -1,0 +1,161 @@
+{
+  "id": "ui-f88-task-hall-template",
+  "name": "UI：F88 任务大厅-模版库来源任务创建全流程",
+  "description": "从模版库来源tab进入，点击新建任务，在4步流程中选择模版库已有模板，配置任务名称/节点/审核标准/优先级/分配方式/抽检设置，提交后验证任务出现在模版库列表中。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=template",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=template",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务大厅-模版库来源tab"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务表格加载" },
+    { "type": "assert", "target": "page", "contains": "模版库", "description": "验证含模版库来源tab" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证表格含任务名称列" },
+    { "type": "assert", "target": "page", "contains": "审核状态&进度", "description": "验证表格含审核状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "抽检状态&进度", "description": "验证表格含抽检状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "埋雷状态&进度", "description": "验证表格含埋雷状态&进度列" },
+    { "type": "screenshot", "label": "template-hall-init", "description": "截图-模版库tab初始状态" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); return { taskCount: rows.length, firstTaskName: rows[0]?.querySelector('td')?.innerText?.trim() }; })()",
+      "storeAs": "templateTabBefore",
+      "description": "记录模版库tab当前任务数"
+    },
+
+    { "type": "clickText", "text": "新建任务", "description": "Step1-点击新建任务按钮" },
+    { "type": "wait", "ms": 2500, "description": "等待创建弹窗渲染" },
+    { "type": "assert", "target": "page", "contains": "任务创建", "description": "验证弹窗Step1标题" },
+    { "type": "assert", "target": "page", "contains": "任务基础设置", "description": "验证4步流程含Step2" },
+    { "type": "assert", "target": "page", "contains": "任务分配", "description": "验证4步流程含Step3" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证Step1含任务名称字段" },
+    { "type": "assert", "target": "page", "contains": "任务节点选择", "description": "验证Step1含节点选择字段" },
+    { "type": "assert", "target": "page", "contains": "上传数据", "description": "验证Step1含上传数据字段" },
+    { "type": "screenshot", "label": "template-create-step1", "description": "截图-Step1任务创建" },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder=\"最多输入50字符\"]",
+      "value": "模版库回归测试",
+      "react": true,
+      "description": "Step1-填写任务名称"
+    },
+    {
+      "type": "selectOption",
+      "label": "任务节点选择",
+      "option": "模板审核",
+      "description": "Step1-选择任务节点：图片人工审核"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待节点选择后模版区域渲染" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const templates = document.querySelectorAll('[class*=\"template\"], [class*=\"template-card\"], .ant-card'); const templateList = Array.from(templates).filter(t => t.offsetHeight > 0 && t.innerText.length > 0); return { templateCount: templateList.length, firstTemplate: templateList[0]?.innerText?.trim()?.slice(0, 50) }; })()",
+      "storeAs": "templateList",
+      "description": "检测可选模版列表"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const templates = document.querySelectorAll('[class*=\"template\"], [class*=\"template-card\"], .ant-card'); const first = Array.from(templates).find(t => t.offsetHeight > 0 && t.innerText.length > 5); if (first) { first.click(); return { selected: first.innerText.trim().slice(0, 50) }; } return { selected: null }; })()",
+      "storeAs": "templateSelected",
+      "description": "Step1-选择第一个可用模版"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待模版选择后数据加载" },
+    { "type": "screenshot", "label": "template-create-step1-filled", "description": "截图-Step1模版已选择" },
+
+    { "type": "clickText", "text": "下一步", "description": "Step2-点击进入任务基础设置" },
+    { "type": "wait", "ms": 2000, "description": "等待Step2渲染" },
+    { "type": "assert", "target": "page", "contains": "审核标准", "description": "验证Step2-审核标准字段" },
+    { "type": "assert", "target": "page", "contains": "优先级", "description": "验证Step2-优先级字段" },
+    { "type": "assert", "target": "page", "contains": "预期交付时间", "description": "验证Step2-预期交付时间字段" },
+    { "type": "assert", "target": "page", "contains": "难度预估", "description": "验证Step2-难度预估字段" },
+    { "type": "assert", "target": "page", "contains": "人效预估", "description": "验证Step2-人效预估字段" },
+    {
+      "type": "selectOption",
+      "label": "优先级",
+      "option": "P1",
+      "description": "Step2-选择优先级P1"
+    },
+    { "type": "screenshot", "label": "template-create-step2", "description": "截图-Step2任务基础设置" },
+
+    {
+      "type": "click",
+      "selector": ".ant-picker-input input",
+      "description": "Step2-点击预期交付时间日期选择器"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待日期面板展开" },
+    {
+      "type": "click",
+      "selector": ".ant-picker-now a, .ant-picker-now-btn",
+      "description": "Step2-点击“此刻”快速填充当前时间"
+    },
+    { "type": "wait", "ms": 500, "description": "等待时间填充" },
+    {
+      "type": "click",
+      "selector": ".ant-picker-ok button",
+      "description": "Step2-点击日期选择器确定按钮"
+    },
+    { "type": "pressKey", "key": "Escape", "description": "Step2-关闭日期选择器面板" },
+    { "type": "wait", "ms": 500, "description": "等待日期选择器关闭" },
+
+    { "type": "clickText", "text": "下一步", "description": "Step3-点击进入任务分配" },
+    { "type": "wait", "ms": 2000, "description": "等待Step3渲染" },
+    { "type": "assert", "target": "page", "contains": "参与人员", "description": "验证Step3-参与人员字段" },
+    { "type": "assert", "target": "page", "contains": "分配结果", "description": "验证Step3-分配结果字段" },
+    {
+      "type": "clickText",
+      "text": "一键分配",
+      "description": "Step3-点击一键分配"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待一键分配处理" },
+    { "type": "screenshot", "label": "template-create-step3", "description": "截图-Step3任务分配" },
+
+    { "type": "clickText", "text": "下一步", "description": "Step4-点击进入检查设置" },
+    { "type": "wait", "ms": 2000, "description": "等待Step4渲染" },
+    { "type": "assert", "target": "page", "contains": "检查设置", "description": "验证4步流程进度条始终可见（Step4检查设置）" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const switches = document.querySelectorAll('.ant-switch'); const enabled = Array.from(switches).filter(s => s.classList.contains('ant-switch-checked')); return { totalSwitches: switches.length, enabledSwitches: enabled.length }; })()",
+      "storeAs": "checkSettings",
+      "description": "检测Step4抽检开关状态"
+    },
+    { "type": "screenshot", "label": "template-create-step4", "description": "截图-Step4检查设置" },
+
+    { "type": "clickText", "text": "取 消", "description": "取消弹窗-不提交脏数据" },
+    { "type": "wait", "ms": 1500, "description": "等待弹窗关闭" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); return { taskCount: rows.length, headers: Array.from(document.querySelectorAll('th')).map(th => th.innerText.trim()).filter(t => t) }; })()",
+      "storeAs": "templateTableAfter",
+      "description": "读取模版库tab表格信息"
+    },
+    { "type": "screenshot", "label": "template-hall-final", "description": "截图-模版库tab最终状态" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。模版库中至少有一个可用模版。",
+    "realDomNotes": "sourceTab=template；4步创建弹窗与手动创建相同，但Step1选择模版而非上传文件；Step1字段：任务名称/任务节点选择/模版选择（卡片列表）；Step2-4与手动创建一致；Step3含一键分配按钮。",
+    "riskPoints": [
+      "模版卡片DOM结构可能为.ant-card或自定义class",
+      "一键分配可能依赖已选审核标准",
+      "取消按钮真实文本为「取 消」含空格",
+      "模版选择后可能自动填充审核标准等字段"
+    ]
+  }
+}

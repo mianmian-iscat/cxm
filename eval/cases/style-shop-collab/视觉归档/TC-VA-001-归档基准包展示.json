@@ -1,0 +1,54 @@
+{
+  "id": "TC-VA-001",
+  "name": "TC-VA-001 — 归档基准包页展示 [P0]",
+  "description": "验证ARCHIVED状态默认进入归档基准包tab，展示最终通过图组、弃用清单、基准包信息",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "视觉归档",
+  "page": "迭代详情-归档基准包 tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const activeTab = document.querySelector('.ant-tabs-tab-active')?.textContent.trim(); const text = document.body.textContent; const hasPackageId = text.includes('基准包') || text.includes('Package'); const hasPassedGroups = text.includes('通过图组') || text.includes('最终通过'); const hasDiscardList = text.includes('弃用清单') || text.includes('弃用'); const hasArchiveTime = text.includes('归档时间'); const hasAppStatus = text.includes('应用中'); const isReadonly = !document.querySelector('button[class*=discard], [class*=审核操作]'); return { activeTab, hasPackageId, hasPassedGroups, hasDiscardList, hasArchiveTime, hasAppStatus, isReadonly }; })()",
+      "description": "验证归档基准包页展示",
+      "storeAs": "archivePage"
+    },
+    {
+      "type": "assertStore",
+      "key": "archivePage",
+      "path": "isReadonly",
+      "equals": true,
+      "description": "归档页只读"
+    },
+    {
+      "type": "screenshot",
+      "label": "archive-package"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为ARCHIVED",
+    "stepsText": "1. 进入迭代详情\n2. 验证默认进入归档基准包tab\n3. 检查基准包信息展示\n4. 验证只读不展示操作",
+    "expectedResult": "1. ARCHIVED状态默认进入归档基准包tab\n2. 展示基准包ID/版本、来源迭代、归档时间/人\n3. 展示最终通过图组和弃用清单\n4. 当前应用基准包展示应用中标签\n5. 只读不展示审核/复核/补拍操作",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/视觉归档"
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "id": "normal_f88_strategy_list_filter",
+  "name": "策略列表 - 策略阶段/环节筛选 + 重置",
+  "description": "在策略列表验证策略阶段筛选、环节筛选、双重筛选组合、重置功能、筛选后列表更新。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "strategy",
+    "filter"
+  ],
+  "timeout": 120000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开策略列表页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "screenshot",
+      "label": "strat-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tr[data-row-key]'); const selects = document.querySelectorAll('.ant-select'); const inputs = document.querySelectorAll('input[placeholder]'); return { rowCount: rows.length, selectCount: selects.length, inputPlaceholders: Array.from(inputs).map(i=>i.placeholder).filter(Boolean), columns: Array.from(document.querySelectorAll('.ant-table-thead th')).map(th=>th.textContent.trim()) }; })()",
+      "description": "探查表格和筛选组件完整信息"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "strategy|list|filter",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "selectorIndex": 0,
+      "data-test-target": "stage-select",
+      "description": "展开策略阶段筛选(AntD Select)"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')).map(el=>el.textContent)",
+      "description": "获取阶段选项列表"
+    },
+    {
+      "type": "clickText",
+      "text": "实验",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择实验阶段"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选"
+    },
+    {
+      "type": "screenshot",
+      "label": "strat-stage-filtered",
+      "description": "截图-阶段筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelectorAll('.ant-table-row, tr[data-row-key]').length",
+      "description": "统计阶段筛选后行数"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "selectorIndex": 1,
+      "data-test-target": "process-select",
+      "description": "展开环节筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')).map(el=>el.textContent)",
+      "description": "获取环节选项列表"
+    },
+    {
+      "type": "clickText",
+      "text": "视觉",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择视觉环节"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选"
+    },
+    {
+      "type": "screenshot",
+      "label": "strat-both-filtered",
+      "description": "截图-双重筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelectorAll('.ant-table-row, tr[data-row-key]').length",
+      "description": "统计双重筛选后行数"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "视觉",
+      "description": "验证筛选结果含视觉标签"
+    },
+    {
+      "type": "clickText",
+      "text": "/(重置|清除|全部)/",
+      "data-test-target": "reset-btn",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待重置"
+    },
+    {
+      "type": "screenshot",
+      "label": "strat-reset",
+      "description": "截图-重置后"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select-selection-item, .ant-select-selection__placeholder'); return Array.from(selects).map(s=>s.textContent.trim()).filter(Boolean); })()",
+      "description": "验证重置后Select值已清空"
+    }
+  ],
+  "realDomNotes": "策略列表 /strategy/list；筛选为策略阶段+环节双Select；AntD Select需mouse.click展开；重置按钮可能文案为'重置'/'清除'/'全部'。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在多条策略"
+}

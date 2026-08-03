@@ -1,0 +1,158 @@
+{
+  "id": "settlement-expiry-confirm",
+  "name": "结算资金流：合作到期确收（下架率≥70%或未提交维权线索）",
+  "description": "验证6个到期确收场景，分2组到期时间维度：①商品确认一致性180天到期(3)：无补贴下架率≥70%确收0.10、有补贴首发确收(给0.06确收0.04)、无补贴未提交线索默认确收0.10；②申请日+1年-30天到期(3)：同规则。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P2",
+  "category": "regression",
+  "source": "dingtalk-spreadsheet/6LeBq413JA9BOdm2iBjQdjE7JDOnGvpb Sheet1 Row33-35,44-46,49,51",
+  "sourceIds": [
+    "TC_SETTLE_EXP_001",
+    "TC_SETTLE_EXP_002",
+    "TC_SETTLE_EXP_003",
+    "TC_SETTLE_EXP_004",
+    "TC_SETTLE_EXP_005",
+    "TC_SETTLE_EXP_006"
+  ],
+  "context": {
+    "type": "db",
+    "dbGroup": "scenario",
+    "dbEnv": "prod",
+    "script": "scripts/verify_settlement.py"
+  },
+  "scenarios": {
+    "商品确认一致性180天到期": [
+      {
+        "id": "TC_SETTLE_EXP_001",
+        "name": "无补贴+下架率≥70%→确收0.10元",
+        "applyId": "200000347",
+        "orderId": "322056100340271",
+        "patentNo": "202637070707.0",
+        "expireRule": "商品确认一致性后180天",
+        "protectExpireTime": "2026-03-30 00:00:00",
+        "expected": {
+          "has_subsidy": false,
+          "takedown_rate_gte_70": true,
+          "settle_status": "FINISH",
+          "serv_finish_refund_amount": 0,
+          "note": "不退商家，服饰确收 total=10分（0.10元）"
+        }
+      },
+      {
+        "id": "TC_SETTLE_EXP_002",
+        "name": "有补贴首发+下架率≥70%→补贴0.06+确收0.04",
+        "applyId": "200000353",
+        "orderId": "322055800480271",
+        "patentNo": "202637070707.7",
+        "expireRule": "商品确认一致性后180天",
+        "expected": {
+          "has_subsidy": true,
+          "first_publish": true,
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 2,
+          "note": "补贴商家首发0.06，服饰确收0.04，到期退官费0.02"
+        }
+      },
+      {
+        "id": "TC_SETTLE_EXP_003",
+        "name": "无补贴+未提交维权线索→默认确收0.10",
+        "applyId": "200000345",
+        "orderId": "322055800450271",
+        "patentNo": "YC31166324992",
+        "expireRule": "商品确认一致性后180天",
+        "expected": {
+          "has_subsidy": false,
+          "no_protection_claims": true,
+          "serv_finish_refund_amount": 0,
+          "note": "商家未提交维权线索，默认下架率≥70%，确收0.10元"
+        }
+      }
+    ],
+    "申请日+1自然年-30天到期": [
+      {
+        "id": "TC_SETTLE_EXP_004",
+        "name": "无补贴+下架率≥70%→确收0.10",
+        "applyId": "200000389",
+        "orderId": "322056100560271",
+        "patentNo": "202634041510.1",
+        "expireRule": "专利申请日+1自然年-30天",
+        "expected": {
+          "has_subsidy": false,
+          "takedown_rate_gte_70": true,
+          "serv_finish_refund_amount": 0,
+          "note": "确收0.1元"
+        }
+      },
+      {
+        "id": "TC_SETTLE_EXP_005",
+        "name": "有补贴首发+下架率≥70%→补贴0.06+确收",
+        "applyId": "200000386",
+        "orderId": "322056500410271",
+        "patentNo": "202634041510.4",
+        "expireRule": "专利申请日+1自然年-30天",
+        "expected": {
+          "has_subsidy": true,
+          "first_publish": true,
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 2,
+          "note": "给商家0.06元，确收0.04元"
+        }
+      },
+      {
+        "id": "TC_SETTLE_EXP_006",
+        "name": "无补贴+未提交线索→默认确收0.10",
+        "applyId": "200000387",
+        "orderId": "322056500420271",
+        "patentNo": "202634041510.3",
+        "expireRule": "专利申请日+1自然年-30天",
+        "expected": {
+          "has_subsidy": false,
+          "no_protection_claims": true,
+          "serv_finish_refund_amount": 0
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && for id in 200000347 200000353 200000345 200000389 200000386 200000387; do python3 scripts/verify_settlement.py $id; done",
+      "description": "逐条执行6个到期确收场景的DB结算校验"
+    }
+  ],
+  "post_asserts": [
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, settle_status, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000347,200000345,200000389,200000387) AND is_deleted=0 AND settle_status='FINISH'",
+      "expectCount": 4,
+      "description": "无补贴到期确收4条均为FINISH"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000347,200000345,200000389,200000387) AND is_deleted=0 AND settle_status='FINISH' AND (serv_finish_refund_amount IS NULL OR serv_finish_refund_amount=0)",
+      "expectCount": 4,
+      "description": "无补贴确收场景退款金额应为0"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, init_allowance_amount, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000353,200000386) AND is_deleted=0 AND settle_status='FINISH' AND init_allowance_amount=6",
+      "expectCount": 2,
+      "description": "有补贴首发确收场景补贴=6分"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "6个专利申请保护期已到期（通过修改protectExpireTime触发），下架率已达标或未提交线索",
+    "riskPoints": [
+      "到期日取 min(商品确认一致性+180天, 申请日+1年-30天) 取早者",
+      "下架率≥70%: 无补贴确收全部(10分), 有补贴退官费(2分)",
+      "未提交维权线索默认下架率≥70%（不退款）",
+      "有补贴场景: 补贴已发放(6分), 到期只退官费(2分)",
+      "供应商费用(335元)线下结算，不在settle_order体现"
+    ],
+    "prdRef": "PRD: 保护服务到期T+1判断下架率≥70% → 人工结算供应商500-165, 商家0"
+  }
+}

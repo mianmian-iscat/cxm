@@ -1,0 +1,16 @@
+# web-automation Python 依赖声明
+#
+# 运行时核心：全部使用 Python 标准库，无需安装第三方包
+# asyncio, json, dataclasses, os, sys, re, subprocess, uuid, datetime, hashlib, etc.
+
+# 可选依赖（仅 nl2input.py 自然语言转用例需要）
+# openai>=1.0.0  # pip install openai
+
+# 可选依赖（仅 knowledge_base.py 向量混合检索需要，无此依赖时退化为关键词检索）
+# sentence-transformers>=2.0  # pip install sentence-transformers
+
+# 开发依赖（运行测试需要）
+pyyaml>=6.0
+pytest>=7.0
+pytest-asyncio>=0.21
+pytest-cov>=4.0

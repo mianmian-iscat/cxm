@@ -1,0 +1,62 @@
+{
+  "name": "f88_audit_executor",
+  "version": "1.0.0",
+  "description": "F88 素材审核操作执行器：执行通过/驳回/高清化/裁剪/替换等审核操作",
+  "triggers": ["审核", "通过", "驳回", "高清化", "裁剪", "替换"],
+  "parameters": {
+    "type": "object",
+    "required": ["task_id", "action"],
+    "properties": {
+      "task_id": {
+        "type": "string",
+        "description": "审核任务ID"
+      },
+      "action": {
+        "type": "string",
+        "enum": ["pass", "reject", "hd_enhance", "crop", "replace", "local_modify"],
+        "description": "审核操作类型"
+      },
+      "material_id": {
+        "type": "string",
+        "description": "素材ID（可选，部分操作需要）"
+      },
+      "reject_reason": {
+        "type": "string",
+        "description": "驳回原因（action=reject时必填）"
+      },
+      "replacement_image": {
+        "type": "string",
+        "description": "替换图片路径（action=replace时必填）"
+      },
+      "crop_area": {
+        "type": "object",
+        "properties": {
+          "x": { "type": "integer" },
+          "y": { "type": "integer" },
+          "width": { "type": "integer" },
+          "height": { "type": "integer" }
+        },
+        "description": "裁剪区域（action=crop时必填）"
+      },
+      "audit_type": {
+        "type": "string",
+        "enum": ["qt1_single", "qt2_set", "qt4_cover"],
+        "description": "审核类型：单图/套图/封面图"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "material_url": { "type": "string", "description": "操作后素材URL" },
+      "origin_url": { "type": "string", "description": "原始URL（不变）" },
+      "local_adjust_status": { "type": "integer" }
+    }
+  },
+  "timeout_ms": 30000,
+  "retry_policy": {
+    "max_retries": 2,
+    "backoff_ms": 3000
+  }
+}

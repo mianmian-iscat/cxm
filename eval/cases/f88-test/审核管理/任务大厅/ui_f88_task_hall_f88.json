@@ -1,0 +1,40 @@
+{
+  "id": "ui-f88-task-hall-f88",
+  "name": "UI：F88 任务大厅-策略平台-F88来源tab结构验证",
+  "description": "验证任务大厅-策略平台-F88来源tab的表格结构（审核/抽检/埋雷状态&进度列）、筛选项与操作入口。基于预发真实结构 sourceTab=other。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务大厅-策略平台-F88来源tab"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务表格加载" },
+    { "type": "assert", "target": "page", "contains": "策略平台-F88", "description": "验证含策略平台-F88来源tab" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证表格含任务名称列" },
+    { "type": "assert", "target": "page", "contains": "审核状态&进度", "description": "验证表格含审核状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "抽检状态&进度", "description": "验证表格含抽检状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "埋雷状态&进度", "description": "验证表格含埋雷状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "查看任务排期", "description": "验证含查看任务排期入口" },
+    { "type": "screenshot", "label": "task-hall-f88", "description": "截图-任务大厅策略平台-F88来源tab" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "sourceTab=other；表格列:任务名称/优先级/预期交付时间/创建人/审核状态&进度/抽检状态&进度/埋雷状态&进度/任务时长(除埋雷)/操作;筛选:任务名称/创建人/审核状态;按钮:新建任务/查看任务排期/查询/详情/编辑/下载。四个来源tab（f88/test/manual/template）共享此表格结构。",
+    "riskPoints": ["表格数据为空时仅表头存在"]
+  }
+}

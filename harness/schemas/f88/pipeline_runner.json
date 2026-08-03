@@ -1,0 +1,54 @@
+{
+  "name": "f88_pipeline_runner",
+  "version": "1.0.0",
+  "description": "F88 策略平台链路试运行器：构造Excel数据并触发链路试运行",
+  "triggers": ["试运行", "链路", "策略", "pipeline"],
+  "parameters": {
+    "type": "object",
+    "required": ["link_id", "run_type"],
+    "properties": {
+      "link_id": {
+        "type": "integer",
+        "description": "链路ID（如20180）"
+      },
+      "run_type": {
+        "type": "string",
+        "enum": ["test", "formal"],
+        "description": "运行类型：测试/正式"
+      },
+      "task_name": {
+        "type": "string",
+        "description": "任务名称"
+      },
+      "input_data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["seller_id", "seed_image_url", "tao_cate", "item_id"],
+          "properties": {
+            "seller_id": { "type": "string" },
+            "seed_image_url": { "type": "string" },
+            "tao_cate": { "type": "string" },
+            "item_id": { "type": "string" }
+          }
+        },
+        "description": "起点入参数据行"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "total_rows": { "type": "integer" },
+      "valid_rows": { "type": "integer" },
+      "discard_rows": { "type": "integer" },
+      "batch_id": { "type": "string" }
+    }
+  },
+  "timeout_ms": 60000,
+  "retry_policy": {
+    "max_retries": 1,
+    "backoff_ms": 5000
+  }
+}

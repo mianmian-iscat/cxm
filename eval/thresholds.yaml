@@ -1,0 +1,208 @@
+# ── 上线门槛配置 ──────────────────────────────────────────────────────────────
+# 更新 skill 或 knowledge 后，必须跑完所有 smoke_cases 才算合规发布。
+# 所有门槛必须同时满足。
+
+gates:
+  # 综合评分下限（score_eval.py 计算）
+  overall_score_min: 80
+
+  # 步骤通过率下限
+  step_pass_rate_min: 0.90
+
+  # 断言通过率下限（有断言时）
+  assert_pass_rate_min: 1.0
+
+  # 冒烟测试必须全部通过
+  smoke_all_pass: true
+
+  # 不允许有 error 状态的用例
+  no_error_cases: true
+
+
+# ── 冒烟测试用例 ──────────────────────────────────────────────────────────────
+# 按场景分组。更新对应场景的 skill/knowledge 后，至少跑该场景的冒烟。
+# 更新 web-automation 基座（core/、impl.py、knowledge/index.json）后，全部跑。
+
+smoke_cases:
+
+  # ── 基座（每次更新 web-automation 必跑）──
+  base:
+    - cases/xiaoer/smoke_search.json          # 品质联盟商品搜索（验证 fill + click + assert）
+    - cases/xiaoer/smoke_capture.json         # CDP 抓包响应体（验证 waitForAPI + api assert）
+
+  # ── 品质联盟（更新 product-management-test 或 xiaoer knowledge 时必跑）──
+  xiaoer:
+    - cases/xiaoer/smoke_search.json
+    - cases/xiaoer/smoke_capture.json
+    - cases/xiaoer/smoke_sku_detail.json      # 商品搜索 + 验证结果（SKU详情弹窗前置）
+    - cases/xiaoer/normal_xiaoer_search_detail.json  # 正常流程：完整搜索链路
+    - cases/xiaoer/boundary_empty_search.json       # 边界：空结果处理
+
+  # ── TPP（更新 tpp-test 时必跑）──
+  tpp:
+    - cases/smoke_tpp_page_load.json   # TPP layerDetail 页面加载 + bucket 列表渲染
+
+  # ── 千牛（更新 qianniu-test 时必跑）──
+  qianniu:
+    - cases/qianniu/smoke_qianniu_material.json  # 素材管理页加载 + 三区域渲染
+
+  # ── AI Fashion（更新 aifashion knowledge 时必跑）──
+  aifashion:
+    - cases/aifashion/smoke_aifashion_filter.json  # 价格筛选链路（填值→搜索→结果）
+
+  # ── 安全码（更新 safety-code-whitelist 时必跑）──
+  safety-code:
+    - cases/safety-code/smoke_safety_code_page.json  # 活动管理中心页面加载
+
+  # ── F88 素材审核（更新 f88-test 或 f88 knowledge 时必跑）──
+  f88:
+    - cases/f88-test/审核管理/审核操作/normal_f88_audit_flow.json        # 审核流程
+    - cases/f88-test/审核管理/审核操作/normal_f88_audit_filter_status.json # 审核筛选
+    - cases/f88-test/审核管理/任务大厅/atom_f88_tm_action_detail.json     # 任务详情
+    - cases/f88-test/全链路E2E/m68-TC-E2E-001-P0-创建含人工审核节点的策略.json  # E2E
+
+  # ── AFD 风格店铺协作（更新 afd-test 或 afd knowledge 时必跑）──
+  afd:
+    - cases/afd-test/tc01_shop_list.json              # 店铺列表加载 + 租户验证
+    - cases/afd-test/tc04_brief_draft_submit.json      # Brief草稿 + 提交
+    - cases/afd-test/tc09_buyer_review.json            # 买手审核 + 判定规则
+    - cases/afd-test/tc12_archive.json                 # 视觉归档 + 基准包
+
+  # ── AFD/F88 租户切换（更新跨域组件时必跑）──
+  afd-f88-tenant:
+    - cases/f88-test/tenant_switch_afd.json            # F88↔AFD 租户切换
+
+  # ── F88 主图素材供给 v3.0（模板匹配生产逻辑）──
+  f88-material-supply:
+    - cases/f88-test/模版库/模版匹配/normal_f88_template_match_model_library.json   # 正常：模型匹配x模板库
+    - cases/f88-test/模版库/模版匹配/boundary_f88_rule_package_seller_empty.json    # 边界：规则匹配x模板包seller_id空
+    - cases/f88-test/模版库/模版匹配/boundary_f88_model_library_no_data.json        # 边界：模型匹配x模板库无数据
+    - cases/f88-test/模版库/模版匹配/normal_f88_match_app_scene_main.json           # 正常：应用场景主图素材
+    - cases/f88-test/模版库/模版匹配/normal_f88_match_target_count.json             # 正常：目标匹配数量输出
+    - cases/f88-test/策略管理/策略详情/策略通用/normal_f88_strategy_copy.json       # 正常：策略复制功能
+    - cases/f88-test/策略管理/策略详情/策略通用/normal_f88_strategy_detail_nodes.json # 正常：策略详情节点
+    - cases/f88-test/生产看板/链路生产进度/normal_f88_dashboard_audit_discard.json  # 正常：看板审核丢弃
+    - cases/f88-test/全链路E2E/m69-TC-E2E-002-P0-创建链路并绑定审核策略.json      # E2E：链路绑定
+
+  # ── 自愈验证（更新 self_healing 或 error-pattern-map 时必跑）──
+  self-healing:
+    - cases/f88-test/error_invalid_selector_heal.json  # 自愈：错误选择器修复
+    - cases/f88-test/heal_modal_confirm.json           # 自愈：Modal确认按钮
+    - cases/f88-test/error_api_timeout.json            # 异常：API超时处理
+
+  # ── 原创保护（更新 op-test 或原创保护 knowledge 时必跑）──
+  op:
+    - cases/op-test/01-签约与购买/商家端-签约/xm-2-签约后window-yc_info-sellerSigned更新.json
+    - cases/op-test/02-专利申请与审核/商家端-专利申请/xm-10-终止申请-各状态允许集合.json
+    - cases/op-test/04-维权与巡检/商家端-维权/xm-10-TOP接口回写-syncRightProjectResult.json
+    - cases/op-test/06-结算退款与运营/商家端-结算运营/xm-11-开票冻结-解冻-按月洗表.json
+
+
+# ── 产物目录命名规范 ──────────────────────────────────────────────────────────
+# 格式：artifacts/{scene}-{case-slug}-{YYYYMMDD-HHMMSS}/
+#
+# scene slug 对照：
+#   xiaoer        品质联盟商品管理
+#   tpp           TPP 预发配置
+#   qianniu       千牛商家工作台
+#   aifashion     AI Fashion 选款
+#   safety-code   安全码加白
+#   smoke         冒烟测试专用前缀
+#
+# case-slug 示例：
+#   search                 商品搜索
+#   sku-offshelf           SKU 下架
+#   sku-onshelf            SKU 上架
+#   price-adjust           调价
+#   bucket-set             分桶设置
+#   time-travel            时间穿越
+#   collocation-create     搭配创建
+#   collocation-edit       搭配编辑
+#   whitelist-add          加白
+#   filter                 筛选
+#
+# 示例目录名：
+#   xiaoer-sku-offshelf-20260422-153012
+#   tpp-bucket-set-20260422-160000
+#   qianniu-collocation-create-20260422-170000
+#   aifashion-filter-20260422-202800
+#   smoke-xiaoer-search-20260422-080000
+
+artifact_naming:
+  format: "{scene}-{case-slug}-{YYYYMMDD-HHMMSS}"
+  required_files:
+    - manifest.json      # 产物清单（必须）
+    - input.json         # 原始输入
+    - output.json        # 执行结果
+  optional_files:
+    - capture.json       # 抓包数据（capture.enabled=true 时生成）
+    - capture.har        # HAR 格式（exportHAR=true 时生成）
+    - video.mp4          # 录屏（video.enabled=true 时生成）
+    - knowledge_update.json  # knowledge 变更摘要（有变更时生成）
+  screenshots_dir: "screenshots/"
+  screenshot_format: "{step_index:02d}-{label}.png"
+  screenshot_examples:
+    - "00-search-result.png"
+    - "01-sku-detail.png"
+    - "error-step3.png"
+
+
+# ── 产物保留策略 ──────────────────────────────────────────────────────────────
+retention:
+  days: 7                # 7 天后自动清理（ArtifactManager.cleanup_old_runs）
+  keep_smoke: true       # 冒烟产物不自动清理（用于回归对比）
+  smoke_prefix: "smoke-" # 冒烟产物的目录前缀
+
+
+# ── 度量指标门槛 ──────────────────────────────────────────────────────
+# 跨业务统一度量门槛，与 config/alert_rules.yaml 告警规则对齐。
+# score_eval.py 在评分时会检查这些门槛。
+# 指标定义：见 core/metrics_collector.py
+
+metrics_gates:
+
+  # ── 核心统一指标（所有业务必须满足）──
+  task_success_rate_min: 0.80          # 任务成功率 ≥ 80%
+  avg_duration_max_ms: 300000          # 平均任务耗时 ≤ 5 分钟
+  false_positive_rate_max: 0.10        # 误报率 ≤ 10%
+
+  # ── 业务差异化指标（仅特定业务检查）──
+  llm_confidence_min: 0.70             # LLM 决策置信度 ≥ 0.70（仅 LLM 业务）
+  llm_confidence_applicable:           # 适用业务类型
+    - original_protection
+    - f88_material
+
+  self_heal_success_rate_min: 0.50     # 自愈成功率 ≥ 50%（仅原创保护）
+  self_heal_applicable:
+    - original_protection
+
+  visual_evidence_score_min: 0.90      # 视觉取证完整率 ≥ 90%（仅原创保护）
+  visual_evidence_applicable:
+    - original_protection
+
+  # ── AFD 风格协作专用指标 ──
+  afd_archive_rate_min: 0.70           # AFD 迭代归档率 ≥ 70%
+  afd_archive_rate_applicable:
+    - afd_collab
+
+  afd_first_pass_rate_min: 0.60       # AFD 买手首审通过率 ≥ 60%
+  afd_first_pass_rate_applicable:
+    - afd_collab
+
+  # ── 成本护栏（防止资源浪费）──
+  max_token_per_task: 10000            # 单任务 Token 消耗上限
+  max_monthly_change_frequency: 15     # 月变更频率上限
+
+  # ── 环境限制容忍度（CDP 底层能力覆盖情况监控）──
+  # 以下错误码代表自动化环境限制，不应计入“真实失败”，可单独统计
+  env_limitation_codes:
+    - FULLSCREEN_BLOCKED
+    - DRAG_NOT_SUPPORTED
+    - KEYBOARD_EVENT_FAILED
+    - PLAY_OBSERVATION_LIMITED
+    - ZOOM_NOT_TRIGGERED
+    - FOCUS_REQUIRED
+    - SHORTCUT_CONFLICT
+    - PANEL_TRANSITION_FAILED
+    - EXCEPTION_SIM_FAILED
+  env_limitation_max_rate: 0.15        # 环境限制占比上限 ≤ 15%（超过则说明 CDP 能力覆盖不足）

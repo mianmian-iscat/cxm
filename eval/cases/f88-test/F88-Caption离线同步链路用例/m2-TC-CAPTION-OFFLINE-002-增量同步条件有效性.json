@@ -1,0 +1,36 @@
+{
+  "id": "m2-TC-CAPTION-OFFLINE-002-增量同步条件有效性",
+  "name": "TC-CAPTION-OFFLINE-002：增量同步条件有效性",
+  "description": "",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "F88-Caption离线同步链路用例",
+  "page": "",
+  "testScope": "",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/F88-Caption离线同步链路用例",
+  "sourceIds": [
+    "F88-Caption离线同步链路用例/m2-TC-CAPTION-OFFLINE-002-增量同步条件有效性"
+  ],
+  "context": {
+    "urlPattern": "",
+    "waitAfterLoad": 3000
+  },
+  "steps": [],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "stepsText": "",
+    "expectedResult": "",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": [],
+    "relatedDocs": [],
+    "verified": "",
+    "sourceType": "md",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/qa-testing-workbench/skills/F88测试知识库/references/test-cases/F88-Caption离线同步链路用例.md，2026-07-21T19:00:02.947968"
+  }
+}

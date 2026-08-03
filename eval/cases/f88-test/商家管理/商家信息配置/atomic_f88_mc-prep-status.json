@@ -1,0 +1,88 @@
+{
+  "id": "atomic-f88-mc-prep-status",
+  "name": "UI：商家管理-生产筹备状态图标验证",
+  "description": "验证商家管理列表生产筹备状态列：check/lock图标+企划/设计/拍摄文字",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/list"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开商家管理"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const rows = document.querySelectorAll('tr.ant-table-row'); const firstRow = rows[0]; if(!firstRow) return { found: false }; const prepCell = firstRow.querySelector('td:nth-child(5)'); if(!prepCell) return { found: false }; const checks = prepCell.querySelectorAll('[class*=check]'); const locks = prepCell.querySelectorAll('[class*=lock]'); const stages = Array.from(prepCell.querySelectorAll('span')).filter(s => ['企划','设计','拍摄'].includes(s.textContent.trim())).map(s => s.textContent.trim()); return { found: true, checkCount: checks.length, lockCount: locks.length, stages }; })()",
+      "description": "验证筹备状态图标",
+      "storeAs": "prepInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "prepInfo",
+      "path": "found",
+      "equals": true,
+      "description": "验证 验证筹备状态图标 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "列表",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "prepInfo",
+      "path": "found",
+      "equals": true,
+      "description": "验证筹备状态列存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const ths = Array.from(document.querySelectorAll('th, .ant-table-thead th')); return { columnCount: ths.length, headers: ths.slice(0, 15).map(th => (th.textContent || '').trim()) }; })()",
+      "description": "检查表格列信息",
+      "storeAs": "tableInfo"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-prep-status",
+      "description": "生产筹备状态图标"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "筹备状态用check(完成)/lock(未完成)图标+企划/设计/拍摄文字表示",
+    "riskPoints": []
+  }
+}

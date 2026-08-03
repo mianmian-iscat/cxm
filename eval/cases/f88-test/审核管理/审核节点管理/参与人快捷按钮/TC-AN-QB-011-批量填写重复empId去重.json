@@ -1,0 +1,32 @@
+{
+  "id": "TC-AN-QB-011",
+  "name": "TC-AN-QB-011 — 批量填写：重复empId去重验证 [P1]",
+  "description": "审核节点编辑页已打开，已选参与人区域有人员",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P1", "category": "edge_case",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { /* 记录导入前的参与人数 */ const container = document.querySelector('[class*=selectedLabel]'); if (!container) return { beforeCount: -1 }; return { beforeCount: container.querySelectorAll('.ant-select-selection-item').length }; })()", "description": "记录导入前人数", "storeAs": "beforeCount" },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const batchBtn = btns.find(b => (b.textContent || '').includes('批量填写')); if (!batchBtn) return { clicked: false }; batchBtn.click(); return { clicked: true }; })()", "description": "点击批量填写", "storeAs": "clickBatch" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); if (!modal) return { found: false }; const textarea = modal.querySelector('textarea'); /* 输入含重复empId + 与已有参与人重复的JSON */ const dupJson = JSON.stringify([{empId:'421225',empName:'宗育'},{empId:'421225',empName:'宗育'},{empId:'320729',empName:'澜蓝'},{empId:'320729',empName:'澜蓝重复'}]); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(textarea, dupJson); textarea.dispatchEvent(new Event('input', { bubbles: true })); return { found: true, inputted: dupJson }; })()", "description": "粘贴含重复empId的JSON", "storeAs": "pasteDup" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => (b.textContent || '').includes('确认导入')); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "点击确认导入", "storeAs": "confirmImport" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const toasts = document.querySelectorAll('.ant-message-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); /* 检查是否有去重相关的toast信息 */ const hasDedup = toastTexts.some(t => t.includes('总计') || t.includes('去重') || t.includes('重复') || t.includes('新增')); const container = document.querySelector('[class*=selectedLabel]'); const afterCount = container ? container.querySelectorAll('.ant-select-selection-item').length : -1; return { toastTexts, hasDedup, afterCount }; })()", "description": "验证去重行为", "storeAs": "verifyDedup" },
+    { "type": "screenshot", "label": "batch-fill-dedup", "description": "去重验证截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开，已选参与人区域有人员",
+    "stepsText": "1. 点击「批量填写」\\n2. 粘贴含重复empId的JSON: 同一empId出现2次 + 与已有参与人重复\\n3. 点击「确认导入」",
+    "expectedResult": "1. 相同empId不重复添加（输入内去重）\\n2. 与已有参与人重复的项不重复写入（跨批次去重）\\n3. toast中体现实际新增数（含去重后的真实值）",
+    "priority": "P1",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

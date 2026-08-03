@@ -1,0 +1,83 @@
+{
+  "id": "atomic-f88-tmgmt-detail-preview",
+  "name": "UI：模版包管理-详情页模板预览验证",
+  "description": "在详情页点击模板预览，验证图片预览功能",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "description": "点击查看详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const previewBtns = Array.from(document.querySelectorAll('a,button,img')).filter(el => el.textContent?.trim() === '预览' || el.closest('[class*=preview]')); if(previewBtns.length > 0) { previewBtns[0].click(); return 'clicked'; } return 'no preview'; })()",
+      "description": "点击预览",
+      "storeAs": "previewResult"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const viewer = document.querySelector('[class*=viewer],[class*=preview],[class*=gallery]'); return { hasModal: !!modal, hasViewer: !!viewer }; })()",
+      "description": "验证预览功能",
+      "storeAs": "previewDlg"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmgmt-detail-preview",
+      "description": "模板预览"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const close = document.querySelector('.ant-modal-close,[class*=close]'); if(close) close.click(); return 'closed'; })()",
+      "description": "关闭预览"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模版包数据",
+    "realDomNotes": "模板图片预览，支持放大查看",
+    "riskPoints": []
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "id": "atomic-f88-mc-edit",
+  "name": "UI：店铺信息配置-编辑配置验证",
+  "description": "点击编辑进入表单页，验证表单包含锁定字段和可编辑字段",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')).filter(el => el.textContent.trim() === '编辑'); if(btns.length > 0) { btns[0].click(); return { clicked: true, total: btns.length }; } return { clicked: false, total: btns.length }; })()",
+      "description": "点击第一行编辑按钮",
+      "storeAs": "editClick"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待表单加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const breadcrumb = document.body.innerText.includes('店铺管理'); const title = document.body.innerText.match(/编辑[·.]*(\\S+)/)?.[0] || ''; const disabled = document.querySelectorAll('input[disabled],input[disabled]').length; const textareas = document.querySelectorAll('textarea').length; const saveBtn = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '保 存'); const cancelBtn = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '取 消'); return { hasBreadcrumb: breadcrumb, editTitle: title, disabledCount: disabled, textareaCount: textareas, hasSave: saveBtn, hasCancel: cancelBtn }; })()",
+      "description": "验证编辑表单结构",
+      "storeAs": "editForm"
+    },
+    {
+      "type": "assertStore",
+      "key": "editForm",
+      "path": "hasSave",
+      "equals": true,
+      "description": "编辑表单包含保存按钮"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-edit-form",
+      "description": "编辑表单页"
+    },
+    {
+      "type": "clickText",
+      "text": "取 消",
+      "description": "取消返回列表"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在店铺配置数据",
+    "realDomNotes": "编辑导航到独立表单页，非弹窗/抽屉；包含面包屑'店铺管理/信息配置'和'返回列表'",
+    "riskPoints": []
+  }
+}

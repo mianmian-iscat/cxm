@@ -1,0 +1,69 @@
+{
+  "id": "nr-tm-pageload",
+  "name": "新需求 PRD-test001: 任务管理页面加载验证",
+  "description": "PRD-test001 变更后验证 任务管理 页面可正常加载",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "任务管理",
+      "description": "验证页面标题包含'任务管理'"
+    },
+    {
+      "type": "screenshot",
+      "label": "nr-tm-pageload",
+      "description": "页面加载截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；PRD-test001已部署",
+    "realDomNotes": "PRD-test001自动生成的页面加载验证",
+    "riskPoints": [
+      "页面可能因部署未完成而加载失败"
+    ]
+  },
+  "_promoted": {
+    "from_prd": "test001",
+    "generated_at": "2026-07-11T10:46:08.060845",
+    "generator": "case_generator.py"
+  }
+}

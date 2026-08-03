@@ -1,0 +1,14 @@
+{
+  "id": "page_snapshot",
+  "description": "页面快照：收集当前页的按钮、表格、表单、Tab、Select 数量及文本前 500 字。与 m5/m8/m19/m22/m23/m24/m25/m28-TC-* 中内联的 evaluate 表达式等价。",
+  "params": [
+    { "name": "storeAs", "type": "string", "default": "pageSnapshot", "desc": "Store 键名" }
+  ],
+  "steps": [
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => (b.textContent || '').trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => (t.textContent || '').trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "storeAs": "{{storeAs}}"
+    }
+  ]
+}

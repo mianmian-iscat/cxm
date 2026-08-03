@@ -1,0 +1,78 @@
+{
+  "id": "tc02-add-shop",
+  "name": "添加风格店铺",
+  "description": "管理员通过弹窗添加风格店铺(SellerID+买手)",
+  "priority": "P0",
+  "category": "functional",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('添加风格店')",
+      "description": "点击添加风格店按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待弹窗动画"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": ".ant-modal",
+      "exists": true,
+      "description": "验证添加弹窗出现"
+    },
+    {
+      "type": "fill",
+      "selector": ".ant-modal input[placeholder*='Seller']",
+      "value": "12345678",
+      "react": true,
+      "description": "填写 Seller ID"
+    },
+    {
+      "type": "fill",
+      "selector": ".ant-modal input[placeholder*='买手']",
+      "value": "测试买手",
+      "react": true,
+      "description": "选择负责买手"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图填写后的弹窗"
+    },
+    {
+      "type": "click",
+      "selector": ".ant-modal button:has-text('确定')",
+      "description": "提交添加"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "element_visible",
+      "selector": ".ant-message-success"
+    }
+  ],
+  "tags": [
+    "afd",
+    "functional",
+    "shop-management"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

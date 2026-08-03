@@ -1,0 +1,310 @@
+# ── 跨域回归矩阵 ──────────────────────────────────────────────────────────────
+# 定义三业务域（AFD / F88 / OP）的回归范围、跨域验证和触发策略。
+# 与 eval/thresholds.yaml 门槛、config/alert_rules.yaml 告警规则联动。
+# 版本: 1.0.0
+
+version: "1.0.0"
+
+# ── 域级回归范围 ──────────────────────────────────────────────────────────────
+domains:
+
+  # ── AFD 风格店铺协作（M4 新增模块）──
+  afd-collab:
+    scene: afd-test
+    business_type: afd_collab
+    smoke_cases:
+      - scenes/afd-test/cases/tc01_shop_list.json          # 店铺列表 P0 冒烟
+      - scenes/afd-test/cases/tc04_brief_draft_submit.json  # Brief提交 P0 冒烟
+      - scenes/afd-test/cases/tc09_buyer_review.json        # 买手审核 P0 冒烟
+      - scenes/afd-test/cases/tc12_archive.json             # 归档 P1 冒烟
+    regression_cases:
+      - scenes/afd-test/cases/tc01_shop_list.json
+      - scenes/afd-test/cases/tc02_add_shop.json
+      - scenes/afd-test/cases/tc03_new_iteration.json
+      - scenes/afd-test/cases/tc04_brief_draft_submit.json
+      - scenes/afd-test/cases/tc05_brief_confirm_reject.json
+      - scenes/afd-test/cases/tc06_brief_resubmit.json
+      - scenes/afd-test/cases/tc07_sample_upload.json
+      - scenes/afd-test/cases/tc08_sample_excel_import.json
+      - scenes/afd-test/cases/tc09_buyer_review.json
+      - scenes/afd-test/cases/tc10_leader_review.json
+      - scenes/afd-test/cases/tc11_rework_reshoot.json
+      - scenes/afd-test/cases/tc12_archive.json
+      - scenes/afd-test/cases/tc13_terminate.json
+      - scenes/afd-test/cases/tc14_permission_matrix.json
+      - scenes/afd-test/cases/tc15_statistics.json
+    gate:
+      pass_rate_min: 0.90            # 回归通过率 ≥ 90%
+      smoke_all_pass: true           # 冒烟必须全通过
+      metrics:
+        - afd_archive_rate_min       # 迭代归档率 ≥ 70%
+        - afd_first_pass_rate_min    # 买手首审通过率 ≥ 60%
+    tools:
+      - iteration_validator
+      - brief_executor
+      - sample_reviewer
+      - permission_checker
+      - evidence_collector
+
+  # ── F88 素材生产审核（业务分阶段执行）──
+  # 执行顺序：节点先行 → 审核 → 模板库 → 商家管理 → 链路串联
+  # 每阶段通过后才进入下一阶段，避免「链路失败无法定位」问题
+  f88-material:
+    scene: f88-test
+    business_type: f88_material
+
+    # ── 业务分阶段执行 ──
+    phases:
+
+      # Phase 1: 节点先行（策略管理 + 链路管理）
+      - name: "Phase1_节点先行"
+        description: "单节点功能验证：策略创建/配置/试运行/出参校验"
+        module: "策略管理 + 链路管理"
+        priority: 1
+        cases:
+          - eval/cases/f88-test/策略管理/策略列表/**
+          - eval/cases/f88-test/策略管理/策略详情/**
+          - eval/cases/f88-test/链路管理/链路列表/**
+          - eval/cases/f88-test/链路管理/链路详情/**
+        gate:
+          pass_rate_min: 1.0   # 节点必须全部通过
+          fail_action: abort   # 不过不进下一阶段
+
+      # Phase 2: 审核验证
+      - name: "Phase2_审核验证"
+        description: "审核任务创建/审核操作/审核结果回写 + 生产看板指标"
+        module: "审核管理 + 生产看板"
+        priority: 2
+        deps: ["Phase1_节点先行"]
+        cases:
+          - eval/cases/f88-test/审核管理/审核标准管理/**
+          - eval/cases/f88-test/审核管理/审核节点管理/**
+          - eval/cases/f88-test/审核管理/任务大厅/**
+          - eval/cases/f88-test/审核管理/个人任务中心/**
+          - eval/cases/f88-test/审核管理/任务详情/**
+          - eval/cases/f88-test/审核管理/审核操作/**
+          - eval/cases/f88-test/审核管理/边界契约错误/**
+          - eval/cases/f88-test/审核管理/种草素材生产/**
+          - eval/cases/f88-test/生产看板/**
+        gate:
+          pass_rate_min: 0.95
+          fail_action: abort
+
+      # Phase 3: 模板库验证
+      - name: "Phase3_模板库"
+        description: "模板召回/渲染/批量操作/节点绑定"
+        module: "模版库"
+        priority: 3
+        deps: ["Phase1_节点先行"]
+        cases:
+          - eval/cases/f88-test/模版库/模版包管理/**
+          - eval/cases/f88-test/模版库/淘内资源池/**
+          - eval/cases/f88-test/模版库/优质模板库/**
+          - eval/cases/f88-test/模版库/模版匹配/**
+        gate:
+          pass_rate_min: 0.95
+          fail_action: abort
+
+      # Phase 4: 商家管理
+      - name: "Phase4_商家管理"
+        description: "商家信息配置：编辑/批量下载/搜索/重置/竞品关联"
+        module: "商家管理"
+        priority: 4
+        deps: ["Phase2_审核验证"]
+        cases:
+          - eval/cases/f88-test/商家管理/商家信息配置/**
+          - eval/cases/f88-test/商家管理/竞品关联/**
+        gate:
+          pass_rate_min: 0.90
+          fail_action: warn    # 商家管理可降级
+
+      # Phase 5: 链路串联（端到端）
+      - name: "Phase5_链路串联"
+        description: "全链路数据流转 + 上下游交互验证"
+        module: "全链路E2E"
+        priority: 5
+        deps: ["Phase1_节点先行", "Phase2_审核验证", "Phase3_模板库", "Phase4_商家管理"]
+        cases:
+          - eval/cases/f88-test/全链路E2E/**
+        gate:
+          pass_rate_min: 0.90
+          fail_action: abort
+
+    # ── 冒烟用例（每次必须全过）──
+    smoke_cases:
+      - examples/f88-audit/tc01_manual_audit_list.json      # 审核列表
+      - examples/f88-audit/tc04_task_management.json         # 任务管理
+      - examples/f88-audit/tc05_audit_flow.json              # 审核流程
+      - examples/f88-audit/tc27_e2e_integration.json         # 端到端集成
+      - scenes/f88-test/cases/tenant_switch_afd.json         # F88↔AFD 租户切换
+
+    # ── 全量回归（分阶段执行完后汇总）──
+    regression_cases:
+      - examples/f88-audit/tc01_manual_audit_list.json
+      - examples/f88-audit/tc02_audit_standard.json
+      - examples/f88-audit/tc03_audit_node.json
+      - examples/f88-audit/tc04_task_management.json
+      - examples/f88-audit/tc05_audit_flow.json
+      - examples/f88-audit/tc06_replace_copyurl.json
+      - examples/f88-audit/tc07_replace_download_excel.json
+      - examples/f88-audit/tc08_crop_operations.json
+      - examples/f88-audit/tc09_reject_regenerate.json
+      - examples/f88-audit/tc10_compare_api_boundary.json
+      - examples/f88-audit/tc11_downstream_flow.json
+      - examples/f88-audit/tc12_strategy_link_list.json
+      - examples/f88-audit/tc13_link_detail.json
+      - examples/f88-audit/tc14_strategy_list.json
+      - examples/f88-audit/tc15_production_dashboard.json
+      - examples/f88-audit/tc16_add_node.json
+      - examples/f88-audit/tc17_create_link.json
+      - examples/f88-audit/tc18_view_run_results.json
+      - examples/f88-audit/tc19_trial_run.json
+      - examples/f88-audit/tc20_hd_enhance.json
+      - examples/f88-audit/tc21_local_modify.json
+      - examples/f88-audit/tc22_stream_cover_reject.json
+      - examples/f88-audit/tc23_idempotent_trigger_callback.json
+      - examples/f88-audit/tc24_output_vars_error_paths.json
+      - examples/f88-audit/tc25_dataflow_downstream.json
+      - examples/f88-audit/tc26_cross_node_reject_feedback.json
+      - examples/f88-audit/tc27_e2e_integration.json
+    gate:
+      pass_rate_min: 0.95            # 回归通过率 ≥ 95%（成熟业务要求更高）
+      smoke_all_pass: true
+      metrics:
+        - task_success_rate_min      # 任务成功率 ≥ 80%
+        - llm_confidence_min         # LLM 置信度 ≥ 0.70
+    tools:
+      - f88_review_executor
+      - f88_strategy_manager
+      - f88_production_monitor
+      - f88_evidence_collector
+
+  # ── 原创保护（OP）──
+  original-protection:
+    scene: op-test
+    business_type: original_protection
+    smoke_cases:
+      - scenes/op-test/cases/smoke_op_seller_home.json       # 卖家首页
+      - scenes/op-test/cases/smoke_op_xiaoer_list.json       # 小二列表
+      - scenes/op-test/cases/smoke_op_tort_detail.json        # 侵权详情
+    regression_cases: []   # 按需补充
+    gate:
+      pass_rate_min: 0.90
+      smoke_all_pass: true
+      metrics:
+        - self_heal_success_rate_min   # 自愈成功率 ≥ 50%
+        - visual_evidence_score_min    # 视觉取证完整率 ≥ 90%
+    tools:
+      - op_inspection_executor
+      - op_evidence_collector
+
+
+# ── 跨域验证 ──────────────────────────────────────────────────────────────────
+cross_domain:
+
+  # ── 租户切换验证（F88 ↔ AFD 共享域名）──
+  tenant_switch:
+    description: "F88 与 AFD 共享 pre-aifashion-xiaoer 域名，验证租户隔离与切换"
+    cases:
+      - scenes/f88-test/cases/tenant_switch_afd.json
+    checks:
+      - type: tenant_header
+        description: "X-AFD-Emp-Identity 租户头正确设置"
+      - type: data_isolation
+        description: "AFD 页面只显示风格店铺数据，F88 页面只显示审核数据"
+      - type: route_separation
+        description: "AFD 路由 /styleShopCollab/*，F88 路由 /review/*"
+      - type: session_persistence
+        description: "切换后 session/cookie 不串扰"
+
+  # ── 共享组件验证 ──
+  shared_components:
+    description: "三域共享的底层组件，任一变更需跨域回归"
+    components:
+      - name: react_controlled_input
+        description: "React 受控组件 Input/Select（react:true 标记）"
+        affected_domains: [afd-collab, f88-material, original-protection]
+      - name: antd_drawer
+        description: "AntD Drawer 动画等待（500ms transition）"
+        affected_domains: [afd-collab, f88-material]
+      - name: buc_sso_auth
+        description: "BUC SSO 登录认证"
+        affected_domains: [afd-collab, f88-material, original-protection]
+      - name: watermark_clear
+        description: "页面水印清除"
+        affected_domains: [afd-collab, f88-material, original-protection]
+      - name: antd_table_filter
+        description: "AntD Table 筛选/分页"
+        affected_domains: [afd-collab, f88-material]
+      - name: cdp_network_capture
+        description: "CDP 网络请求抓包"
+        affected_domains: [afd-collab, f88-material, original-protection]
+      - name: file_upload_handler
+        description: "文件上传（图片/Excel）"
+        affected_domains: [afd-collab, f88-material]
+
+
+# ── 执行策略 ──────────────────────────────────────────────────────────────────
+execution_policy:
+
+  # ── 变更触发规则 ──
+  change_triggers:
+    - pattern: "core/**"
+      description: "引擎核心变更 → 全域回归"
+      run: [afd-collab, f88-material, original-protection]
+      include_cross_domain: true
+
+    - pattern: "scenes/afd-test/**"
+      description: "AFD 场景变更 → AFD 回归"
+      run: [afd-collab]
+      include_cross_domain: false
+
+    - pattern: "scenes/f88-test/**"
+      description: "F88 场景变更 → F88 回归"
+      run: [f88-material]
+      include_cross_domain: false
+
+    - pattern: "scenes/op-test/**"
+      description: "OP 场景变更 → OP 回归"
+      run: [original-protection]
+      include_cross_domain: false
+
+    - pattern: "harness/schemas/afd/**"
+      description: "AFD 工具 schema 变更 → AFD 回归"
+      run: [afd-collab]
+      include_cross_domain: false
+
+    - pattern: "harness/registry.json"
+      description: "工具注册表变更 → 全域回归"
+      run: [afd-collab, f88-material, original-protection]
+      include_cross_domain: true
+
+    - pattern: "harness/self_healing_rules.yaml"
+      description: "自愈规则变更 → 涉及域回归"
+      run: [afd-collab, f88-material, original-protection]
+      include_cross_domain: false
+
+    - pattern: "knowledge/**"
+      description: "知识库变更 → 对应域回归"
+      run: "affected_domain"   # 动态：根据变更的知识库条目确定域
+      include_cross_domain: false
+
+    - pattern: "eval/thresholds.yaml"
+      description: "门槛变更 → 全域冒烟"
+      run: [afd-collab, f88-material, original-protection]
+      include_cross_domain: true
+
+  # ── 发布门禁 ──
+  release_gate:
+    required:
+      - all_smoke_pass: true          # 所有域冒烟全通过
+      - per_domain_gate_met: true     # 每域 pass_rate 达到 gate 要求
+      - cross_domain_tenant_ok: true  # 租户切换验证通过
+      - no_error_cases: true          # 无 error 状态用例
+    optional:
+      - full_regression: false        # 全量回归（发布前建议跑，非强制）
+    report:
+      format: json
+      output: artifacts/regression-results.json
+      include_metrics: true
+      include_screenshots: true

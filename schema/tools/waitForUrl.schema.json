@@ -1,0 +1,23 @@
+{
+  "name": "waitForUrl",
+  "version": "1.0.0",
+  "description": "等待当前页面 URL 包含指定字符串，确认跨页跳转已完成",
+  "triggers": ["等待URL", "等待跳转", "waitForUrl"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "urlContains"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "waitForUrl" },
+      "urlContains": { "type": "string", "description": "URL 需包含的字符串" },
+      "timeout": { "type": "integer", "default": 10000 },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": { "type": "object" },
+  "timeout_ms": 15000,
+  "retry_policy": { "max_retries": 0 }
+}

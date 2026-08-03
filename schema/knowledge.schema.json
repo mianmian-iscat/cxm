@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "web-automation/knowledge",
+  "title": "KnowledgeEntry",
+  "description": "知识库 JSON 文件结构（knowledge/*//*.json）",
+  "type": "object",
+  "required": ["id", "description"],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "知识条目唯一标识，与 knowledge/index.json 的 entries[].id 对应"
+    },
+    "description": {
+      "type": "string",
+      "description": "页面/模块描述"
+    },
+    "uiFramework": {
+      "type": "string",
+      "description": "前端框架标识（react-antd / vue-element 等）"
+    },
+    "captureFilter": {
+      "type": "string",
+      "description": "网络抓包 URL 关键词过滤规则"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "description": "最后更新日期（YYYY-MM-DD）"
+    },
+    "initStatus": {
+      "type": "string",
+      "enum": ["draft", "enriched", "verified", "merged"],
+      "description": "知识条目初始化状态"
+    },
+    "lastVerified": {
+      "description": "最后验证通过的运行 ID（null 表示未验证）"
+    },
+    "verifiedByRun": {
+      "description": "验证运行 ID"
+    },
+    "pageUrl": {
+      "type": "string",
+      "description": "页面完整 URL"
+    },
+    "urlPattern": {
+      "type": "string",
+      "description": "URL host 匹配模式（用于 knowledge/index.json 路由）"
+    },
+    "urlRoute": {
+      "type": "string",
+      "description": "URL 路由匹配片段"
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "备注/开发提示列表"
+    },
+    "pages": {
+      "type": "object",
+      "description": "子页面/路由知识（key 为页面名称）"
+    },
+    "selectors": {
+      "type": "object",
+      "description": "关键选择器映射"
+    },
+    "apis": {
+      "description": "关键 API 端点（可为对象或数组）",
+      "oneOf": [
+        { "type": "object" },
+        { "type": "array" }
+      ]
+    },
+    "evalCases": {
+      "type": "object",
+      "description": "关联的 eval 用例索引"
+    }
+  }
+}

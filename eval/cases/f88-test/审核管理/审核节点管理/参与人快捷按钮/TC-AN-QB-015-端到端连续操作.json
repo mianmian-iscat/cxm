@@ -1,0 +1,37 @@
+{
+  "id": "TC-AN-QB-015",
+  "name": "TC-AN-QB-015 — 端到端：批量填写→复制 连续操作 [P1]",
+  "description": "审核节点编辑页已打开，通过批量填写造数据后验证复制功能",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P1", "category": "e2e_flow",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { const c = document.querySelector('[class*=selectedLabel]'); return { initialCount: c ? c.querySelectorAll('.ant-select-selection-item').length : -1 }; })()", "description": "记录初始参与人数(存量)", "storeAs": "initial" },
+    { "type": "comment", "text": "═══ Phase 1: 批量填写(造测试数据) ═══" },
+    { "type": "evaluate", "expression": "(() => { const batchBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '批量填写'); if (batchBtn) { batchBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "Phase1: 点击批量填写", "storeAs": "p1_open" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); if (!modal) return { found: false }; const textarea = modal.querySelector('textarea'); const newPeople = JSON.stringify([{empId:'421225',empName:'宗育'},{empId:'320729',empName:'澜蓝'},{empId:'335890',empName:'宇天'}]); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(textarea, newPeople); textarea.dispatchEvent(new Event('input', { bubbles: true })); return { found: true, inputCount: 3 }; })()", "description": "Phase1: 输入3人JSON(测试数据)", "storeAs": "p1_paste" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.trim() === '确认导入'); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "Phase1: 确认导入", "storeAs": "p1_confirm" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const c = document.querySelector('[class*=selectedLabel]'); const toasts = Array.from(document.querySelectorAll('.ant-message-notice')).map(t => t.textContent.trim()); return { afterFillCount: c ? c.querySelectorAll('.ant-select-selection-item').length : -1, toasts }; })()", "description": "Phase1: 验证批量填写结果", "storeAs": "p1_verify" },
+    { "type": "comment", "text": "═══ Phase 2: 复制(验证已有参与人含测试数据) ═══" },
+    { "type": "evaluate", "expression": "(() => { const copyBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '复制'); if (copyBtn) { copyBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "Phase2: 点击复制", "storeAs": "p2_copy" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { const toasts = Array.from(document.querySelectorAll('.ant-message-notice')).map(t => t.textContent.trim()); const hasCopyToast = toasts.some(t => t.includes('已复制')); return { toastTexts: toasts, hasCopyToast }; })()", "description": "Phase2: 验证复制成功", "storeAs": "p2_verify" },
+    { "type": "screenshot", "label": "e2e-flow-final", "description": "端到端流程最终截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开（不触碰存量数据）",
+    "stepsText": "1. 批量填写3位测试参与人\\n2. 验证导入成功\\n3. 复制已选参与人\\n4. 验证复制toast",
+    "expectedResult": "1. 批量填写后参与人数增加（含存量+3位测试数据）\\n2. 复制后toast'已复制 N 位参与人'\\n3. 不执行清空操作，存量数据安全",
+    "priority": "P1",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

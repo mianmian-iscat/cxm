@@ -1,0 +1,71 @@
+{
+  "id": "TC-AUDIT-DB-001",
+  "name": "TC-AUDIT-DB-001 — 用 dbAssert 校验审核主任务入库 [演示用例]",
+  "description": "演示 dbAssert 新断言类型：从审核任务大厅取一个真实任务 ID，走 dms-alibaba CLI 查 g_afd_review_job 表，断言主任务（job_type=0）已正确落库。",
+  "businessType": "f88_audit",
+  "scene": "f88-test",
+  "module": "审核管理",
+  "page": "审核任务大厅",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "auth": "buc",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开审核任务大厅"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "/api/afd/review/task/main/list",
+      "timeout": 15000,
+      "description": "等待主任务列表接口返回"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr.ant-table-row')); const firstIdCell = rows[0] && rows[0].querySelector('td'); const idText = firstIdCell ? firstIdCell.textContent.trim() : ''; return { firstTaskId: idText ? parseInt(idText, 10) : null, rowCount: rows.length }; })()",
+      "description": "从表格取出第一个任务的 ID",
+      "storeAs": "picked"
+    },
+    {
+      "type": "assertUI",
+      "selector": "tr.ant-table-row",
+      "minCount": 1,
+      "description": "页面应至少渲染 1 行任务"
+    },
+    {
+      "type": "dbAssert",
+      "group": "quality_f88",
+      "db": "dev-wulanchabu",
+      "sql": "SELECT id, job_type, parent_job_id FROM g_afd_review_job WHERE id = :id",
+      "params": {"id": 1},
+      "rowCount": 1,
+      "jsonPath": "$.job_type",
+      "equals": 0,
+      "description": "【dbAssert】校验主任务在 g_afd_review_job 表以 job_type=0 落库（params 占位，执行时由 store_picked.firstTaskId 覆盖；演示用法，实际跑时请替换 :id 为真实 taskId）"
+    },
+    {
+      "type": "assertAPI",
+      "urlPattern": "/api/afd/review/task/main/list",
+      "status": 200,
+      "jsonPath": "$.success",
+      "equals": true,
+      "maxDurationMs": 5000,
+      "description": "【assertAPI】校验 main/list 接口：HTTP 200 + success=true + 耗时 < 5s"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "预发环境已登录 F88 运营工作台；审核任务大厅至少有 1 条可见任务",
+    "priority": "P1",
+    "groupPath": "F88/审核管理/数据层验证"
+  }
+}

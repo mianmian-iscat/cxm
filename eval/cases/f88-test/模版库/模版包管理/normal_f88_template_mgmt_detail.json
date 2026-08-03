@@ -1,0 +1,102 @@
+{
+  "id": "normal-f88-template-mgmt-detail",
+  "name": "模版包管理 - 查看详情与返回",
+  "description": "点击店铺卡片的查看详情按钮，验证详情页渲染正确，再点击返回验证列表恢复",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待卡片加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; return { currentUrl: url }; })()",
+      "storeAs": "listUrl",
+      "description": "记录列表页URL"
+    },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "description": "点击第一个店铺的查看详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待详情页加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-page",
+      "description": "截图-详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; return { detailUrl: url, changed: url !== '' }; })()",
+      "storeAs": "detailUrl",
+      "description": "检查URL是否变化"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "返回模版包管理列表"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "店铺管理",
+      "description": "验证已返回列表页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查看详情",
+      "description": "验证卡片列表重新渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "back-to-list",
+      "description": "截图-返回列表页"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "查看详情可能跳转新路由或弹窗；需探查详情页URL模式。",
+    "riskPoints": [
+      "详情页可能是路由跳转或Drawer/Modal",
+      "返回可能需浏览器后退而非导航"
+    ]
+  }
+}

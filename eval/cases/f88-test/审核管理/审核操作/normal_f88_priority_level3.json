@@ -1,0 +1,24 @@
+{
+  "id": "normal-f88-priority-level3",
+  "name": "正常流程：构图标优先级三 - 仅去劣选图成功",
+  "description": "验证构图标优先级三：当优先级一(完整全身)和优先级二(真人模特)均未命中时，降级到仅去劣策略，选中通过去劣过滤的第一张图",
+  "businessType": "f88_material", "scene": "f88-test", "priority": "P1", "category": "normal_flow",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail", "waitAfterLoad": 3000, "auth": "buc" },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 50, "outputCompact": true },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail", "waitUntil": "networkidle", "screenshot": true, "description": "打开策略详情页" },
+    { "type": "wait", "ms": 2000, "description": "等待加载" },
+    { "type": "clickText", "text": "模板匹配", "description": "点击模板匹配节点" },
+    { "type": "wait", "ms": 1500, "description": "等待面板" },
+    { "type": "assert", "target": "page", "contains": "仅去劣", "description": "验证优先级三仅去劣策略存在" },
+    { "type": "screenshot", "label": "priority-level3", "description": "截图 - 构图标优先级三" }
+  ],
+  "screenshot": { "onError": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录，不存在完整全身图和真人模特图",
+    "riskPoints": ["优先级三在一和二均未命中时生效", "仅执行去劣过滤，无择优逻辑"],
+    "relatedDocs": ["F88主图素材供给产品方案 v3.0 20260623"]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3", "sourceIds": null
+}

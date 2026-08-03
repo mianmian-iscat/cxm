@@ -1,0 +1,82 @@
+{
+  "name": "afd_brief_executor",
+  "version": "1.0.0",
+  "description": "AFD Brief 流程执行器：创建/编辑/提交/确认/驳回/重新提交 Brief",
+  "triggers": ["Brief", "需求文档", "草稿", "提交Brief", "确认Brief", "驳回Brief"],
+  "parameters": {
+    "type": "object",
+    "required": ["iteration_id", "action"],
+    "properties": {
+      "iteration_id": {
+        "type": "string",
+        "description": "视觉迭代ID"
+      },
+      "action": {
+        "type": "string",
+        "enum": ["create_draft", "edit", "submit", "ops_confirm", "ops_reject", "resubmit", "view_detail"],
+        "description": "Brief 操作类型"
+      },
+      "fields": {
+        "type": "object",
+        "description": "Brief 表单字段（5大区块）",
+        "properties": {
+          "iteration_name": { "type": "string", "description": "迭代名称（必填≤40字）" },
+          "style_direction": { "type": "string", "description": "风格定位（必填20-200字）" },
+          "target_audience": {
+            "type": "object",
+            "properties": {
+              "age_ranges": { "type": "array", "items": { "type": "string" } },
+              "occupations": { "type": "array", "items": { "type": "string" } },
+              "other_occupation_note": { "type": "string" }
+            }
+          },
+          "product_plan": {
+            "type": "object",
+            "properties": {
+              "category_ratio": { "type": "object", "description": "品类占比（合计100%）" },
+              "launch_frequency": { "type": "string" },
+              "launch_volume": { "type": "number" }
+            }
+          },
+          "visual_reference": {
+            "type": "object",
+            "properties": {
+              "benchmark_shops": { "type": "array", "items": { "type": "object" } },
+              "reference_images": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "sample_items": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "首次试拍商品 item_id 列表（最多10条）"
+          }
+        }
+      },
+      "reject_reason": {
+        "type": "string",
+        "description": "驳回原因（action=ops_reject 时必填）"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "brief_version": { "type": "string", "description": "Brief 版本号（首版无后缀，驳回后 v1/v2）" },
+      "new_state": { "type": "string", "description": "操作后的迭代状态" },
+      "validation_errors": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field": { "type": "string" },
+            "rule": { "type": "string" },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "timeout_ms": 15000,
+  "retry_policy": { "max_retries": 1, "backoff": "fixed" }
+}

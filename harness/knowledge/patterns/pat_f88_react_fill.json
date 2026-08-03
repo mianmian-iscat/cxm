@@ -1,0 +1,16 @@
+{
+  "id": "pat_f88_react_fill",
+  "category": "patterns",
+  "title": "F88搜索框fill必须react:true",
+  "content": "{\"error\": \"普通fill操作不触发React状态更新, 搜索无结果\", \"root_cause\": \"React受控组件需要native input setter + dispatchEvent\", \"fix\": \"fill操作设置 react: true\"}",
+  "tags": [
+    "F88",
+    "React",
+    "fill",
+    "高频"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.013559
+}

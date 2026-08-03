@@ -1,0 +1,215 @@
+# ── 跨业务统一度量告警规则 ──────────────────────────────────────────────────
+# 告警分级：P0（立即通知）/ P1（每日汇总）/ P2（周报分析）
+# 数据来源：artifacts/{run_id}/metrics_report.json → SLS → Grafana Alerting
+# 指标定义：见 core/metrics_collector.py
+
+alerts:
+
+  # ── P0：立即通知（钉钉/电话）──────────────────────────────────────────────
+  P0_immediate:
+    - name: task_success_rate_low
+      display_name: 任务成功率过低
+      metric: task_success_rate
+      condition: "< 0.80"
+      window: 1h
+      severity: critical
+      description: 过去1小时内任务成功率低于80%，可能框架或目标页面出现严重问题
+      action: 立即检查浏览器连接、目标页面可用性、knowledge 是否过期
+
+    - name: token_cost_spike
+      display_name: Token 消耗突增
+      metric: cost_per_task
+      condition: "> 2x baseline"
+      baseline_period: 7d
+      window: 1h
+      severity: critical
+      description: Token 消耗相比7日均值突增200%，可能 LLM 调用出现死循环或 Prompt 膨胀
+      action: 检查 LLM 调用链路，排查是否存在重复规划或无效重试
+
+    - name: compliance_intercept_high
+      display_name: 合规拦截频繁触发
+      metric: compliance_intercept_count
+      condition: "> 5/hour"
+      window: 1h
+      severity: critical
+      description: 安全护栏1小时内触发超过5次，可能 Agent 行为异常或合规规则变更
+      action: 检查 Agent 操作日志，确认是否误操作或需调整合规规则白名单
+
+  # ── P1：每日汇总（钉钉群消息）────────────────────────────────────────────
+  P1_daily:
+    - name: avg_duration_high
+      display_name: 平均任务耗时过长
+      metric: avg_task_duration
+      condition: "> 300000"
+      unit: ms
+      window: 24h
+      severity: warning
+      description: 24小时内平均任务耗时超过5分钟，框架效率下降
+      action: 排查瓶颈步骤（检查 metrics.json 中 duration_ms 最高的步骤）
+
+    - name: false_positive_rate_high
+      display_name: 误报率偏高
+      metric: false_positive_rate
+      condition: "> 0.30"
+      window: 24h
+      severity: warning
+      description: 24小时内误报率超过30%（阶段1容忍阈值），断言逻辑需要优化
+      action: |
+        1. 检查 assert 步骤中标记 isFalsePositive=true 的用例
+        2. 匹配 known-issues.md 已知缺陷模式
+        3. 检查 seller_id 是否在测试商家白名单（造数异常）
+        4. 匹配 _freshness.yaml staleness_days>30 的模块（知识过期）
+      misreport_categories:
+        - type: env_flaky
+          display: 环境抖动
+          pattern: "重试后 PASS"
+          action: 自动标记 FLAKY，不计入失败
+        - type: data_expired
+          display: 测试数据过期
+          pattern: "期望值与 DB 实际不符"
+          action: 触发数据刷新脚本
+        - type: known_issue
+          display: 已知缺陷
+          pattern: "匹配 known-issues.md"
+          action: 标记 KNOWN_ISSUE，不重复提 Bug
+        - type: test_data_anomaly
+          display: 造数异常
+          pattern: "seller_id 在测试商家白名单"
+          action: 标记 TEST_DATA_ISSUE
+
+    - name: change_frequency_high
+      display_name: 脚本变更过于频繁
+      metric: change_frequency
+      condition: "> 10/week"
+      window: 7d
+      severity: warning
+      description: 本周 CHANGELOG 变更超过10次，框架抗变化能力不足
+      action: 分析变更原因，考虑是否需要改用更稳定的定位策略（如 adaptive-locator）
+
+  # ── P2：周报分析（邮件/文档）────────────────────────────────────────────
+  P2_weekly:
+    - name: llm_confidence_low
+      display_name: LLM 决策置信度偏低
+      metric: llm_confidence_avg
+      condition: "< 0.70"
+      window: 7d
+      severity: info
+      description: 过去7天 LLM 平均置信度低于0.70，Agent 决策质量需提升
+      action: 审查低置信度操作的 Prompt，考虑增加 few-shot 示例或改进规划策略
+      applicable_business: [original_protection]
+
+    - name: self_heal_rate_low
+      display_name: 自愈成功率偏低
+      metric: self_heal_success_rate
+      condition: "< 0.50"
+      window: 7d
+      severity: info
+      description: 过去7天自愈成功率低于50%，Agent 智能程度不足
+      action: 分析 retrying→failed 的 case，识别可优化的恢复策略
+      applicable_business: [original_protection]
+
+    - name: visual_evidence_low
+      display_name: 视觉取证完整率不足
+      metric: visual_evidence_score
+      condition: "< 0.90"
+      window: 7d
+      severity: info
+      description: 过去7天截图取证完整率低于90%，证据链存在缺口
+      action: 检查截图配置（screenshot.onEachStep / screenshot.onError），确保关键步骤有截图
+      applicable_business: [original_protection]
+
+    - name: env_limitation_rate_high
+      display_name: 环境限制阻塞占比过高
+      metric: env_limitation_rate
+      condition: "> 0.15"
+      window: 7d
+      severity: info
+      description: 过去7天环境限制类错误码占比超过15%，CDP 底层能力覆盖不足，需优化自动化环境
+      action: 分析 metrics 中 FULLSCREEN_BLOCKED/DRAG_NOT_SUPPORTED 等错误码分布，补充对应的 CDP 命令支持
+      applicable_business: [all]
+
+  # ── 性能告警（8维度提升 §维度8）──────────────────────────────────────────
+  performance:
+    - name: api_rt_p99_exceeded
+      display_name: 接口 P99 RT 超基线
+      metric: api_p99_ms
+      condition: "> 2x baseline"
+      baseline_source: config/perf_baseline.yaml
+      window: 1h
+      severity: critical
+      description: 接口 P99 响应时间超过基线 200%，性能严重退化
+      action: 拉鹰眼 TraceId 定位慢查询/慢调用，检查 DB 索引/连接池/Tair 命中率
+
+    - name: page_fcp_p99_exceeded
+      display_name: 页面 FCP P99 超基线
+      metric: page_fcp_p99_ms
+      condition: "> 2x baseline"
+      baseline_source: config/perf_baseline.yaml
+      window: 1h
+      severity: warning
+      description: 页面 FCP P99 超过基线 200%，用户体验退化
+      action: 检查前端资源加载、API 调用耗时、网络状况
+
+    - name: job_duration_exceeded
+      display_name: 定时任务执行超时
+      metric: job_duration_ms
+      condition: "> 2x baseline"
+      baseline_source: config/perf_baseline.yaml
+      window: 1d
+      severity: warning
+      description: ScheduleX 任务执行时间超过基线 200%
+      action: 检查任务数据量、DB 慢查询、网络延迟
+
+  # ── AFD 风格协作专用告警 ─────────────────────────────────────────────────────
+  AFD_specific:
+    - name: afd_archive_rate_low
+      display_name: AFD 迭代归档率过低
+      metric: afd_iteration_archive_rate
+      condition: "< 0.70"
+      window: 7d
+      severity: warning
+      description: 过去7天 AFD 迭代归档率低于70%，可能流程阻塞或异常终止过多
+      action: 检查迭代状态分布，分析CANCELLED原因，排查是否流程卡点
+      applicable_business: [afd_collab]
+
+    - name: afd_rework_rate_high
+      display_name: AFD Leader打回率过高
+      metric: afd_leader_rework_rate
+      condition: "> 0.50"
+      window: 7d
+      severity: warning
+      description: 过去7天 Leader 打回买手或确认驳回的比例超过50%
+      action: 分析打回原因分布，检查Brief质量或试拍质量
+      applicable_business: [afd_collab]
+
+    - name: afd_archive_duration_long
+      display_name: AFD 平均归档周期过长
+      metric: afd_avg_archive_days
+      condition: "> 30"
+      unit: days
+      window: 30d
+      severity: info
+      description: 过去30天平均归档周期超过30天，流程效率待优化
+      action: 分析各环节耗时，识别流程瓶颈
+      applicable_business: [afd_collab]
+
+
+# ── 通知渠道配置 ──────────────────────────────────────────────────────────────
+notification_channels:
+  dingtalk:
+    webhook_url: "${DINGTALK_WEBHOOK_URL}"
+    at_mobiles: []
+    msg_type: markdown
+
+  email:
+    smtp_host: "${SMTP_HOST}"
+    recipients: []
+    template: weekly_report
+
+
+# ── 抑制规则 ──────────────────────────────────────────────────────────────────
+# 避免重复告警轰炸
+suppression:
+  cooldown_minutes: 30          # 同一告警30分钟内不重复发送
+  max_per_hour: 5               # 单类告警每小时最多5条
+  business_hours_only: false    # P0 告警不受工作时间限制

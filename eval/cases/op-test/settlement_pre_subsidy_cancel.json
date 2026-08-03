@@ -1,0 +1,163 @@
+{
+  "id": "settlement-pre-subsidy-cancel",
+  "name": "结算资金流：补贴前取消/驳回（返回服务次数，无资金流水）",
+  "description": "验证7个补贴前终止场景：结算单settle_status=CANCEL、init_allowance为空、返回商家1次服务次数、无资金流水。覆盖yc内审前商家取消(×2)、快维初审驳回、国知局补充材料商家终止、有标签未补贴商家终止、有标签未补贴yc撤回、国知局通过后yc取消。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P2",
+  "category": "regression",
+  "source": "dingtalk-spreadsheet/6LeBq413JA9BOdm2iBjQdjE7JDOnGvpb Sheet1 Row4-10",
+  "sourceIds": [
+    "TC_SETTLE_PRE_001",
+    "TC_SETTLE_PRE_002",
+    "TC_SETTLE_PRE_003",
+    "TC_SETTLE_PRE_004",
+    "TC_SETTLE_PRE_005",
+    "TC_SETTLE_PRE_006",
+    "TC_SETTLE_PRE_007"
+  ],
+  "context": {
+    "type": "db",
+    "dbGroup": "scenario",
+    "dbEnv": "prod",
+    "script": "scripts/verify_settlement.py"
+  },
+  "scenarios": [
+    {
+      "id": "TC_SETTLE_PRE_001",
+      "name": "yc内审通过前商家取消（样本A）",
+      "applyId": "200000369",
+      "orderId": "322056500410271",
+      "patentNo": "YC31187171392",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true
+      }
+    },
+    {
+      "id": "TC_SETTLE_PRE_002",
+      "name": "yc内审通过前商家取消（样本B）",
+      "applyId": "200000366",
+      "orderId": "322056500340271",
+      "patentNo": "YC31187112128",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true
+      }
+    },
+    {
+      "id": "TC_SETTLE_PRE_003",
+      "name": "快维初审审核驳回",
+      "applyId": "200000382",
+      "orderId": "322056500410271",
+      "patentNo": "YC31193735504",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true
+      }
+    },
+    {
+      "id": "TC_SETTLE_PRE_004",
+      "name": "国知局补充材料节点商家终止申请",
+      "applyId": "200000368",
+      "orderId": "322056500420271",
+      "patentNo": "YC31187171712",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true
+      }
+    },
+    {
+      "id": "TC_SETTLE_PRE_005",
+      "name": "有标签未补贴商家终止（确认首发后、补贴前商家终止）",
+      "applyId": "200000377",
+      "orderId": "322056500340271",
+      "patentNo": "202634040402.0",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true,
+        "note": "已确认商品一致性+首发标签，但补贴尚未触发时商家终止，不发放补贴"
+      }
+    },
+    {
+      "id": "TC_SETTLE_PRE_006",
+      "name": "有标签未补贴YC撤回（确认首发后、补贴前YC取消）",
+      "applyId": "200000378",
+      "orderId": "322056100540271",
+      "patentNo": "202634040401.0",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true,
+        "note": "已确认标签但补贴未触发，YC操作取消"
+      }
+    },
+    {
+      "id": "TC_SETTLE_PRE_007",
+      "name": "国知局审核通过后YC取消（无补贴）",
+      "applyId": "200000370",
+      "orderId": "322056100540271",
+      "patentNo": "YC31187170944",
+      "expected": {
+        "settle_status": "CANCEL",
+        "init_allowance_amount": null,
+        "serv_finish_refund_amount": 0,
+        "service_count_restored": true
+      }
+    }
+  ],
+  "steps": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && for id in 200000369 200000366 200000382 200000368 200000377 200000378 200000370; do python3 scripts/verify_settlement.py $id; done",
+      "description": "逐条执行7个补贴前取消场景的DB结算校验"
+    },
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && for id in 200000369 200000366 200000382 200000368 200000377 200000378 200000370; do python3 -c \"import json; d=json.load(open(f'/tmp/settlement_result_{\\\"$id\\\"}.json')); assert not d['issues'], f'{\\\"$id\\\"}: {d[\\\"issues\\\"]}'\"; done",
+      "description": "验证所有场景的校验报告无 issues"
+    }
+  ],
+  "post_asserts": [
+    {
+      "type": "dbQuery",
+      "sql": "SELECT settle_status, init_allowance_amount, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000369,200000366,200000382,200000368,200000377,200000378,200000370) AND is_deleted=0 AND settle_status='FINISH'",
+      "expectEmpty": true,
+      "description": "补贴前取消的所有结算单不应有FINISH状态"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT COUNT(*) as cnt FROM yc_right_settle_order WHERE right_apply_id IN (200000369,200000366,200000382,200000368,200000377,200000378,200000370) AND is_deleted=0 AND settle_status='CANCEL'",
+      "expectGte": 7,
+      "description": "至少7条CANCEL状态的结算单"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "测试环境已预埋7个补贴前终止的专利申请数据，dms-alibaba CLI可连接scenario/prod",
+    "riskPoints": [
+      "补贴前取消应返回服务次数（订购单余额恢复500元）",
+      "结算单应为CANCEL而非FINISH",
+      "init_allowance_amount 必须为空（未触发补贴）",
+      "不应产生任何资金流水（退款/确收）",
+      "有标签未补贴场景：已确认首发标签但补贴定时器未到，此时终止不发补贴"
+    ],
+    "prdRef": "PRD结算规则表-未补贴行：初审未通过/被驳回/商家终止/YC终止 → 系统触发返回1次服务次数"
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "id": "regression-op-tort-detail",
+  "name": "回归：商家端维权记录详情视图（查看维权详情）",
+  "description": "验证商家端申请列表行内「查看维权详情」打开维权记录弹层：含维权记录/疑似侵权平台/商品信息/维权发起日期/维权结束日期/维权状态表头 + 状态标签渲染 + 下架率环形图指标",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/yc-child-shoes-testcases/test_05_tort_detail.py",
+  "sourceIds": [
+    "TC_TORT_DETAIL_001",
+    "TC_TORT_DETAIL_002",
+    "TC_TORT_DETAIL_003"
+  ],
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "description": "打开原创保护商家端主页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "专利认证数量",
+      "description": "验证商家端主页已加载"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "selectorIndex": 2,
+      "value": "{{applyId}}",
+      "description": "【TC_TORT_DETAIL_001】在申请编号搜索框输入目标编号 200000757"
+    },
+    {
+      "type": "clickText",
+      "text": "搜",
+      "selector": "button",
+      "description": "点击「搜索」按钮触发申请列表筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待搜索结果渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "200000757",
+      "description": "验证搜索结果含目标申请编号"
+    },
+    {
+      "type": "screenshot",
+      "label": "tort-detail-search-result",
+      "description": "截图-搜索到 200000757 的结果"
+    },
+    {
+      "type": "clickText",
+      "text": "查看维权详情",
+      "description": "【TC_TORT_DETAIL_002】点击行内「查看维权详情」打开维权记录弹层"
+    },
+    {
+      "type": "wait",
+      "ms": 3500,
+      "description": "等待维权记录弹层渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "tort-detail-modal",
+      "description": "截图-维权记录详情弹层"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "维权状态",
+      "description": "【TC_TORT_DETAIL_003】验证弹层含「维权状态」表头（维权记录详情视图）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "疑似侵权平台",
+      "description": "验证弹层含「疑似侵权平台」列（淘宝/抖音/天猫等平台分布）"
+    },
+    {
+      "type": "assert",
+      "assertion": "pageConsistency",
+      "expected": "概览统计 vs 列表数量一致性",
+      "script": "const body=document.body.innerText;const overview={};const m1=body.match(/疑似侵权共计\\s*(\\d+)例/);const m2=body.match(/待发起维权\\s*:?\\s*(\\d+)例/);const m3=body.match(/维权中\\s*:?\\s*(\\d+)例/);const m4=body.match(/维权成功\\s*:?\\s*(\\d+)例/);const m5=body.match(/维权失败\\s*:?\\s*(\\d+)例/);const m6=body.match(/下架率\\s*([0-9.]+)%/);if(m1)overview.total=+m1[1];if(m2)overview.pending=+m2[1];if(m3)overview.ing=+m3[1];if(m4)overview.success=+m4[1];if(m5)overview.fail=+m5[1];if(m6)overview.offRate=m6[1]+'%';const hdr=[...document.querySelectorAll('th,div,span')].find(e=>{const own=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim();return own==='维权记录';});let tbl=null;if(hdr){let p=hdr.parentElement;for(let i=0;i<15&&p;i++){if(p.querySelector('tbody')){tbl=p;break;}p=p.parentElement;}}const allRows=tbl?[...tbl.querySelectorAll('tbody tr')]:[];const withNo=allRows.filter(r=>/4\\d{8}/.test(r.innerText||''));let notYet=0;const rows=withNo.filter(r=>{const t=r.innerText||'';if(/暂未构成侵权/.test(t)){notYet++;return false;}return true;});const list={total:rows.length,pending:0,ing:0,success:0,fail:0,notYetInfringement:notYet};rows.forEach(r=>{const t=r.innerText||'';if(/维权中/.test(t)&&!/维权成功|维权失败/.test(t))list.ing++;else if(/维权成功/.test(t))list.success++;else if(/维权失败/.test(t))list.fail++;else if(/待维权|待发起/.test(t))list.pending++;});const sumStatus=list.pending+list.ing+list.success+list.fail;const issues=[];if(overview.total!==undefined&&overview.total!==list.total)issues.push('疑似侵权共计('+overview.total+')≠列表总条数('+list.total+', 已排除暂未构成侵权'+notYet+'条)');if(overview.ing!==undefined&&overview.ing!==list.ing)issues.push('维权中('+overview.ing+')≠列表维权中('+list.ing+')');if(overview.pending!==undefined&&overview.pending!==list.pending)issues.push('待发起维权('+overview.pending+')≠列表待维权('+list.pending+')');if(overview.success!==undefined&&overview.success!==list.success)issues.push('维权成功('+overview.success+')≠列表维权成功('+list.success+')');if(overview.total!==undefined&&overview.total!==sumStatus)issues.push('疑似侵权共计('+overview.total+')≠各状态合计('+sumStatus+')');return{pass:issues.length===0,message:issues.length===0?'一致性成立: overview='+JSON.stringify(overview)+' list={total:'+list.total+',pending:'+list.pending+',ing:'+list.ing+',success:'+list.success+',fail:'+list.fail+',notYet:'+notYet+'}':'不一致: '+issues.join('; '),overview,list};",
+      "description": "【数值一致性】校验弹层概览统计（疑似侵权共计/待发起维权/维权中/维权成功/维权失败）与下方列表状态数量一致（已排除「暂未构成侵权」行），且满足恒等式：疑似侵权共计=待发起维权+维权中+维权成功+维权失败"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "yc.right|yc.tort|tort",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "depends_on": [
+    "regression-op-signup-flow"
+  ],
+  "consumes": {
+    "applyId": "regression-op-signup-flow.applyId"
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "9223 淘宝登录态有效；测试申请编号 200000757 处于「专利保护中」，累计维权次数 > 0（有 3 例疑似侵权）",
+    "riskPoints": [
+      "「查看维权详情」链接只在有维权记录的申请行出现，需确保测试编号有维权数据",
+      "fill 用 selectorIndex=2 定位「申请编号」输入框（顺序：商品名/商品ID/申请编号/专利号）",
+      "弹层打开后页面文本可能含预渲染的隐藏 DOM，断言用表头字段（维权状态/疑似侵权平台）而非弹层容器"
+    ],
+    "erratum": "商家端维权记录详情入口为行内「查看维权详情」链接（累计维权次数列），非行级「查看」BUTTON；后者是查看申请详情",
+    "qoderworkRef": "test_05_tort_detail.py TC_TORT_DETAIL_001~003"
+  }
+}

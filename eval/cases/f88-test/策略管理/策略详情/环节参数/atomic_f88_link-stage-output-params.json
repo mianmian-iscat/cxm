@@ -1,0 +1,150 @@
+{
+  "id": "atomic-f88-link-stage-output-params",
+  "name": "UI：环节参数详情-环节出参完整性及入参出参差集验证",
+  "description": "验证环节出参包含入参透传字段+环节新增计算字段(season_tag/style_tag)，且出参字段数≥入参字段数",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "打开链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const el = spans.find(s => (s.textContent || '').trim() === '入参'); if (!el) return { found: false }; const rect = el.getBoundingClientRect(); return { found: true, x: rect.x + rect.width/2, y: rect.y + rect.height/2 }; })()",
+      "description": "定位入参span",
+      "storeAs": "paramLink"
+    },
+    {
+      "type": "click",
+      "description": "打开环节参数详情弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "paramLink"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const text = drawer.textContent || ''; // Define expected input params const inputParams = ['seller_id', 'seed_image_url', 'tao_cate', 'item_id', 'back_img_url', 'skc_img_url']; // Define expected output params (input passthrough + computed) const outputParams = ['seller_id', 'seed_image_url', 'season_tag', 'style_tag', 'item_id', 'tao_cate', 'back_img_url', 'skc_img_url']; // Find the '环节出参' section and extract its content const outputIdx = text.indexOf('环节出参'); const inputIdx = text.indexOf('入参取值配置'); const strategyIdx = text.indexOf('策略列表'); // Section boundaries const inputSection = text.substring(inputIdx >= 0 ? inputIdx : 0, strategyIdx >= 0 ? strategyIdx : text.length); const outputSection = text.substring(outputIdx >= 0 ? outputIdx : 0); // Check each param in sections const inputFound = inputParams.filter(p => inputSection.includes(p)); const outputFound = outputParams.filter(p => outputSection.includes(p)); // Computed fields = output only (not in input) const computedFields = outputParams.filter(p => !inputParams.includes(p)); const passthroughFields = outputParams.filter(p => inputParams.includes(p)); return { open: true, hasOutputSection: outputIdx >= 0, hasInputSection: inputIdx >= 0, hasStrategySection: strategyIdx >= 0, inputParamsExpected: inputParams.length, inputParamsFound: inputFound.length, inputParams: inputFound, outputParamsExpected: outputParams.length, outputParamsFound: outputFound.length, outputParams: outputFound, computedFields, computedFound: computedFields.filter(f => outputSection.includes(f)), passthroughFields, passthroughFound: passthroughFields.filter(f => outputSection.includes(f)), outputGteInput: outputFound.length >= inputFound.length }; })()",
+      "description": "分析入参出参差集",
+      "storeAs": "paramDiff"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "open",
+      "equals": true,
+      "description": "弹窗已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "hasOutputSection",
+      "equals": true,
+      "description": "环节出参板块存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "hasInputSection",
+      "equals": true,
+      "description": "入参取值配置板块存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "inputParamsFound",
+      "gte": 4,
+      "description": "入参至少4个核心字段(seller_id/seed_image_url/tao_cate/item_id)"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "outputParamsFound",
+      "gte": 4,
+      "description": "出参至少4个核心字段"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "outputGteInput",
+      "equals": true,
+      "description": "出参字段数≥入参字段数(出参=入参透传+新增计算)"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "computedFound",
+      "gte": 1,
+      "description": "出参中至少1个新增计算字段(如season_tag/style_tag)"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramDiff",
+      "path": "passthroughFound",
+      "gte": 4,
+      "description": "出参中至少4个入参透传字段"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn"
+    },
+    {
+      "type": "click",
+      "description": "关闭弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-output-params",
+      "description": "环节出参完整性验证截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180存在",
+    "realDomNotes": "入参6字段: seller_id/seed_image_url/tao_cate/item_id/back_img_url/skc_img_url; 出参8字段: 入参透传6+season_tag/style_tag新增; 刷标签环节负责计算season_tag和style_tag",
+    "riskPoints": [
+      "出参是否遗漏计算字段(season_tag/style_tag)",
+      "入参透传字段在出参中是否缺失",
+      "不同环节的出参差集可能不同(刷标签环节才有season_tag)"
+    ]
+  }
+}

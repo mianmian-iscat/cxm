@@ -1,0 +1,80 @@
+{
+  "id": "ui-f88-quality-template-wash-status",
+  "name": "UI：优质模板库-洗图状态筛选验证",
+  "description": "验证优质模板库洗图状态筛选：Radio/Tab切换→列表更新→数据一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开优质模板库"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "优质模板库",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const radios = Array.from(document.querySelectorAll('[role=radio], input[type=radio], .ant-radio-button-wrapper, [class*=washStatus], [class*=wash]')).map(el => ({ text: el.textContent?.trim()?.substring(0, 20) || '', tag: el.tagName, checked: el.checked || el.classList?.contains('ant-radio-button-wrapper-checked') })); const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); return { radios, tabs }; })()",
+      "description": "查找洗图状态筛选元素",
+      "storeAs": "washFilters"
+    },
+    {
+      "type": "screenshot",
+      "label": "quality-template-wash",
+      "description": "洗图状态筛选"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const options = document.querySelectorAll('[role=radio], .ant-radio-button-wrapper, [class*=washStatus]'); if(options.length > 1) { options[1].click(); return 'clicked option 2'; } return 'no options'; })()",
+      "description": "切换洗图状态"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "quality-template-wash-filtered",
+      "description": "洗图状态筛选结果"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在洗图状态数据。",
+    "realDomNotes": "洗图状态筛选可能为Radio Group或Tab，选项含：全部/已洗图/未洗图/洗图中。",
+    "riskPoints": [
+      "洗图状态选项文案需实际确认"
+    ]
+  }
+}

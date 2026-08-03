@@ -1,0 +1,83 @@
+{
+  "id": "atom-f88-tm-tab-manual",
+  "name": "原子：任务管理-手动创建 Tab文案验证",
+  "description": "验证'手动创建'Tab文案正确",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')); const m = tabs.find(t => t.textContent.includes('手动创建')); return { found: !!m, text: m?.textContent?.trim() }; })()",
+      "description": "验证手动创建Tab",
+      "storeAs": "tabManual"
+    },
+    {
+      "type": "assertStore",
+      "key": "tabManual",
+      "path": "found",
+      "equals": true,
+      "description": "验证 验证手动创建Tab 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "tabManual",
+      "path": "found",
+      "equals": true
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-tab-manual",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

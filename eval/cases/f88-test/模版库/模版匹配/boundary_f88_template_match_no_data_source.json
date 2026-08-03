@@ -1,0 +1,156 @@
+{
+  "id": "boundary-f88-template-match-no-data-source",
+  "name": "边界场景：模板匹配节点入参未配置数据来源时保存",
+  "description": "验证在模板匹配节点的入参（styleImageUrl、caption等）未配置数据来源的情况下，保存策略会失败，API返回'入参数据来源配置异常'错误。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle2",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模板匹配",
+      "description": "验证模板匹配节点存在"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击模板匹配节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待抽屉加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-drawer-opened",
+      "description": "截图-节点抽屉已打开"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "入参",
+      "description": "验证入参配置区域存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "styleImageUrl",
+      "description": "验证styleImageUrl入参字段存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "caption",
+      "description": "验证caption入参字段存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false, reason: 'drawer not found' }; const inputParams = [...drawer.querySelectorAll('[class*=InputParam], [class*=input-param]')]; return { ok: true, count: inputParams.length, hasStyleImageUrl: drawer.textContent.includes('styleImageUrl'), hasCaption: drawer.textContent.includes('caption') }; })()",
+      "storeAs": "inputParamsCheck",
+      "description": "检查入参配置状态"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (drawer) { const close = drawer.querySelector('.ant-drawer-close'); if (close && close.offsetHeight > 0) close.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "关闭抽屉"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待关闭"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const desc = document.querySelector('textarea[placeholder*=\"策略说明\"]'); if (desc) { desc.value = '测试入参未配置数据来源的边界场景'; desc.dispatchEvent(new Event('input', { bubbles: true })); } return { ok: true }; })()",
+      "description": "填写策略说明"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待输入"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待保存完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "save-failed-no-data-source",
+      "description": "截图-保存失败提示"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const msgs = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); return Array.from(msgs).map(m => m.textContent.trim()).filter(t => t.length > 0); })()",
+      "storeAs": "errorMessages",
+      "description": "获取错误提示"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "数据来源",
+      "description": "验证错误提示中包含数据来源"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "配置异常",
+      "description": "验证错误提示中包含配置异常"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass",
+    "expectedErrors": [
+      "数据来源",
+      "配置异常"
+    ]
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录，策略详情页已打开，模板匹配节点已添加但入参未配置数据来源",
+    "riskPoints": [
+      "模板匹配节点的入参（styleImageUrl、caption）需要配置数据来源",
+      "未配置数据来源时，保存API应返回明确错误",
+      "错误提示应包含'数据来源'和'配置异常'关键词"
+    ],
+    "expectedBehavior": "策略保存失败，返回错误提示：节点模板匹配的入参 styleImageUrl 数据来源配置异常:未知数据来源: null"
+  }
+}

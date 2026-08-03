@@ -1,0 +1,24 @@
+# 运行时产物
+artifacts/*
+!artifacts/.gitkeep
+!artifacts/_archive/
+
+# 依赖
+node_modules/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 本地调试
+.env
+*.log
+
+# IDE / 工具缓存
+.cache/
+.qoder/
+
+# 打包产物
+*.zip

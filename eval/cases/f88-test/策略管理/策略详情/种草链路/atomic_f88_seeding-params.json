@@ -1,0 +1,159 @@
+{
+  "id": "atomic-f88-seeding-params",
+  "name": "UI：种草链路-起点入参及各环节出入参字段验证",
+  "description": "验证链路起点5个入参字段、各环节入参出参字段完整性（含部分标记）",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+      "waitUntil": "networkidle",
+      "description": "打开种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id (必填)",
+      "description": "起点入参：seller_id 必填"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seed_image_url (必填)",
+      "description": "起点入参：seed_image_url 必填"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "tao_cate (必填)",
+      "description": "起点入参：tao_cate 必填"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "item_id (必填)",
+      "description": "起点入参：item_id 必填"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "remark (选填)",
+      "description": "起点入参：remark 选填"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const required = ['seller_id (必填)','seed_image_url (必填)','tao_cate (必填)','item_id (必填)']; const optional = ['remark (选填)']; const reqFound = required.filter(p => t.includes(p)); const optFound = optional.filter(p => t.includes(p)); return { required: reqFound.length, requiredTotal: required.length, optional: optFound.length, allRequiredPresent: reqFound.length === required.length }; })()",
+      "description": "统计入参完整性",
+      "storeAs": "paramCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramCheck",
+      "path": "allRequiredPresent",
+      "equals": true,
+      "description": "验证4个必填参数全部存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "industry_tag",
+      "description": "入参图刷标签出参：industry_tag"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "style_tag",
+      "description": "入参图刷标签出参：style_tag"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "season_tag",
+      "description": "入参图刷标签出参：season_tag"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "main_image_url",
+      "description": "首图生成出参：main_image_url"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "template_url",
+      "description": "首图生成出参：template_url"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "out_image1",
+      "description": "首图审核出参：out_image1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "set_image_url",
+      "description": "套图生成出参：set_image_url"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "title1",
+      "description": "标题文案出参：title1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "long_text1",
+      "description": "标题文案出参：long_text1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "pic_urls",
+      "description": "套图审核出参：pic_urls"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "(部分)",
+      "description": "验证部分出参标记存在（表示可选传递）"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-params",
+      "description": "种草链路入参出参"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；种草链路id=20205存在",
+    "realDomNotes": "起点入参5个(4必填+1选填); 出参含(部分)标记表示可选传递; 首图生成出参4路*2字段=8个部分字段",
+    "riskPoints": ["出参(部分)标记是否因数据变更消失"]
+  }
+}

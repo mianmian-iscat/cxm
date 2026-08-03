@@ -1,0 +1,21 @@
+{
+  "id": "antd_table_wait_load",
+  "description": "等待 Ant Design 表格加载完成（出现 tr.ant-table-row 或 .ant-empty），返回 rowCount / headers / isEmpty。",
+  "params": [
+    { "name": "scopeSelector", "type": "string", "default": "body", "desc": "作用域（如 '.ant-drawer', '#main'）" },
+    { "name": "timeout",       "type": "number", "default": 5000, "desc": "等待超时（ms）" },
+    { "name": "storeAs",       "type": "string", "default": "tableState", "desc": "Store 键名" }
+  ],
+  "steps": [
+    {
+      "type": "waitForFunction",
+      "expression": "(() => { const scope = document.querySelector('{{scopeSelector}}') || document; const rows = scope.querySelectorAll('tr.ant-table-row'); if (rows.length > 0) return true; const empty = scope.querySelector('.ant-empty'); if (empty) return true; const spinning = scope.querySelector('.ant-spin-spinning'); if (spinning) return false; return true; })()",
+      "timeout": "{{timeout}}"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const scope = document.querySelector('{{scopeSelector}}') || document; const rows = scope.querySelectorAll('tr.ant-table-row'); const ths = Array.from(scope.querySelectorAll('th, .ant-table-thead th')); const empty = scope.querySelector('.ant-empty'); return { scope: '{{scopeSelector}}', rowCount: rows.length, isEmpty: !!empty, headers: ths.slice(0, 20).map(th => (th.textContent || '').trim()) }; })()",
+      "storeAs": "{{storeAs}}"
+    }
+  ]
+}

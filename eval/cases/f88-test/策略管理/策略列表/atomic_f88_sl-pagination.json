@@ -1,0 +1,88 @@
+{
+  "id": "atomic-f88-sl-pagination",
+  "name": "UI：策略列表-分页和总数验证",
+  "description": "验证策略列表分页组件和总记录数",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const pagination = document.querySelector('.ant-pagination'); const totalText = document.body.innerText.match(/共\\s*\\d+\\s*条/); const items = pagination ? Array.from(pagination.querySelectorAll('.ant-pagination-item')).map(i => i.textContent.trim()) : []; return { hasPagination: !!pagination, total: totalText?.[0] || null, pages: items }; })()",
+      "description": "验证分页",
+      "storeAs": "pageInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageInfo",
+      "path": "found",
+      "equals": true,
+      "description": "验证 验证分页 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "列表",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageInfo",
+      "path": "hasPagination",
+      "equals": true,
+      "description": "验证分页组件存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const ths = Array.from(document.querySelectorAll('th, .ant-table-thead th')); return { columnCount: ths.length, headers: ths.slice(0, 15).map(th => (th.textContent || '').trim()) }; })()",
+      "description": "检查表格列信息",
+      "storeAs": "tableInfo"
+    },
+    {
+      "type": "screenshot",
+      "label": "sl-pagination",
+      "description": "策略列表分页"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "策略列表共128条，分页显示",
+    "riskPoints": []
+  }
+}

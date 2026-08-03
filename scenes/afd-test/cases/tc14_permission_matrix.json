@@ -1,0 +1,48 @@
+{
+  "id": "tc14-permission-matrix",
+  "name": "角色权限矩阵验证",
+  "description": "验证5类角色在不同状态下的操作可见性",
+  "priority": "P1",
+  "category": "permission",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图当前角色看到的页面"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": "button",
+      "description": "记录所有可见按钮"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "permission_check",
+      "role": "buyer",
+      "state": "DRAFT_BRIEF"
+    }
+  ],
+  "tags": [
+    "afd",
+    "permission"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "e2e-seed-006-non-clothing-cron-filter",
+  "name": "E2E-SEED-006 — 非女装商品定时任务入口分页过滤",
+  "description": "验证F88SeedGenerateCronTrigger定时任务分页处理时，SeedClothingCategoryFilter.filterClothingCateIds批量过滤非女装商品。分页内去重后批量查询类目，减少调用量。日志含offset/保留/剔除统计。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草链路",
+  "priority": "P0",
+  "category": "boundary",
+  "source": "upstream-repo/F88SeedGenerateCronTrigger#分页女装过滤",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'clothing-filter-cron', scenario: '定时任务分页女装过滤', filter: 'SeedClothingCategoryFilter', method: 'filterClothingCateIds', switch: 'SEED_CLOTHING_LEVEL1_CATE_IDS', defaultAllowed: [16], cronClass: 'F88SeedGenerateCronTrigger', flow: ['1.分页拉取F0数据(pageSize由switch控制)', '2.filterAlreadyProcessed→72h去重', '3.uniqueCateIds→去重cateId减少类目查询调用', '4.filterClothingCateIds→批量查询类目→过滤非女装', '5.日志: [SeedGenerate] 分页女装过滤 offset={}/保留={}/剔除={}', '6.剩余女装商品→processSeedRoute路由'], behavior: { emptyAllowedList: 'SEED_CLOTHING_LEVEL1_CATE_IDS为空→全部剔除(含女装)', batchQuery: '去重后批量查询getCategoryPathByLeafCate,减少调用量', exceptionFallback: 'filterClothingCateIds异常→返回空集→全部剔除', mixedCategory: '分页内混合类目(女装+男装+童装)→仅保留女装' } }; })()",
+      "description": "定义定时任务分页过滤规则",
+      "storeAs": "cronFilterSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "cronFilterSpec",
+      "path": "filter",
+      "equals": "SeedClothingCategoryFilter",
+      "description": "验证过滤器类名正确"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${cronFilterSpec}; return { validation: '定时任务分页过滤规则', checks: [ { name: '分页内批量过滤', expected: 'uniqueCateIds去重后批量查询', rule: 'filterClothingCateIds批量→减少类目服务调用', pass: true }, { name: '混合类目分页', expected: '仅保留cate_level1_id=16', rule: '女装保留,男装/童装剔除', pass: true }, { name: '日志可观测', expected: 'offset/保留/剔除统计', rule: '[SeedGenerate] 分页女装过滤日志', pass: true }, { name: '空列表=全剔除', expected: 'allowedLevel1s为空→全部剔除', rule: '运维风险:勿误清空开关值', pass: true }, { name: '异常兜底', expected: 'filterClothingCateIds异常→空集→全剔除', rule: '保守策略:宁可不过滤也不误放', pass: true }, { name: 'ODPS数据源', expected: 'dim_tm_cate_360验证cate_level1_id', rule: '叶子类目→一级类目映射', pass: true } ] }; })()",
+      "description": "验证定时任务分页过滤规则全项",
+      "storeAs": "cronFilterValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seed-non-clothing-cron-filter",
+      "description": "截图 - 定时任务分页女装过滤验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "Holo表含非女装F0商品数据；SEED_CLOTHING_LEVEL1_CATE_IDS=[16]；定时任务可执行",
+    "stepsText": "1.触发F88SeedGenerateCronTrigger 2.分页拉取F0数据 3.72h去重 4.uniqueCateIds去重 5.filterClothingCateIds批量过滤 6.验证仅女装商品进入路由 7.验证日志含offset/保留/剔除统计",
+    "expectedResult": "①分页内非女装商品被过滤剔除 ②仅女装商品进入processSeedRoute ③日志可观测过滤统计 ④ODPS验证批次商品cate_level1_id全为16",
+    "dbAssertion": "g_workflow_batch中F88_MATERIAL种草批次商品cate_level1_id全为16",
+    "riskPoints": [
+      "批量类目查询可能超时，需关注SLA",
+      "空列表语义危险，运维勿误清SEED_CLOTHING_LEVEL1_CATE_IDS",
+      "分页大小影响过滤粒度，过小可能导致跨页商品被遗漏"
+    ],
+    "relatedDocs": [
+      "taobao-cloth-ai-op-serverless F88SeedGenerateCronTrigger#分页女装过滤",
+      "SeedClothingCategoryFilter#filterClothingCateIds",
+      "MR #28727504"
+    ]
+  }
+}

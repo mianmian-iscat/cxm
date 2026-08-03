@@ -1,0 +1,31 @@
+{
+  "id": "TC-AN-QB-005",
+  "name": "TC-AN-QB-005 — 批量填写：全部不合法（不写入表单）[P1]",
+  "description": "审核节点编辑页已打开",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P1", "category": "abnormal_flow",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle", "description": "打开审核节点管理页" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const batchBtn = btns.find(b => (b.textContent || '').includes('批量填写')); if (!batchBtn) return { clicked: false }; batchBtn.click(); return { clicked: true }; })()", "description": "点击批量填写", "storeAs": "clickBatch" },
+    { "type": "wait", "ms": 1000 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); if (!modal) return { found: false }; const textarea = modal.querySelector('textarea, .ant-input'); const badJson = JSON.stringify([{empId:'999999',empName:'不存在A'},{empId:'888888',empName:'不存在B'}]); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(textarea, badJson); textarea.dispatchEvent(new Event('input', { bubbles: true })); return { found: true }; })()", "description": "粘贴全部不合法JSON", "storeAs": "pasteBad" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => (b.textContent || '').includes('确认')); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "点击确认导入", "storeAs": "confirmImport" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { const toasts = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); const hasAllFail = toastTexts.some(t => t.includes('成功 0 条') || t.includes('成功0条')); return { toasts: toastTexts, hasAllFail }; })()", "description": "验证toast:成功0条，全部剔除", "storeAs": "verifyAllFail" },
+    { "type": "screenshot", "label": "batch-fill-all-fail", "description": "全部不合法截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开",
+    "stepsText": "1. 点击「批量填写」\\n2. 粘贴全部不合法JSON（工号均不存在）\\n3. 点击确认导入",
+    "expectedResult": "1. 不写入表单\\n2. toast:「总计 2 条，成功 0 条，剔除 2 条：...」",
+    "priority": "P1",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

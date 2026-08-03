@@ -1,0 +1,29 @@
+{
+  "name": "observeTransitions",
+  "version": "1.0.0",
+  "description": "监控 DOM 过渡状态变化",
+  "triggers": ["过渡", "动画", "transition", "observe"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "observeTransitions" },
+      "action": { "type": "string", "enum": ["start", "stop", "query"], "default": "start" },
+      "selector": { "type": "string" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "transitions": { "type": "array" },
+      "count": { "type": "integer" }
+    }
+  },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 0 }
+}

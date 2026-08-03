@@ -1,0 +1,71 @@
+# 原创保护 (OP) 知识库保鲜台账
+# 对齐 07-21 会议「知识保鲜」要求：按模块维度定期核验，staleness_days > 30 的 P0 模块自动进入待保鲜队列
+# 维护方式：commit 变更 / PRD 新增 / 规则校准 三类触发时更新对应模块的 last_verified 与 source_commit
+
+domain: original-protection
+last_full_review: 2026-07-23
+staleness_threshold_days: 30          # 超过此天数的 P0 模块进入待保鲜队列
+owner_default: TBD
+
+# D1-D5 五维知识源映射（内容一致：机器可读=人读，同一套内容）
+dimensions:
+  D1_code: [original-protection-code.md, code-architecture.md]
+  D2_tech: [原创保护-系统架构与API参考.md, 原创保护-DB表速查.md, MetaQ消息流.md, ScheduleX任务清单.md]
+  D3_prd:  [四期功能迭代.md]                       # 待补：五期PRD-场景映射.md
+  D4_cases: [eval/cases/xiaoer/]                    # 待补：M01-M11 P0 锚点用例集
+  D5_rule: [状态机详解.md, 结算规则详解.md, 维权规则.md, 首发标签规则.md, 已知规则校准记录.md, 隐性规则结构化清单.md]
+
+modules:
+  M01-签约:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-11
+    source_commit: TBD
+    triggers: [commit变更, PRD新增]
+  M02-专利申请:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-14
+    source_commit: TBD
+    triggers: [commit变更, 规则校准]
+    notes: 21 态状态机，快审/初审/普通三分支
+  M04-商品绑定:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-11
+    source_commit: TBD
+    triggers: [commit变更]
+  M05-维权:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-23
+    source_commit: TBD
+    triggers: [commit变更, 规则校准]
+    notes: 合规重灾区，6 平台对接差异，P0=0/P1<=2；7/23 锚点8条全PASS，6态分布DB验证通过
+  M07-结算:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-23
+    source_commit: TBD
+    triggers: [commit变更, 规则校准]
+    notes: 资损重灾区，BigDecimal 精度，70% 阈值，802/537 元/SKU，P0=0/P1<=1；7/23 锚点12条全PASS，8个applyId逐一DB校验，幂等性验证通过
+  M08-首发标:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-14
+    source_commit: TBD
+    triggers: [规则校准]
+    notes: 窗口逻辑，FirstLaunchExpireJob 到期摘标
+  S01-权限白名单:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-23
+    source_commit: TBD
+    triggers: [commit变更]
+    notes: 千牛 TTYCBH 打标准入；7/23 DB验证白名单1849条记录
+  M03-专利详情:  {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}
+  M06-抽检:      {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}
+  M09-转正转普通: {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}
+  M10-续签:      {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}
+  M11-运营后台:  {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}
+  S04-跨平台对接: {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}

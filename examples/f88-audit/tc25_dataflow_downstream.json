@@ -1,0 +1,332 @@
+{
+  "id": "f88-audit-tc25",
+  "name": "TC25 - 编辑后下游流转 + 首图/套图/视频审核数据流转（模块I-F+J-L, 22条）",
+  "description": "后端API/DB级测试。模块I-F: 编辑后审核通过→下游流转验证(8条)；模块J: 首图审核数据流转(6条)；模块K: 套图审核数据流转(4条)；模块L: 视频审核数据流转(4条)。pytest脚本: test_approve_regression.py。",
+  "businessType": "f88_material",
+  "relatedCases": ["NEW-I36","NEW-I37","NEW-I38","NEW-I39","NEW-I40","NEW-I41","NEW-I42","NEW-I43","J1","J2","J3","J4","J5","J6","K1","K2","K3","K4","L1","L2","L3","L4"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心（获取登录态cookie）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "========== 模块I-F: 编辑后审核通过→下游流转验证（8条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-I-F-start')()",
+      "description": "=== 模块I-F分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-I36: 替换→确认→审核通过→查询下游input_data",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, JSON_EXTRACT(r2.input_data, '$.url') as input_url, JSON_EXTRACT(r2.input_data, '$.main_img_url_1') as main_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type IN ('algorithm_filter', 'set_image') AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.editType')='replace' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "NEW-I36: 替换后审核通过，查询下游节点input_data"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.input_url contains 'http' OR all_rows.main_url contains 'http'",
+      "description": "NEW-I36: 下游节点input_data中URL为替换后新图URL"
+    },
+
+    {
+      "_comment": "NEW-I37: 裁剪→确认→审核通过→查询下游input_data",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, JSON_EXTRACT(r2.input_data, '$.url') as input_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type IN ('algorithm_filter', 'set_image') AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.editType')='crop' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "NEW-I37: 裁剪后审核通过，查询下游input_data"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.input_url contains 'http'",
+      "description": "NEW-I37: 下游节点input_data中URL为裁剪后新图URL"
+    },
+
+    {
+      "_comment": "NEW-I38: 高清化→确认→审核通过→查询下游input_data",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, JSON_EXTRACT(r2.input_data, '$.url') as input_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type IN ('algorithm_filter', 'set_image') AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.editType')='hdEnhance' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "NEW-I38: 高清化后审核通过，查询下游input_data"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.input_url contains 'http'",
+      "description": "NEW-I38: 下游节点input_data中URL为高清化后新图URL"
+    },
+
+    {
+      "_comment": "NEW-I39: 局部修改→确认→审核通过→查询下游input_data",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, JSON_EXTRACT(r2.input_data, '$.url') as input_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type IN ('algorithm_filter', 'set_image') AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.editType')='localModify' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "NEW-I39: 局部修改后审核通过，查询下游input_data"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.input_url contains 'http'",
+      "description": "NEW-I39: 下游节点input_data中URL为修改后新图URL"
+    },
+
+    {
+      "_comment": "NEW-I40: 封面图审核(qt=4)→编辑后→审核通过→查询output_json",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg1') as img1, JSON_EXTRACT(output_json, '$.passedImg2') as img2, JSON_EXTRACT(output_json, '$.passedImg3') as img3, JSON_EXTRACT(output_json, '$.passedImg4') as img4, JSON_EXTRACT(output_json, '$.passedImg5') as img5 FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_EXTRACT(extra_info, '$.questionType')='4' AND JSON_EXTRACT(extra_info, '$.editType') IS NOT NULL ORDER BY id DESC LIMIT 3",
+      "description": "NEW-I40: 封面图编辑后审核通过，查询output_json中passedImg1~5"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.img1 is not null AND (img1 contains 'http' OR img1 == 'null')",
+      "description": "NEW-I40: passedImg1~5中URL为编辑后新图URL"
+    },
+
+    {
+      "_comment": "NEW-I41: 编辑后→查询common_variable中passedImg字段",
+      "type": "dbQuery",
+      "sql": "SELECT wi.id, JSON_EXTRACT(wi.common_variable, '$.passedImg') as passed_img FROM g_workflow_instance wi WHERE wi.id > 4000000 AND JSON_EXTRACT(wi.common_variable, '$.passedImg') IS NOT NULL AND wi.id IN (SELECT JSON_EXTRACT(r.common_variable, '$.workflowInstanceId') FROM workflow_record_log r WHERE r.id > 4000000 AND r.node_type='approve' AND r.status='SUCCESS' AND JSON_EXTRACT(r.extra_info, '$.editType') IS NOT NULL LIMIT 5) ORDER BY wi.id DESC LIMIT 5",
+      "description": "NEW-I41: 编辑后查询g_workflow_instance.common_variable中passedImg"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img contains 'http'",
+      "description": "NEW-I41: common_variable中passedImg为编辑后URL"
+    },
+
+    {
+      "_comment": "NEW-I42: 编辑后→审核通过→下游算法过滤/套图生产/素材生产record",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, r2.status, JSON_EXTRACT(r2.input_data, '$.url') as input_url, JSON_EXTRACT(r2.output_json, '$.passedImg') as output_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type IN ('algorithm_filter', 'set_image', 'gen_material') AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.editType') IS NOT NULL LIMIT 1) ORDER BY r2.id ASC LIMIT 10",
+      "description": "NEW-I42: 各下游节点消费和输出的URL"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.input_url contains 'http'",
+      "description": "NEW-I42: 各下游节点消费和输出的URL均为编辑后URL"
+    },
+
+    {
+      "_comment": "NEW-I43: 驳回重生→重生图审核通过→查询下游input_data+common_variable",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, JSON_EXTRACT(r2.input_data, '$.url') as input_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type IN ('algorithm_filter', 'set_image') AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.editType')='rejectRegenerate' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "NEW-I43: 驳回重生后审核通过，查询下游input_data"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.input_url contains 'http'",
+      "description": "NEW-I43: 下游URL为重生后新图URL"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT wi.id, JSON_EXTRACT(wi.common_variable, '$.passedImg') as passed_img FROM g_workflow_instance wi WHERE wi.id IN (SELECT JSON_EXTRACT(r.common_variable, '$.workflowInstanceId') FROM workflow_record_log r WHERE r.id > 4000000 AND r.node_type='approve' AND r.status='SUCCESS' AND JSON_EXTRACT(r.extra_info, '$.editType')='rejectRegenerate' LIMIT 1)",
+      "description": "NEW-I43: 驳回重生后查询common_variable同步更新"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "passed_img contains 'http'",
+      "description": "NEW-I43: common_variable中passedImg为重生后新图URL（同步更新）"
+    },
+
+    {
+      "_comment": "========== 模块J: 首图审核数据流转（6条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-J-start')()",
+      "description": "=== 模块J分隔标记 ==="
+    },
+
+    {
+      "_comment": "J1: 局部修改后 passedImg 应取 localAdjustUrl",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg') as passed_img, JSON_EXTRACT(output_json, '$.localAdjustUrl') as local_adjust_url, JSON_EXTRACT(output_json, '$.originUrl') as origin_url FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.localAdjustUrl') IS NOT NULL AND JSON_EXTRACT(output_json, '$.localAdjustUrl') != '' ORDER BY id DESC LIMIT 3",
+      "description": "J1: 查询局部修改后的passedImg与localAdjustUrl"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img == all_rows.local_adjust_url",
+      "description": "J1: passedImg = localAdjustUrl，非originUrl"
+    },
+
+    {
+      "_comment": "J2: 未使用局部修改时 passedImg = originUrl",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg') as passed_img, JSON_EXTRACT(output_json, '$.originUrl') as origin_url, JSON_EXTRACT(output_json, '$.localAdjustUrl') as local_url FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND (JSON_EXTRACT(output_json, '$.localAdjustUrl') IS NULL OR JSON_EXTRACT(output_json, '$.localAdjustUrl') = '') ORDER BY id DESC LIMIT 3",
+      "description": "J2: 查询未局部修改场景的passedImg"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img == all_rows.origin_url",
+      "description": "J2: 无修改时passedImg等于原始url（回归验证）"
+    },
+
+    {
+      "_comment": "J3: passedImg1 与 passedImg[0] 一致",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg1') as img1, JSON_EXTRACT(output_json, '$.passedImg[0]') as img_arr_0 FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.passedImg1') IS NOT NULL ORDER BY id DESC LIMIT 3",
+      "description": "J3: 比较passedImg1与passedImg[0]"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.img1 == all_rows.img_arr_0",
+      "description": "J3: passedImg1与passedImg[0]一致（同步更新）"
+    },
+
+    {
+      "_comment": "J4: 多图部分修改各自取正确URL",
+      "type": "dbQuery",
+      "sql": "SELECT id, output_json FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_LENGTH(JSON_EXTRACT(output_json, '$.images')) > 1 AND JSON_EXTRACT(output_json, '$.localAdjustUrl') IS NOT NULL ORDER BY id DESC LIMIT 2",
+      "description": "J4: 查询多图部分有localAdjustUrl的record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "passedImg array has correct URLs for each image (localAdjustUrl where present, originUrl where not)",
+      "description": "J4: 部分有localAdjustUrl、部分无，各自取正确值"
+    },
+
+    {
+      "_comment": "J5: localAdjustPrompt 可追溯",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.localAdjustPrompt') as prompt, JSON_EXTRACT(output_json, '$.localAdjustUrl') as url FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND JSON_EXTRACT(output_json, '$.localAdjustPrompt') IS NOT NULL ORDER BY id DESC LIMIT 3",
+      "description": "J5: 查询localAdjustPrompt是否保留"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.prompt is not null AND all_rows.prompt != ''",
+      "description": "J5: 修改prompt在审核平台数据中保留（可追溯）"
+    },
+
+    {
+      "_comment": "J6: 全驳回 passedImg 为空",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg') as passed_img, JSON_EXTRACT(extra_info, '$.notPass') as not_pass FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_EXTRACT(extra_info, '$.notPass')='true' ORDER BY id DESC LIMIT 3",
+      "description": "J6: 查询全驳回场景的passedImg"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img == '[]' OR all_rows.passed_img is null",
+      "description": "J6: notPass=true时passedImg=[]（空数组）"
+    },
+
+    {
+      "_comment": "========== 模块K: 套图审核数据流转（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-K-start')()",
+      "description": "=== 模块K分隔标记 ==="
+    },
+
+    {
+      "_comment": "K1: imrUrlReference 应为修改后的首图",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, JSON_EXTRACT(r2.input_data, '$.imrUrlReference') as ref_url, r1.output_json FROM workflow_record_log r2 JOIN workflow_record_log r1 ON JSON_EXTRACT(r2.common_variable, '$.batchId') = JSON_EXTRACT(r1.common_variable, '$.batchId') WHERE r2.id > 4000000 AND r1.id > 4000000 AND r2.node_type='set_image_approve' AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.output_json, '$.localAdjustUrl') IS NOT NULL ORDER BY r2.id DESC LIMIT 3",
+      "description": "K1: 套图审核参考图是否为首图审核localAdjustUrl"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.ref_url contains 'http' AND ref_url matches first image localAdjustUrl",
+      "description": "K1: 套图审核参考图 = 首图审核localAdjustUrl"
+    },
+
+    {
+      "_comment": "K2: 套图审核局部修改后 passedImg 正确",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg') as passed_img, JSON_EXTRACT(output_json, '$.localAdjustUrl') as local_url FROM workflow_record_log WHERE id > 4000000 AND node_type='set_image_approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.localAdjustUrl') IS NOT NULL ORDER BY id DESC LIMIT 3",
+      "description": "K2: 套图审核自身局部修改后passedImg回传"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img contains local_url",
+      "description": "K2: 套图审核自身的localAdjustUrl也需正确回传"
+    },
+
+    {
+      "_comment": "K3: 多图部分修改 passed/notPass 无交集",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg') as passed, JSON_EXTRACT(output_json, '$.notPassImgUrl') as not_pass FROM workflow_record_log WHERE id > 4000000 AND node_type='set_image_approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.notPassImgUrl') IS NOT NULL AND JSON_EXTRACT(output_json, '$.notPassImgUrl') != '[]' ORDER BY id DESC LIMIT 5",
+      "description": "K3: 查询套图审核有通过和驳回的结果"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "passed and not_pass arrays have no intersection",
+      "description": "K3: 通过和驳回列表不重叠（无交集）"
+    },
+
+    {
+      "_comment": "K4: passed + notPass 覆盖全部审核图",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_LENGTH(JSON_EXTRACT(output_json, '$.passedImg')) as passed_count, JSON_LENGTH(JSON_EXTRACT(output_json, '$.notPassImgUrl')) as not_pass_count, JSON_LENGTH(JSON_EXTRACT(input_data, '$.images')) as total_count FROM workflow_record_log WHERE id > 4000000 AND node_type='set_image_approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.notPassImgUrl') IS NOT NULL ORDER BY id DESC LIMIT 5",
+      "description": "K4: 验证passed + notPass覆盖全部审核图"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "passed_count + not_pass_count == total_count",
+      "description": "K4: 完整性校验 — passed + notPass 数量 = 总审核图数量"
+    },
+
+    {
+      "_comment": "========== 模块L: 视频审核数据流转（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-L-start')()",
+      "description": "=== 模块L分隔标记 ==="
+    },
+
+    {
+      "_comment": "L1: 视频审核通过 output 含视频信息",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedVideoUrl') as video_url, JSON_EXTRACT(output_json, '$.videoUrl') as orig_video_url FROM workflow_record_log WHERE id > 4000000 AND node_type='video_approve' AND status='SUCCESS' ORDER BY id DESC LIMIT 3",
+      "description": "L1: 查询视频审核通过的output"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.video_url is not null AND all_rows.video_url contains 'http'",
+      "description": "L1: output含passedVideoUrl等视频信息字段"
+    },
+
+    {
+      "_comment": "L2: 视频审核驳回后 video_push 不触发",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, r2.status FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type='video_push' AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='video_approve' AND JSON_EXTRACT(r1.extra_info, '$.notPass')='true' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "L2: 视频审核驳回后检查是否有video_push SUCCESS record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count == 0 OR all_rows.status != 'SUCCESS'",
+      "description": "L2: notPass=true时无SUCCESS的video_push"
+    },
+
+    {
+      "_comment": "L3: gen_video HANDLING 不超 2h",
+      "type": "dbQuery",
+      "sql": "SELECT id, status, TIMESTAMPDIFF(MINUTE, gmt_create, IFNULL(gmt_modified, NOW())) as duration_min FROM workflow_record_log WHERE id > 4000000 AND node_type='gen_video' AND status='HANDLING' ORDER BY id DESC LIMIT 10",
+      "description": "L3: 查询gen_video HANDLING状态持续时间"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.duration_min < 120",
+      "description": "L3: gen_video HANDLING不超2h（超时告警，避免BT_5853 12h卡死复现）"
+    },
+
+    {
+      "_comment": "L4: 视频审核→strategy 数据流",
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, JSON_EXTRACT(r2.input_data, '$.video_url') as video_url FROM workflow_record_log r2 WHERE r2.id > 4000000 AND r2.node_type='strategy' AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r1.common_variable, '$.batchId') FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='video_approve' AND r1.status='SUCCESS' LIMIT 1) ORDER BY r2.id ASC LIMIT 3",
+      "description": "L4: 视频审核通过后查询strategy节点的video_url"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.video_url is not null AND all_rows.video_url contains 'http'",
+      "description": "L4: strategy收到正确的video_url"
+    }
+  ]
+}

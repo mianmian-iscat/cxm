@@ -1,0 +1,844 @@
+{
+  "id": "f88-e2e-tc27",
+  "name": "TC27 - 端到端集成测试：参考链路20180 → 新建策略 → 绑定链路 → 试运行 → 全链路数据走通",
+  "description": "集成测试：1) 参考链路id=20180的数据结构(刷标签→首图生图→首图审核→套图生图→套图审核)；2) 新建策略+节点编排(生图+人工审核)；3) 新建链路+添加环节+绑定策略；4) 试运行(测试模式)上传Excel；5) 各环节状态监控+API/DB端到端数据流验证。",
+  "businessType": "f88_material",
+  "relatedCases": ["E2E-01~20"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+
+    {
+      "_comment": "========== Phase 1: 参考链路 20180 数据结构采集 ==========",
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "E2E-01: 打开参考链路 id=20180 详情页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-ref-link-20180",
+      "description": "截图：参考链路20180详情"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const stages = []; document.querySelectorAll('[class*=stage], [class*=phase], [class*=step]').forEach(el => { const t = el.textContent?.trim(); if (t && t.length < 50) stages.push(t); }); return JSON.stringify(stages); })()",
+      "storeAs": "refLinkStages",
+      "description": "E2E-02: 采集链路环节结构(预期: 刷标签→首图生图→首图审核→套图生图→套图审核)"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "刷标签",
+      "description": "E2E-02: 参考链路含'刷标签'环节"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图生图",
+      "description": "E2E-02: 参考链路含'首图生图'环节"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图审核",
+      "description": "E2E-02: 参考链路含'首图审核'环节"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图生图",
+      "description": "E2E-02: 参考链路含'套图生图'环节"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图审核",
+      "description": "E2E-02: 参考链路含'套图审核'环节"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const params = {}; document.querySelectorAll('[class*=param], [class*=input], [class*=variable]').forEach(el => { const label = el.querySelector('label, [class*=label]'); const val = el.querySelector('input, [class*=value]'); if (label && val) params[label.textContent?.trim()] = val.textContent?.trim() || val.value; }); return JSON.stringify(params); })()",
+      "storeAs": "refLinkParams",
+      "description": "E2E-03: 采集链路起点入参(seller_id/seed_image_url/tao_cate/item_id)"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "E2E-03: 起点入参含 seller_id"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seed_image_url",
+      "description": "E2E-03: 起点入参含 seed_image_url"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "tao_cate",
+      "description": "E2E-03: 起点入参含 tao_cate"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "item_id",
+      "description": "E2E-03: 起点入参含 item_id"
+    },
+
+    {
+      "_comment": "========== Phase 2: 新建策略 + 节点编排 ==========",
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "E2E-04: 进入策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "type": "clickText",
+      "text": "新建策略",
+      "selector": "button, span, a",
+      "description": "E2E-04: 点击'新建策略'按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略编辑页加载"
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-new-strategy-page",
+      "description": "截图：新建策略页面"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='策略名称'], input[placeholder*='请输入']",
+      "value": "E2E集成测试_首图审核策略_${timestamp}",
+      "react": true,
+      "description": "E2E-05: 填写策略名称（带时间戳防冲突）"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); for (const sel of selects) { const label = sel.closest('[class*=form-item]')?.querySelector('label, [class*=label]')?.textContent; if (label?.includes('策略阶段') || label?.includes('阶段')) { const rect = sel.querySelector('.ant-select-selector').getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; } } return null; })()",
+      "storeAs": "stageSelectPos",
+      "description": "E2E-05: 定位策略阶段下拉框坐标"
+    },
+    {
+      "type": "mouseClick",
+      "x": "${stageSelectPos.x}",
+      "y": "${stageSelectPos.y}",
+      "description": "E2E-05: 展开策略阶段下拉（page.mouse.click）"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "clickText",
+      "text": "实验",
+      "selector": ".ant-select-item-option, .ant-select-dropdown",
+      "description": "E2E-05: 选择策略阶段=实验"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); for (const sel of selects) { const label = sel.closest('[class*=form-item]')?.querySelector('label, [class*=label]')?.textContent; if (label?.includes('环节')) { const rect = sel.querySelector('.ant-select-selector').getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; } } return null; })()",
+      "storeAs": "envSelectPos",
+      "description": "E2E-05: 定位环节下拉框坐标"
+    },
+    {
+      "type": "mouseClick",
+      "x": "${envSelectPos.x}",
+      "y": "${envSelectPos.y}",
+      "description": "E2E-05: 展开环节下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "clickText",
+      "text": "视觉",
+      "selector": ".ant-select-item-option, .ant-select-dropdown",
+      "description": "E2E-05: 选择环节=视觉"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+
+    {
+      "type": "fill",
+      "selector": "textarea[placeholder*='策略说明'], textarea",
+      "value": "E2E集成测试自动创建 - 覆盖首图审核全链路",
+      "react": true,
+      "description": "E2E-06: 填写策略说明"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "E2E-07: 页面包含节点编排区域"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略入参",
+      "description": "E2E-07: Start节点=策略入参"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略出参",
+      "description": "E2E-07: End节点=策略出参"
+    },
+
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "selector": "button, span, a",
+      "description": "E2E-08: 点击新增节点（第1个: 生图）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "生图",
+      "selector": ".ant-modal, .ant-card, [class*=node-type]",
+      "description": "E2E-08: 选择节点类型=生图"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "确定",
+      "selector": "button.ant-btn-primary, .ant-modal-footer button",
+      "description": "E2E-08: 确认添加生图节点"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "selector": "button, span, a",
+      "description": "E2E-09: 点击新增节点（第2个: 人工审核）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "人工审核",
+      "selector": ".ant-modal, .ant-card, [class*=node-type]",
+      "description": "E2E-09: 选择节点类型=人工审核"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "确定",
+      "selector": "button.ant-btn-primary, .ant-modal-footer button",
+      "description": "E2E-09: 确认添加人工审核节点"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "selector": "button, span, a",
+      "description": "E2E-10: 点击新增节点（第3个: 高清化处理）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "高清化处理",
+      "selector": ".ant-modal, .ant-card, [class*=node-type]",
+      "description": "E2E-10: 选择节点类型=高清化处理"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "确定",
+      "selector": "button.ant-btn-primary, .ant-modal-footer button",
+      "description": "E2E-10: 确认添加高清化处理节点"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+
+    {
+      "type": "screenshot",
+      "name": "e2e-strategy-nodes-configured",
+      "description": "截图：策略节点编排完成（Start→生图→人工审核→高清化处理→End）"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生图",
+      "description": "E2E-11: 节点编排包含'生图'节点"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "人工审核",
+      "description": "E2E-11: 节点编排包含'人工审核'节点"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "高清化处理",
+      "description": "E2E-11: 节点编排包含'高清化处理'节点"
+    },
+
+    {
+      "type": "clickText",
+      "text": "保存",
+      "selector": "button.ant-btn-primary, button, span",
+      "description": "E2E-12: 点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待保存完成"
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-strategy-saved",
+      "description": "截图：策略保存成功"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const url = window.location.href; const match = url.match(/[?&]id=(\\d+)/); return match ? match[1] : url; })()",
+      "storeAs": "newStrategyId",
+      "description": "E2E-12: 获取新建策略的ID（从URL或页面提取）"
+    },
+
+    {
+      "_comment": "========== Phase 3: 新建链路 + 绑定策略 ==========",
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "description": "E2E-13: 进入链路列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "type": "clickText",
+      "text": "新建链路",
+      "selector": "button, span, a",
+      "description": "E2E-13: 点击新建链路"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-new-link-page",
+      "description": "截图：新建链路页面"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='链路名称'], input[placeholder*='请输入']",
+      "value": "E2E集成测试链路_${timestamp}",
+      "react": true,
+      "description": "E2E-14: 填写链路名称"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); for (const sel of selects) { const label = sel.closest('[class*=form-item]')?.querySelector('label, [class*=label]')?.textContent; if (label?.includes('链路阶段') || label?.includes('阶段')) { const rect = sel.querySelector('.ant-select-selector').getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; } } return null; })()",
+      "storeAs": "linkStagePos",
+      "description": "E2E-14: 定位链路阶段下拉框"
+    },
+    {
+      "type": "mouseClick",
+      "x": "${linkStagePos.x}",
+      "y": "${linkStagePos.y}",
+      "description": "E2E-14: 展开链路阶段下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "clickText",
+      "text": "实验",
+      "selector": ".ant-select-item-option, .ant-select-dropdown",
+      "description": "E2E-14: 选择链路阶段=实验"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路起点入参",
+      "description": "E2E-15: 新链路包含起点入参区域"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "E2E-15: 起点入参含 seller_id"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seed_image_url",
+      "description": "E2E-15: 起点入参含 seed_image_url"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "tao_cate",
+      "description": "E2E-15: 起点入参含 tao_cate"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "item_id",
+      "description": "E2E-15: 起点入参含 item_id"
+    },
+
+    {
+      "type": "clickText",
+      "text": "添加环节",
+      "selector": "button, span, a",
+      "description": "E2E-16: 添加第1个环节 — 首图审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); const last = selects[selects.length - 1]; if (last) { const rect = last.querySelector('.ant-select-selector').getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; } return null; })()",
+      "storeAs": "stageSelectLastPos",
+      "description": "E2E-16: 定位新环节的类型选择下拉"
+    },
+    {
+      "type": "mouseClick",
+      "x": "${stageSelectLastPos.x}",
+      "y": "${stageSelectLastPos.y}",
+      "description": "E2E-16: 展开环节类型下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "clickText",
+      "text": "首图审核",
+      "selector": ".ant-select-item-option, .ant-select-dropdown",
+      "description": "E2E-16: 选择环节类型=首图审核"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+
+    {
+      "type": "screenshot",
+      "name": "e2e-link-stage-added",
+      "description": "截图：链路添加首图审核环节"
+    },
+
+    {
+      "type": "clickText",
+      "text": "保存",
+      "selector": "button.ant-btn-primary, button, span",
+      "description": "E2E-17: 保存链路"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-link-saved",
+      "description": "截图：链路保存成功"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const url = window.location.href; const match = url.match(/[?&]id=(\\d+)/); return match ? match[1] : url; })()",
+      "storeAs": "newLinkId",
+      "description": "E2E-17: 获取新建链路的ID"
+    },
+
+    {
+      "type": "clickText",
+      "text": "查看运行结果",
+      "selector": "button, span, a",
+      "description": "E2E-18: 打开查看运行结果弹窗（添加策略入口）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "type": "clickText",
+      "text": "添加策略",
+      "selector": "button, span, a",
+      "description": "E2E-18: 点击首图审核环节的'添加策略'按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-add-strategy-modal",
+      "description": "截图：添加策略弹窗"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='策略名称'], input[placeholder*='搜索']",
+      "value": "E2E集成测试_首图审核策略",
+      "react": true,
+      "description": "E2E-18: 搜索刚创建的策略"
+    },
+    {
+      "type": "pressKey",
+      "key": "Enter",
+      "description": "回车搜索"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "E2E集成测试_首图审核策略",
+      "selector": ".ant-table-row, .ant-list-item, [class*=strategy-item]",
+      "description": "E2E-18: 选择搜索到的策略"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "确定",
+      "selector": "button.ant-btn-primary, .ant-modal-footer button",
+      "description": "E2E-18: 确认绑定策略到环节"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-strategy-bound",
+      "description": "截图：策略已绑定到链路环节"
+    },
+
+    {
+      "_comment": "========== Phase 4: 试运行 — 上传Excel → 发起任务 ==========",
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=${newLinkId}",
+      "waitUntil": "networkidle",
+      "description": "E2E-19: 刷新链路详情页（确保最新数据）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "selector": "button.ant-btn-primary, button, span",
+      "description": "E2E-19: 点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-trial-run-modal",
+      "description": "截图：试运行弹窗"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路运行",
+      "description": "E2E-19: 弹窗标题=链路运行"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入任务名称']",
+      "value": "E2E集成测试_${timestamp}",
+      "react": true,
+      "description": "E2E-20: 填写任务名称"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const fileInput = document.querySelector('input[type=file]'); if (fileInput) { fileInput.style.display = 'block'; fileInput.style.opacity = '1'; return 'file-input-found'; } return 'no-file-input'; })()",
+      "description": "E2E-20: 暴露文件上传input"
+    },
+    {
+      "type": "uploadFile",
+      "selector": "input[type=file]",
+      "filePath": "/tmp/e2e-test-data.xlsx",
+      "description": "E2E-20: 上传测试Excel(seller_id/seed_image_url/tao_cate/item_id)"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待文件上传完成"
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-excel-uploaded",
+      "description": "截图：Excel上传完成"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); for (const sel of selects) { const ph = sel.querySelector('.ant-select-selection-placeholder'); if (ph && ph.textContent.includes('请选择运行类型')) { const rect = sel.querySelector('.ant-select-selector').getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }; } } return null; })()",
+      "storeAs": "runTypeSelectPos",
+      "description": "E2E-21: 定位运行类型下拉框"
+    },
+    {
+      "type": "mouseClick",
+      "x": "${runTypeSelectPos.x}",
+      "y": "${runTypeSelectPos.y}",
+      "description": "E2E-21: 展开运行类型下拉（page.mouse.click）"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "clickText",
+      "text": "测试",
+      "selector": ".ant-select-item-option, .ant-select-dropdown",
+      "description": "E2E-21: 选择运行类型=测试（非正式）"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+
+    {
+      "type": "screenshot",
+      "name": "e2e-before-submit-run",
+      "description": "截图：提交前确认（任务名称+Excel+运行类型=测试）"
+    },
+
+    {
+      "type": "clickText",
+      "text": "发起任务运行",
+      "selector": "button.ant-btn-primary, button, span",
+      "description": "E2E-22: 点击发起任务运行"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务启动"
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-task-started",
+      "description": "截图：任务已发起"
+    },
+
+    {
+      "_comment": "========== Phase 5: 查看运行结果 — 各环节状态监控 ==========",
+      "type": "wait",
+      "ms": 10000,
+      "description": "等待10秒让首批节点开始执行"
+    },
+
+    {
+      "type": "clickText",
+      "text": "查看运行结果",
+      "selector": "button, span, a",
+      "description": "E2E-23: 打开查看运行结果弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "name": "e2e-run-results-phase5",
+      "description": "截图：运行结果 — 各环节状态"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "E2E集成测试",
+      "description": "E2E-23: 运行结果包含本次任务名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图审核",
+      "description": "E2E-23: 运行结果包含首图审核环节"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const statuses = []; document.querySelectorAll('[class*=status], .ant-tag, .ant-badge-status').forEach(el => { const t = el.textContent?.trim(); if (t && ['进行中','成功','失败','待运行','已终止','SUCCESS','FAIL','HANDLING','INIT'].some(s => t.includes(s))) statuses.push(t); }); return JSON.stringify(statuses); })()",
+      "storeAs": "runStatuses",
+      "description": "E2E-24: 采集各环节运行状态"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "E2E-24: 出参包含 seller_id"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seed_image_url",
+      "description": "E2E-24: 出参包含 seed_image_url"
+    },
+
+    {
+      "type": "eval",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close, .ant-drawer-close'); if (closeBtn) { closeBtn.click(); return true; } return false; })()",
+      "description": "关闭运行结果弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+
+    {
+      "_comment": "========== Phase 6: API/DB 端到端数据流验证 ==========",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/strategy/link/detail?linkId=${newLinkId}",
+      "description": "E2E-25: API查询新建链路详情"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.link.stages",
+      "notEmpty": true,
+      "description": "E2E-25: 链路含已配置的环节列表"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.link.stages[0].strategyId",
+      "equals": "${newStrategyId}",
+      "description": "E2E-25: 环节绑定了正确的策略ID"
+    },
+
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status, JSON_EXTRACT(common_variable, '$.batchId') as batch_id FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(common_variable, '$.linkId') = '${newLinkId}' ORDER BY id ASC LIMIT 20",
+      "description": "E2E-26: DB查询新链路产生的workflow record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count > 0",
+      "description": "E2E-26: 试运行后workflow_record_log已创建record"
+    },
+
+    {
+      "type": "dbQuery",
+      "sql": "SELECT node_type, status, COUNT(*) as cnt FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(common_variable, '$.batchId') IN (SELECT DISTINCT JSON_EXTRACT(common_variable, '$.batchId') FROM workflow_record_log WHERE JSON_EXTRACT(common_variable, '$.linkId') = '${newLinkId}' AND id > 4000000) GROUP BY node_type, status ORDER BY MIN(id) ASC",
+      "description": "E2E-27: 按节点类型统计各环节执行状态"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "exists node_type in ('gen_img', 'approve', 'hd_enhance') with status in ('SUCCESS', 'HANDLING', 'TO_SUBMIT')",
+      "description": "E2E-27: 生图/审核/高清化节点均已创建并进入执行"
+    },
+
+    {
+      "type": "dbQuery",
+      "sql": "SELECT wi.id, JSON_EXTRACT(wi.common_variable, '$.passedImg') as passed_img, JSON_EXTRACT(wi.common_variable, '$.seller_id') as seller_id FROM g_workflow_instance wi WHERE wi.id > 4000000 AND JSON_EXTRACT(wi.common_variable, '$.linkId') = '${newLinkId}' ORDER BY wi.id DESC LIMIT 5",
+      "description": "E2E-28: 查询workflow_instance中的passedImg传递"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count > 0 AND (passed_img contains 'http' OR seller_id is not null)",
+      "description": "E2E-28: 端到端数据流转 — passedImg/seller_id正确传递"
+    },
+
+    {
+      "type": "dbQuery",
+      "sql": "SELECT r1.id, r1.node_type as upstream, r1.status as up_status, r2.id as down_id, r2.node_type as downstream, r2.status as down_status FROM workflow_record_log r1 JOIN workflow_record_log r2 ON JSON_EXTRACT(r2.common_variable, '$.batchId') = JSON_EXTRACT(r1.common_variable, '$.batchId') AND r2.id > r1.id WHERE r1.id > 4000000 AND JSON_EXTRACT(r1.common_variable, '$.linkId') = '${newLinkId}' AND r1.status = 'SUCCESS' ORDER BY r1.id ASC LIMIT 10",
+      "description": "E2E-29: 验证上游SUCCESS后下游节点被触发"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count > 0",
+      "description": "E2E-29: 上游节点SUCCESS后下游节点已被创建（链式触发验证）"
+    },
+
+    {
+      "type": "screenshot",
+      "name": "e2e-final-summary",
+      "description": "截图：E2E集成测试完成 — 全链路数据走通"
+    }
+  ]
+}

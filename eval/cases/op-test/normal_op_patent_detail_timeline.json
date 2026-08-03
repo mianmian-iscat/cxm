@@ -1,0 +1,51 @@
+{
+  "id": "normal-op-patent-detail-timeline",
+  "name": "正常流程：原创保护商家端-专利详情页5阶段时间轴验证",
+  "description": "从商家端申请列表进入一条专利详情，验证PatentDetail组件5阶段时间轴渲染、证书下载/预览入口。",
+  "businessType": "xiaoer_original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开原创保护商家端首页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待商家端加载" },
+    { "type": "assert", "target": "page", "contains": "原创", "description": "验证商家端已加载" },
+    {
+      "type": "clickText",
+      "text": "详情",
+      "description": "点击申请列表中第一条专利的详情"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待PatentDetail渲染" },
+    { "type": "assert", "target": "page", "contains": "详情", "description": "验证专利详情页已打开" },
+    { "type": "assert", "target": "page", "contains": "申请", "description": "验证申请信息展示（5阶段时间轴区域）" },
+    { "type": "screenshot", "label": "op-patent-detail-timeline", "description": "截图-专利详情时间轴" },
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "description": "返回首页"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待首页加载" },
+    { "type": "assert", "target": "page", "contains": "原创", "description": "验证返回首页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "isv测试账号2213249110271已登录；商家端有专利数据（至少一条）。",
+    "realDomNotes": "PatentDetail组件：5阶段时间轴（申请/快审/预审/确权/同步）；证书下载/预览；按钮条件展示；BindProductModal：两个Tab过滤/批量选择。",
+    "riskPoints": ["商家端无数据时'详情'按钮不存在", "详情入口文案可能是'查看'"]
+  }
+}

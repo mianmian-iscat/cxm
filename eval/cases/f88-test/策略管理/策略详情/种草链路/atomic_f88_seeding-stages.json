@@ -1,0 +1,171 @@
+{
+  "id": "atomic-f88-seeding-stages",
+  "name": "UI：种草链路-6环节卡片与策略结构验证",
+  "description": "验证种草链路的6个环节(入参图刷标签/首图生成/首图审核/套图生成/标题文案生成/套图审核)及其策略数量",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+      "waitUntil": "networkidle",
+      "description": "打开种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "入参图刷标签",
+      "description": "环节1：入参图刷标签"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图生成",
+      "description": "环节2：首图生成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图审核",
+      "description": "环节3：首图审核"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图生成",
+      "description": "环节4：套图生成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "标题文案生成",
+      "description": "环节5：标题文案生成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图审核",
+      "description": "环节6：套图审核"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const stages = ['入参图刷标签','首图生成','首图审核','套图生成','标题文案生成','套图审核']; const found = stages.filter(s => t.includes(s)); return { total: stages.length, found: found.length, stages: found, allPresent: found.length === stages.length }; })()",
+      "description": "统计6环节完整性",
+      "storeAs": "stageCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "stageCheck",
+      "path": "allPresent",
+      "equals": true,
+      "description": "验证6环节全部存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "【链路二】入参图刷标签",
+      "description": "验证环节1策略名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图主品tryon-种草1",
+      "description": "验证首图生成策略1名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图主品tryon-种草2",
+      "description": "验证首图生成策略2名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图主品tryon-种草3",
+      "description": "验证首图生成策略3名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图主品tryon-种草4",
+      "description": "验证首图生成4路并行策略"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "四路首图审核-种草",
+      "description": "验证首图审核策略名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图生成1-种草",
+      "description": "验证套图生成策略1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "套图生成2-种草",
+      "description": "验证套图生成策略2"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "种草标题文案1",
+      "description": "验证标题文案策略1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "种草标题文案2",
+      "description": "验证标题文案策略2"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "单图套图审核1-多选多",
+      "description": "验证套图审核策略1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "单图套图审核2-多选多",
+      "description": "验证套图审核策略2"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-stages",
+      "description": "种草链路6环节卡片结构"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；种草链路id=20205存在",
+    "realDomNotes": "6环节: 入参图刷标签(1策略)/首图生成(4路并行)/首图审核(1策略)/套图生成(2路)/标题文案生成(2路)/套图审核(2路-多选多)",
+    "riskPoints": ["首图生成4路并行是否全部默认状态"]
+  }
+}

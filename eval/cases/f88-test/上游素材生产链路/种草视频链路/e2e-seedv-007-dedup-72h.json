@@ -1,0 +1,198 @@
+{
+  "id": "e2e-seedv-007-dedup-72h",
+  "name": "E2E-SEEDV-007 — 同一商品72小时内视频去重(DB端到端验证)",
+  "description": "验证同一商品在72小时去重窗口内只生产一次视频。通过DB查询f88_ai_process_record表验证：①seedVideoGenerate记录去重正确 ②同item_id同biz_type 72h内无重复PENDING ③retry_count>0的记录不影响去重判断 ④视频与图片链路去重独立",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "boundary",
+  "source": "upstream-repo/F88SeedVideoGenerateService#filterAlreadyProcessed",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开F88策略列表(建立页面上下文)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'db-validated-dedup', scenario: '视频72h去重', table: 'f88_ai_process_record', dedupWindowHours: 72, dedupWindowMinutes: 4320, videoProcessMode: 'seedVideoGenerate', imageProcessMode: 'seedGenerate', videoBizType: 'item_material', videoSceneType: 'generate', expectedRules: { firstEvent: '首次事件→PENDING记录落库', within72h: '72h内重复事件→filterAlreadyProcessed过滤→不新增记录', after72h: '72h后→允许再次生产', retryFilter: 'retry_count>0的记录不参与去重判断', statusFilter: 'main_status=COMPLETED或EXECUTING的记录阻止同recordId新记录', pipelineIsolation: '视频seedVideoGenerate与图片seedGenerate去重独立' } }; })()",
+      "description": "定义72h去重规则规范",
+      "storeAs": "dedupSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "dedupSpec",
+      "path": "dedupWindowHours",
+      "equals": 72,
+      "description": "去重窗口为72小时"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT record_id, item_id, seller_id, scene_type, biz_type, main_status, sub_status, retry_count, gmt_create, gmt_modified FROM f88_ai_process_record WHERE scene_type='generate' AND biz_type='item_material' AND is_deleted=0 AND gmt_create > DATE_SUB(NOW(), INTERVAL 72 HOUR) ORDER BY item_id, gmt_create DESC LIMIT 100",
+      "dbGroup": "scenario",
+      "dbName": "prod",
+      "storeAs": "recent72hRecords",
+      "description": "查询72h内所有素材生产记录(含视频)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const records = ${recent72hRecords}; if (!records || !records.rows) return { ok: false, error: 'DB查询无结果' }; const rows = records.rows; const itemCount = {}; const duplicates = []; for (const r of rows) { const key = r.item_id + '_' + r.biz_type; if (!itemCount[key]) itemCount[key] = []; itemCount[key].push(r); } for (const key in itemCount) { if (itemCount[key].length > 1) { const sorted = itemCount[key].sort((a,b) => new Date(b.gmt_create) - new Date(a.gmt_create)); const first = sorted[0]; const rest = sorted.slice(1); for (const dup of rest) { const hoursDiff = (new Date(first.gmt_create) - new Date(dup.gmt_create)) / 3600000; if (hoursDiff <= 72 && dup.retry_count == 0 && dup.main_status != 2) { duplicates.push({ item_id: dup.item_id, record_id: dup.record_id, hoursDiff: hoursDiff.toFixed(1), status: dup.main_status, retry_count: dup.retry_count }); } } } } return { totalRecords: rows.length, uniqueItems: Object.keys(itemCount).length, potentialDuplicates: duplicates.length, duplicates: duplicates.slice(0, 10) }; })()",
+      "description": "分析72h内是否存在同商品重复生产记录",
+      "storeAs": "dedupAnalysis"
+    },
+    {
+      "type": "assertStore",
+      "key": "dedupAnalysis",
+      "path": "totalRecords",
+      "gte": 1,
+      "description": "72h内有生产记录(数据存在性)"
+    },
+    {
+      "type": "assertStore",
+      "key": "dedupAnalysis",
+      "path": "potentialDuplicates",
+      "equals": 0,
+      "description": "72h内同商品无重复生产记录(去重生效)"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT item_id, biz_type, COUNT(*) as record_count, MIN(gmt_create) as first_time, MAX(gmt_create) as last_time, TIMESTAMPDIFF(HOUR, MIN(gmt_create), MAX(gmt_create)) as span_hours FROM f88_ai_process_record WHERE scene_type='generate' AND is_deleted=0 AND retry_count=0 AND gmt_create > DATE_SUB(NOW(), INTERVAL 7 DAY) GROUP BY item_id, biz_type HAVING COUNT(*) > 1 ORDER BY record_count DESC LIMIT 20",
+      "dbGroup": "scenario",
+      "dbName": "prod",
+      "storeAs": "multiRecords",
+      "description": "查询7天内同商品多次记录(去重窗口外允许再次生产)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const records = ${multiRecords}; if (!records || !records.rows) return { ok: true, note: '7天内无同商品多次生产记录(商品活跃度低)' }; const rows = records.rows; const validRepeats = []; for (const r of rows) { if (r.span_hours > 72) { validRepeats.push({ item_id: r.item_id, biz_type: r.biz_type, count: r.record_count, span_hours: r.span_hours }); } } return { totalMultiRecords: rows.length, validRepeatsAfter72h: validRepeats.length, samples: validRepeats.slice(0, 5) }; })()",
+      "description": "验证72h外允许再次生产(去重窗口过期)",
+      "storeAs": "windowExpiry"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT item_id, biz_type, record_id, main_status, retry_count, gmt_create FROM f88_ai_process_record WHERE retry_count > 0 AND is_deleted=0 AND gmt_create > DATE_SUB(NOW(), INTERVAL 7 DAY) ORDER BY gmt_create DESC LIMIT 10",
+      "dbGroup": "scenario",
+      "dbName": "prod",
+      "storeAs": "retryRecords",
+      "description": "查询retry_count>0的记录(验证重试不影响去重)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const retry = ${retryRecords}; if (!retry || !retry.rows) return { ok: true, note: '7天内无重试记录' }; return { retryCount: retry.rows.length, samples: retry.rows.slice(0, 5).map(r => ({ item_id: r.item_id, biz_type: r.biz_type, retry_count: r.retry_count, status: r.main_status })) }; })()",
+      "description": "验证重试记录存在且被正确标记",
+      "storeAs": "retryAnalysis"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT item_id, COUNT(DISTINCT biz_type) as biz_types, GROUP_CONCAT(DISTINCT biz_type) as types FROM f88_ai_process_record WHERE scene_type IN ('generate','diagnose') AND is_deleted=0 AND gmt_create > DATE_SUB(NOW(), INTERVAL 72 HOUR) GROUP BY item_id HAVING COUNT(DISTINCT biz_type) > 1 ORDER BY biz_types DESC LIMIT 10",
+      "dbGroup": "scenario",
+      "dbName": "prod",
+      "storeAs": "multiBizItems",
+      "description": "查询同商品多biz_type记录(验证链路隔离)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const multi = ${multiBizItems}; if (!multi || !multi.rows) return { ok: true, note: '72h内无同商品多链路记录' }; return { multiBizItems: multi.rows.length, samples: multi.rows.slice(0, 5).map(r => ({ item_id: r.item_id, biz_types: r.types, count: r.biz_types })) }; })()",
+      "description": "验证不同biz_type(链路)的记录互不干扰",
+      "storeAs": "isolationCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-dedup-72h-db",
+      "description": "截图 - 72h去重DB端到端验证"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "dms-alibaba CLI可连接scenario/prod; f88_ai_process_record表有近期数据; seedVideoGenerate功能可能尚未上线(用现有generate/item_material验证去重模式)",
+    "stepsText": "1.UI打开F88策略页 2.DB查72h内所有generate记录 3.分析同item_id同biz_type是否有72h内重复(排除retry_count>0) 4.DB查7天内同商品多次记录→验证72h窗口外允许再生产 5.DB查retry记录→验证重试不影响去重 6.DB查多biz_type记录→验证链路隔离",
+    "expectedResult": "①72h内同item_id+biz_type无重复PENDING记录 ②72h窗口外允许再次生产 ③retry_count>0的记录不参与去重 ④不同biz_type记录互不影响(链路隔离)",
+    "dbAssertions": [
+      "72h内同item_id+biz_type: COUNT(*) <= 1 (排除retry)",
+      "7天窗口外: 允许同item_id再次出现",
+      "retry_count>0: 不影响去重判断",
+      "不同biz_type: 独立去重互不干扰"
+    ],
+    "riskPoints": [
+      "seedVideoGenerate记录尚未入库(功能开关默认关),待上线后需重新验证",
+      "record_id格式为{itemId}_{sellerId},hashCode冲突可能导致误去重",
+      "时区偏差(服务端UTC+8 vs DB时间)影响72h窗口边界",
+      "分布式锁超时可能导致极端并发下重复生产"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §2.6去重",
+      "F88SeedVideoGenerateService#filterAlreadyProcessed",
+      "F88MaterialGenerateCronTrigger#filterAlreadyProcessed"
+    ],
+    "tableSchema": {
+      "table": "f88_ai_process_record",
+      "keyColumns": [
+        "record_id",
+        "item_id",
+        "seller_id",
+        "scene_type",
+        "biz_type",
+        "main_status",
+        "sub_status",
+        "retry_count",
+        "gmt_create",
+        "prepare_info(JSON)",
+        "process_info(JSON)"
+      ],
+      "processModes": [
+        "replacePic",
+        "generateMaterial",
+        "seedGenerate",
+        "seedVideoGenerate(未上线)"
+      ]
+    }
+  }
+}

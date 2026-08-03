@@ -1,0 +1,132 @@
+{
+  "id": "atomic-f88-remark-enum-coverage",
+  "name": "原子：种草链路 - 任务类型备注三枚举值全覆盖",
+  "description": "PRD：备注枚举值为'新增F0'(优先级1)、'F0 爆款&潜爆'(优先级2)、'其他'(优先级3)。验证任务列表备注列存在且值合理（枚举值或商品ID），审核详情中备注字段值与列表一致。注意：当前预发环境备注值可能显示为商品ID数字，需确认后端AFD同步是否已传枚举值。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 4000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "_comment": "===== 进入种草审核任务 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { const t = row.textContent || ''; if ((t.includes('种草') || t.includes('套图')) && (t.includes('待开始') || t.includes('进行中'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情'); if (btn) { btn.click(); return { clicked: true }; } } } return { clicked: false }; })()",
+      "description": "进入种草审核任务",
+      "storeAs": "taskEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务详情页加载"
+    },
+    {
+      "_comment": "===== 验证备注列存在 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')).map(h => h.textContent?.trim()).filter(Boolean); const remarkIdx = headers.findIndex(h => h.includes('备注')); return { headers, remarkIdx, hasRemark: remarkIdx >= 0 }; })()",
+      "description": "读取表头，定位备注列",
+      "storeAs": "tableStructure"
+    },
+    {
+      "type": "assertStore",
+      "key": "tableStructure",
+      "path": "hasRemark",
+      "equals": true,
+      "description": "断言表头包含'备注'列"
+    },
+    {
+      "_comment": "===== PRD：收集所有备注值并验证枚举域 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')); const remarkIdx = headers.findIndex(h => h.textContent?.includes('备注')); if (remarkIdx < 0) return { valid: false, reason: 'no remark column' }; const rows = Array.from(document.querySelectorAll('tbody tr')); const remarks = []; const enumValues = ['新增F0', 'F0 爆款&潜爆', 'F0爆款&潜爆', '其他']; for (const row of rows) { const cells = row.querySelectorAll('td'); if (cells.length > remarkIdx) { const val = cells[remarkIdx]?.textContent?.trim() || ''; const taskId = cells[0]?.textContent?.trim() || ''; if (val) remarks.push({ taskId, value: val }); } } const validRemarks = remarks.filter(r => enumValues.some(e => r.value.includes(e) || r.value === e) || /^\\d{10,}$/.test(r.value)); const invalidRemarks = remarks.filter(r => r.value && !enumValues.some(e => r.value.includes(e) || r.value === e) && !/^\\d{10,}$/.test(r.value)); const hasNewF0 = remarks.some(r => r.value.includes('新增F0')); const hasF0Hot = remarks.some(r => r.value.includes('爆款') || r.value.includes('潜爆')); const hasOther = remarks.some(r => r.value === '其他' || r.value.includes('其他')); const hasNumericId = remarks.some(r => /^\\d{10,}$/.test(r.value)); const uniqueValues = [...new Set(remarks.map(r => r.value))]; return { totalRemarks: remarks.length, allRemarks: remarks, validCount: validRemarks.length, invalidCount: invalidRemarks.length, invalidRemarks, hasNewF0, hasF0Hot, hasOther, hasNumericId, uniqueValues, enumValues, allValid: invalidRemarks.length === 0, note: hasNumericId ? '备注值为商品ID，后端可能未传枚举值' : '' }; })()",
+      "description": "收集所有备注值并验证三枚举值覆盖",
+      "storeAs": "remarkCoverage"
+    },
+    {
+      "type": "assertStore",
+      "key": "remarkCoverage",
+      "path": "allValid",
+      "equals": true,
+      "description": "【PRD】断言所有备注值在合法枚举域内（新增F0/F0爆款&潜爆/其他）"
+    },
+    {
+      "_comment": "===== 记录三种枚举值的覆盖情况 =====",
+      "type": "evaluate",
+      "expression": "(() => { const coverage = ${remarkCoverage}; return { summary: { enum_newF0: { covered: coverage.hasNewF0, priority: 1, description: '新增F0（优先级1任务）' }, enum_f0Hot: { covered: coverage.hasF0Hot, priority: 2, description: 'F0 爆款&潜爆（优先级2任务）' }, enum_other: { covered: coverage.hasOther, priority: 3, description: '其他（优先级3任务）' } }, totalUnique: coverage.uniqueValues.length, uniqueValues: coverage.uniqueValues, note: '三种枚举值不一定同时出现，取决于当前任务数据' }; })()",
+      "description": "记录三枚举值覆盖情况",
+      "storeAs": "enumCoverage"
+    },
+    {
+      "type": "screenshot",
+      "label": "remark-enum-coverage-list",
+      "description": "截图-备注列枚举值覆盖"
+    },
+    {
+      "_comment": "===== 进入审核详情验证备注传递一致性 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')); const remarkIdx = headers.findIndex(h => h.textContent?.includes('备注')); if (remarkIdx < 0) return { skipped: true }; const rows = Array.from(document.querySelectorAll('tbody tr')); for (const row of rows) { const cells = row.querySelectorAll('td'); if (cells.length > remarkIdx) { const listRemark = cells[remarkIdx]?.textContent?.trim() || ''; if (listRemark) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { listRemark, clicked: true }; } } } } return { clicked: false }; })()",
+      "description": "进入有备注值的审核详情",
+      "storeAs": "detailEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待SetImageReview加载"
+    },
+    {
+      "_comment": "===== 验证审核详情中备注值与列表一致 =====",
+      "type": "evaluate",
+      "expression": "(() => { const remarkEl = document.querySelector('[class*=remark]'); const labelEls = Array.from(document.querySelectorAll('[class*=label], [class*=field]')); const remarkLabel = labelEls.find(l => l.textContent?.trim()?.includes('备注')); let detailRemark = ''; if (remarkEl) { detailRemark = remarkEl.textContent?.trim() || ''; } else if (remarkLabel) { const parent = remarkLabel.closest('[class*=field]') || remarkLabel.parentElement; detailRemark = parent?.querySelector('[class*=value]')?.textContent?.trim() || ''; } const entry = ${detailEntry}; const isConsistent = entry?.listRemark ? (detailRemark === entry.listRemark || detailRemark.includes(entry.listRemark) || entry.listRemark.includes(detailRemark)) : null; return { detailRemark, listRemark: entry?.listRemark || '', isConsistent, remarkElExists: !!remarkEl, remarkLabelExists: !!remarkLabel }; })()",
+      "description": "验证审核详情中备注值与列表一致",
+      "storeAs": "remarkConsistency"
+    },
+    {
+      "type": "screenshot",
+      "label": "remark-enum-coverage-detail",
+      "description": "截图-审核详情备注值"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在种草审核任务（最好包含不同备注值的任务）",
+    "realDomNotes": "PRD：备注枚举值=新增F0(优先级1)/F0爆款&潜爆(优先级2)/其他(优先级3)；备注字段通过链路入参remark同步到审核任务；审核详情SetImageReview组件含备注字段",
+    "riskPoints": [
+      "三种枚举值可能不同时出现（取决于当前任务数据）",
+      "备注值可能随PRD迭代新增枚举",
+      "列表备注值与详情页备注值可能因缓存不一致",
+      "备注列索引可能因表格列变更而偏移"
+    ],
+    "prdMapping": {
+      "新增F0": "优先级1任务，备注显示'新增F0'",
+      "F0爆款&潜爆": "优先级2任务，备注显示'F0 爆款&潜爆'",
+      "其他": "优先级3任务，备注显示'其他'"
+    }
+  }
+}

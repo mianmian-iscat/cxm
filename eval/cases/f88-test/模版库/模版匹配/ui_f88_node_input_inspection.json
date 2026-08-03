@@ -1,0 +1,105 @@
+{
+  "id": "ui-f88-node-input-inspection",
+  "name": "UI：F88 节点入参探查工具（配置前必做）",
+  "description": "在配置任何节点之前，先打开节点编辑抽屉，自动探查该节点的所有入参字段、必填要求、数据来源配置要求，避免保存时出现'入参数据来源配置异常'错误。适用于模板匹配、生图、LLM等所有业务节点。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "inspection",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10639",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10639",
+      "waitUntil": "networkidle2",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情加载"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击模板匹配节点（打开编辑抽屉）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待抽屉加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-drawer-opened",
+      "description": "截图-节点编辑抽屉已打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false, reason: 'drawer not found' }; const formItems = [...drawer.querySelectorAll('.ant-form-item')]; const result = { fields: [], requiredFields: [], selectFields: [], inputFields: [], hasInputParams: false }; for (const item of formItems) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; const isRequired = item.classList.contains('ant-form-item-has-error') || item.querySelector('.ant-form-item-required') !== null; const hasSelect = item.querySelector('.ant-select') !== null; const hasInput = item.querySelector('input, textarea') !== null; const selectItem = item.querySelector('.ant-select-selection-item')?.textContent || ''; const selectPlaceholder = item.querySelector('.ant-select-selection-placeholder')?.textContent || ''; const inputValue = item.querySelector('input, textarea')?.value || ''; if (label && label.length < 30) { const fieldInfo = { label: label.trim(), required: isRequired, type: hasSelect ? 'select' : (hasInput ? 'input' : 'other'), currentValue: selectItem || inputValue || selectPlaceholder || '(空)', hasValue: (selectItem.length > 0 || inputValue.length > 0) }; result.fields.push(fieldInfo); if (isRequired) result.requiredFields.push(fieldInfo); if (hasSelect) result.selectFields.push(fieldInfo); if (hasInput) result.inputFields.push(fieldInfo); } } const inputParamsSection = drawer.textContent.includes('入参') || drawer.textContent.includes('数据来源'); result.hasInputParams = inputParamsSection; return { ok: true, ...result }; })()",
+      "storeAs": "nodeInspection",
+      "description": "探查节点所有表单字段（必填项、下拉框、输入框）"
+    },
+    {
+      "type": "evaluate",
+      "expression": "((inspection) => { if (!inspection || !inspection.ok) return { ok: false, reason: 'inspection failed' }; let report = '\\n【节点入参探查报告】\\n'; report += `字段总数: ${inspection.fields.length}\\n`; report += `必填字段: ${inspection.requiredFields.length}\\n`; report += `下拉选择: ${inspection.selectFields.length}\\n`; report += `输入框: ${inspection.inputFields.length}\\n\\n`; report += '【所有字段详情】\\n'; for (const f of inspection.fields) { report += `  ${f.required ? '*' : ' '} ${f.label.padEnd(15)} [${f.type}] 当前值: ${f.currentValue}\\n`; } report += '\\n【必填字段列表】\\n'; for (const f of inspection.requiredFields) { report += `  * ${f.label}: ${f.currentValue}\\n`; } report += '\\n【是否有入参配置区域】\\n'; report += `  ${inspection.hasInputParams ? '✅ 是' : '❌ 否'}\\n`; return { ok: true, report, data: inspection }; })",
+      "args": [
+        "${nodeInspection}"
+      ],
+      "storeAs": "inspectionReport",
+      "description": "生成节点入参探查报告"
+    },
+    {
+      "type": "log",
+      "message": "${inspectionReport.report}",
+      "description": "打印节点入参探查报告"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const close = drawer.querySelector('.ant-drawer-close'); if (close && close.offsetHeight > 0) close.click(); return { ok: true }; })()",
+      "description": "关闭节点编辑抽屉"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待抽屉关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "inspection-completed",
+      "description": "截图-入参探查完成"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。策略详情页已存在目标节点（模板匹配/生图/LLM等）。",
+    "realDomNotes": "节点编辑抽屉（.ant-drawer-open）包含：表单字段（ant-form-item）、必填标识（ant-form-item-required）、下拉框（ant-select）、输入框（input/textarea）；部分节点（如模板匹配）有独立的'入参配置'区域，需配置数据来源。",
+    "riskPoints": [
+      "保存失败原因：节点入参的数据来源未配置（如 styleImageUrl、caption）",
+      "必须字段：seller_id（Start节点入参）、模板匹配节点的所有入参数据来源",
+      "配置顺序：先配置Start节点入参 → 再配置业务节点 → 最后保存策略"
+    ],
+    "usage": "配置任何节点前，先运行此用例探查该节点的入参要求，然后再运行配置用例"
+  }
+}

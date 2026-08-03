@@ -1,0 +1,21 @@
+{
+  "name": "wait",
+  "version": "1.0.0",
+  "description": "固定等待指定毫秒",
+  "triggers": ["等待", "延迟", "wait", "sleep"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "ms"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "wait" },
+      "ms": { "type": "integer", "minimum": 0, "maximum": 30000, "description": "等待毫秒数" },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": { "type": "object" },
+  "timeout_ms": 30000,
+  "retry_policy": { "max_retries": 0 }
+}

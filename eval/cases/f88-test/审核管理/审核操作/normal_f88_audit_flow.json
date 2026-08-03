@@ -1,0 +1,125 @@
+{
+  "id": "normal-f88-audit-flow",
+  "name": "正常流程：F88 审核列表 → 筛选 → 查看详情 → 状态验证",
+  "description": "验证 F88 素材审核完整 happy-path：打开列表 → 选择待审核 → 搜索 → 点击进入详情 → 验证审核状态标签",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】页面必须包含F88标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核任务",
+      "description": "验证默认审核任务Tab存在"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "labelClass": "tbd-formily-item-label",
+      "description": "筛选「待审核」状态"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": "button.ant-btn-primary",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "queryMaterialAuditList",
+      "timeout": 15000,
+      "description": "等待列表API响应"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待表格渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-list-filtered",
+      "description": "截图 - 筛选后审核列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "待审核",
+      "description": "验证列表中存在待审核状态的记录"
+    },
+    {
+      "type": "click",
+      "text": "查看",
+      "description": "点击第一条记录的查看按钮进入详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待详情页渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-detail",
+      "description": "截图 - 审核详情页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "素材",
+      "description": "验证详情页包含素材信息"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录，存在待审核素材数据",
+    "riskPoints": [
+      "审核状态流转",
+      "列表→详情跳转"
+    ],
+    "relatedDocs": [
+      "scenes/f88-test/references/F88-前端组件测试要点.md"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

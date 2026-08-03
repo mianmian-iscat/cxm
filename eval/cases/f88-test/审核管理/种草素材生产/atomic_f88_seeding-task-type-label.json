@@ -1,0 +1,154 @@
+{
+  "id": "atomic-f88-seeding-task-type-label",
+  "name": "原子：种草链路 - 审核任务备注(任务类型标签)显示验证",
+  "description": "进入审核任务详情页，验证任务列表包含'备注'列，种草任务的备注值显示'新增F0'（任务类型标签），进入审核详情后SetImageReview组件的备注字段同样显示该值。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 4000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "_comment": "===== 找到种草审核任务并进入详情 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { const t = row.textContent || ''; if (t.includes('种草') && (t.includes('待开始') || t.includes('进行中'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情'); if (btn) { btn.click(); return { clicked: true, taskText: t.slice(0, 80) }; } } } return { clicked: false }; })()",
+      "description": "找到种草审核任务并进入详情",
+      "storeAs": "seedingTask"
+    },
+    {
+      "type": "assertStore",
+      "key": "seedingTask",
+      "path": "clicked",
+      "equals": true,
+      "description": "断言种草审核任务存在"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务详情页加载"
+    },
+    {
+      "_comment": "===== 验证任务列表表头含'备注'列 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')).map(th => th.textContent?.trim()).filter(Boolean); const hasRemark = headers.some(h => h.includes('备注')); return { headers, hasRemark }; })()",
+      "description": "读取任务列表表头，检查备注列",
+      "storeAs": "tableHeaders"
+    },
+    {
+      "type": "assertStore",
+      "key": "tableHeaders",
+      "path": "hasRemark",
+      "equals": true,
+      "description": "断言表头包含'备注'列"
+    },
+    {
+      "_comment": "===== 验证种草任务的备注值 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')); const remarkIdx = headers.findIndex(h => h.textContent?.includes('备注')); if (remarkIdx < 0) return { found: false, reason: 'no remark column' }; const rows = Array.from(document.querySelectorAll('tbody tr, tr')); const remarkValues = []; for (const row of rows) { const cells = row.querySelectorAll('td'); if (cells.length > remarkIdx) { const val = cells[remarkIdx]?.textContent?.trim(); if (val) remarkValues.push(val); } } return { found: true, remarkIdx, remarkValues }; })()",
+      "description": "读取备注列所有值",
+      "storeAs": "remarkCol"
+    },
+    {
+      "type": "assertStore",
+      "key": "remarkCol",
+      "path": "found",
+      "equals": true,
+      "description": "断言备注列存在"
+    },
+    {
+      "_comment": "===== 验证备注包含F0相关值 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')); const remarkIdx = headers.findIndex(h => h.textContent?.includes('备注')); if (remarkIdx < 0) return { hasF0: false }; const rows = Array.from(document.querySelectorAll('tbody tr, tr')); for (const row of rows) { const cells = row.querySelectorAll('td'); if (cells.length > remarkIdx) { const val = cells[remarkIdx]?.textContent?.trim(); if (val && (val.includes('F0') || val.includes('新增'))) return { hasF0: true, value: val }; } } return { hasF0: false }; })()",
+      "description": "检查备注列是否包含F0标签",
+      "storeAs": "f0Label"
+    },
+    {
+      "type": "assertStore",
+      "key": "f0Label",
+      "path": "hasF0",
+      "equals": true,
+      "description": "断言备注列显示F0相关标签（如'新增F0'）"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-task-type-label-list",
+      "description": "截图-任务列表备注列"
+    },
+    {
+      "_comment": "===== 进入审核详情验证备注字段 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { if (row.textContent?.includes('待审核')) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { clicked: true }; } } } return { clicked: false }; })()",
+      "description": "点击审核进入详情",
+      "storeAs": "auditClick"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待SetImageReview加载"
+    },
+    {
+      "_comment": "===== 验证审核详情中的备注字段 =====",
+      "type": "evaluate",
+      "expression": "(() => { const labels = Array.from(document.querySelectorAll('[class*=label]')); const remarkLabel = labels.find(l => l.textContent?.trim()?.includes('备注')); if (!remarkLabel) return { found: false }; const parent = remarkLabel.closest('[class*=field]') || remarkLabel.parentElement; const value = parent ? parent.querySelector('[class*=value]') : null; const remarkText = value ? value.textContent?.trim() : ''; return { found: true, labelText: remarkLabel.textContent?.trim(), remarkText, valueCls: value?.className?.slice(0, 60) || '' }; })()",
+      "description": "读取审核详情中的备注字段",
+      "storeAs": "detailRemark"
+    },
+    {
+      "type": "assertStore",
+      "key": "detailRemark",
+      "path": "found",
+      "equals": true,
+      "description": "断言审核详情中备注字段存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const remarkEl = document.querySelector('[class*=remark]'); return { exists: !!remarkEl, text: remarkEl?.textContent?.trim() || '', cls: remarkEl?.className?.slice(0, 60) || '' }; })()",
+      "description": "通过remark class直接查找备注值",
+      "storeAs": "remarkDirect"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-task-type-label-detail",
+      "description": "截图-审核详情备注字段"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在种草审核任务",
+    "realDomNotes": "任务列表表头含'备注'列（第7列）；种草任务备注值='新增F0'；审核详情SetImageReview组件左侧信息面板含'备注:'标签，值显示在.SetImageReview--value--*.SetImageReview--remark--*元素中",
+    "riskPoints": [
+      "备注值可能随任务类型不同：F0/F0爆款&潜爆/其他",
+      "种草审核任务可能不存在（需通过试运行构造数据）",
+      "备注列位置可能随表格列变更",
+      "TBD双字按钮渲染：重 置/查 询 含特殊空格"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "contract_f88_audit_flow",
+  "category": "contracts",
+  "title": "F88审核流程契约",
+  "content": "{\"flow\": \"待审核 → 审核通过 / 审核驳回 / 已撤回\", \"approve\": {\"api\": \"approveMaterial\", \"assert\": \"data.success = true\"}, \"reject\": {\"api\": \"rejectMaterial\", \"assert\": \"data.success = true\", \"require_reason\": true}, \"batch\": {\"api\": \"batchAuditMaterial\", \"assert\": \"data.data.failCount = 0\"}, \"list_assert\": \"页面包含'共'字(验证列表有数据)\"}",
+  "tags": [
+    "F88",
+    "审核流程",
+    "契约"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.013587
+}

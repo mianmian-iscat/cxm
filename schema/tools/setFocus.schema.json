@@ -1,0 +1,22 @@
+{
+  "name": "setFocus",
+  "version": "1.0.0",
+  "description": "通过 CDP DOM.focus 强制设置焦点",
+  "triggers": ["聚焦", "focus", "setFocus"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "selector"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "setFocus" },
+      "selector": { "type": "string" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "focused": { "type": "boolean" } } },
+  "timeout_ms": 5000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 300 }
+}

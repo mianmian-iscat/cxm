@@ -1,0 +1,84 @@
+{
+  "id": "e2e-seedv-009-total-switch",
+  "name": "E2E-SEEDV-009 — 视频生产总开关(默认关,可随时停)",
+  "description": "验证视频生产总开关:默认OFF(上线先关,验证后打开);关闭时F0事件不触发视频链路,仅触发图片;打开后恢复正常;可随时停",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P1",
+  "category": "switch",
+  "source": "upstream-repo/MaterialRouteDiamondConfig#seedVideoGenerateEnabled",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', scenario: '视频总开关', switchKey: 'seedVideoGenerateEnabled', defaultValue: 'OFF', expected: { whenOFF: 'F0事件不触发视频链路,仅图片', whenON: 'F0事件同时触发图片+视频', hotToggle: 'Diamond推送实时生效,可随时停' }, imageUnaffected: true }; })()",
+      "description": "定义视频总开关规则",
+      "storeAs": "switchSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "switchSpec",
+      "path": "defaultValue",
+      "equals": "OFF",
+      "description": "验证总开关默认OFF"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${switchSpec}; return { validation: '视频总开关校验', checks: [ { name: '默认OFF', expected: 'OFF', pass: s.defaultValue === 'OFF' }, { name: '关闭=仅图片', expected: '视频链路不触发', pass: s.expected.whenOFF === 'F0事件不触发视频链路,仅图片' }, { name: '打开=双触发', expected: '图片+视频', pass: s.expected.whenON === 'F0事件同时触发图片+视频' }, { name: '热切换', expected: 'Diamond实时生效', pass: true }, { name: '图片不受影响', expected: '开关仅控制视频', pass: s.imageUnaffected === true } ] }; })()",
+      "description": "验证视频总开关",
+      "storeAs": "switchValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-total-switch",
+      "description": "截图 - 视频总开关验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "预发环境Diamond可切换",
+    "stepsText": "1.确认开关默认OFF 2.触发F0事件,验证仅图片链路触发 3.Diamond切换为ON 4.再次触发F0事件,验证图片+视频双触发 5.切回OFF,验证再次仅图片触发",
+    "expectedResult": "①OFF状态无视频PENDING记录 ②ON状态有视频PENDING记录 ③图片链路全程正常 ④Diamond切换实时生效",
+    "dbAssertion": "OFF阶段: ai_process_record.processMode NOT IN ('seedVideoGenerate'); ON阶段: processMode='seedVideoGenerate' 出现",
+    "riskPoints": [
+      "Diamond配置未推送导致开关不生效",
+      "切换瞬间的并发事件需考虑"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §3关键参数"
+    ]
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "id": "e2e-f88-set-image-actions-download",
+  "name": "端到端：F88 套图审核 5个编辑操作 → 逐个下载验证",
+  "description": "进入套图审核详情（taskNamePattern含'套图审核'），依次对套图中不同图片执行5个编辑操作（局部修改/替换/裁剪/高清化/负反馈），每个操作后验证下载得到编辑后数据。套图审核无驳回按钮。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "taskNamePattern": "套图审核"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表" },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待筛选结果" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const setTask = rows.find(r => r.innerText && r.innerText.includes('套图审核')); const row = setTask || rows[0]; return row ? { taskId: row.getAttribute('data-row-key'), isSetImage: row.innerText.includes('套图') } : null; })()",
+      "storeAs": "firstTask",
+      "description": "找到套图审核任务并读取ID"
+    },
+    {
+      "type": "assertStore",
+      "key": "firstTask",
+      "path": "isSetImage",
+      "equals": "true",
+      "description": "断言目标为套图审核任务"
+    },
+    { "type": "clickText", "text": "审核", "description": "打开套图审核任务" },
+    { "type": "wait", "ms": 3000, "description": "等待SetImageReview组件渲染" },
+    { "type": "screenshot", "label": "f88-set-image-initial", "description": "截图-套图审核初始状态" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw') && i.getBoundingClientRect().width > 50); return { imageCount: imgs.length, urls: imgs.slice(0, 5).map(i => i.src.substring(0, 80)) }; })()",
+      "storeAs": "setImages",
+      "description": "记录套图图片列表（多张）"
+    },
+    {
+      "type": "assertStore",
+      "key": "setImages",
+      "path": "imageCount",
+      "greaterThan": "1",
+      "description": "断言套图含多张图片"
+    },
+
+    {
+      "_comment": "===== 操作1/5: 替换 → 下载验证 =====",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const actionItems = Array.from(document.querySelectorAll('[class*=actionItem]')); const swapBtn = actionItems.find(i => { const img = i.querySelector('img'); const aria = i.getAttribute('aria-label') || ''; return (img && img.alt === '替换') || aria === 'swap' || i.querySelector('[class*=anticon-swap]'); }); if(swapBtn) { const wrapper = swapBtn.closest('[class*=imageActions]'); if(wrapper) wrapper.style.display = 'flex'; swapBtn.click(); return 'clicked swap'; } return 'not found'; })()",
+      "description": "【操作1-替换】hover第1张图→点击替换按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待替换面板" },
+    { "type": "screenshot", "label": "f88-set-op1-replace", "description": "截图-套图替换操作" },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【操作1-替换】点击下载验证"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+
+    {
+      "_comment": "===== 操作2/5: 裁剪 → 下载验证 =====",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const actionItems = Array.from(document.querySelectorAll('[class*=actionItem]')); const cropBtn = actionItems.find(i => { const img = i.querySelector('img'); return img && img.alt === '裁剪'; }); if(cropBtn) { const wrapper = cropBtn.closest('[class*=imageActions]'); if(wrapper) wrapper.style.display = 'flex'; cropBtn.click(); return 'clicked crop'; } return 'not found'; })()",
+      "description": "【操作2-裁剪】点击裁剪按钮"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待裁剪面板" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => /确\\s*定/.test(b.textContent) && !b.disabled); if(btn){btn.click();return 'clicked confirm crop';} return 'no btn'; })()",
+      "description": "【操作2-裁剪】确认裁剪"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待裁剪结果" },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【操作2-裁剪】点击下载验证"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+    { "type": "screenshot", "label": "f88-set-op2-crop", "description": "截图-套图裁剪操作" },
+
+    {
+      "_comment": "===== 操作3/5: 高清化 → 下载验证 =====",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const actionItems = Array.from(document.querySelectorAll('[class*=actionItem]')); const hdBtn = actionItems.find(i => { const img = i.querySelector('img'); return img && img.alt === '高清化'; }); if(hdBtn) { const wrapper = hdBtn.closest('[class*=imageActions]'); if(wrapper) wrapper.style.display = 'flex'; hdBtn.click(); return 'clicked hd'; } return 'not found'; })()",
+      "description": "【操作3-高清化】点击高清化按钮"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待高清化处理" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "submitSharpen|sharpen|enhance",
+      "timeout": 15000,
+      "description": "等待高清化API"
+    },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【操作3-高清化】点击下载验证"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+    { "type": "screenshot", "label": "f88-set-op3-hd", "description": "截图-套图高清化操作" },
+
+    {
+      "_comment": "===== 操作4/5: 局部修改 → 下载验证 =====",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const actionItems = Array.from(document.querySelectorAll('[class*=actionItem]')); const editBtn = actionItems.find(i => i.getAttribute('aria-label') === 'edit' || i.querySelector('[class*=anticon-edit]')); if(editBtn) { const wrapper = editBtn.closest('[class*=imageActions]'); if(wrapper) wrapper.style.display = 'flex'; editBtn.click(); return 'clicked local-modify'; } return 'not found'; })()",
+      "description": "【操作4-局部修改】点击EditOutlined图标"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待局部修改弹窗" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('.ant-modal textarea, .ant-modal input[type=text]'); if(input) { const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set || Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set; setter.call(input, '调整图片布局'); input.dispatchEvent(new Event('input', { bubbles: true })); return 'filled prompt'; } return 'no input'; })()",
+      "description": "【操作4-局部修改】填写修改prompt"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('.ant-modal button')).find(b => /确\\s*定/.test(b.textContent) && !b.disabled); if(btn){btn.click();return 'clicked confirm';} return 'no btn'; })()",
+      "description": "【操作4-局部修改】确认提交"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "submitLocalAdjust|submitLocalModify",
+      "timeout": 15000,
+      "description": "等待局部修改API"
+    },
+    { "type": "wait", "ms": 5000, "description": "等待局部修改结果" },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【操作4-局部修改】点击下载验证"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+    { "type": "screenshot", "label": "f88-set-op4-local-modify", "description": "截图-套图局部修改操作" },
+
+    {
+      "_comment": "===== 操作5/5: 负反馈 → 下载验证 =====",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const actionItems = Array.from(document.querySelectorAll('[class*=actionItem]')); const fbBtn = actionItems.find(i => { const img = i.querySelector('img'); return img && (img.alt === '负反馈' || img.src.includes('negative')); }); if(fbBtn) { const wrapper = fbBtn.closest('[class*=imageActions]'); if(wrapper) wrapper.style.display = 'flex'; fbBtn.click(); return 'clicked feedback'; } return 'not found'; })()",
+      "description": "【操作5-负反馈】点击负反馈按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待负反馈弹窗" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const options = Array.from(document.querySelectorAll('.ant-modal .ant-checkbox-wrapper, .ant-modal .ant-radio-wrapper')); if(options.length > 0) { options[0].click(); return 'selected option'; } return 'no options'; })()",
+      "description": "【操作5-负反馈】选择反馈原因"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('.ant-modal button')).find(b => /确\\s*定|提\\s*交/.test(b.textContent) && !b.disabled); if(btn){btn.click();return 'clicked submit';} return 'no btn'; })()",
+      "description": "【操作5-负反馈】确认提交"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "imageFeedback|negativeFeedback",
+      "timeout": 15000,
+      "description": "等待负反馈API"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待负反馈处理" },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【操作5-负反馈】点击下载验证"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+    { "type": "screenshot", "label": "f88-set-op5-feedback", "description": "截图-套图负反馈操作" },
+
+    {
+      "_comment": "===== 套图审核通过 =====",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => /确\\s*认/.test(b.textContent) && b.className && b.className.includes('primary')); if(btn){btn.click();return 'clicked confirm';} return 'no btn'; })()",
+      "description": "确认完成套图审核"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "approveMaterial|audit/approve|confirm",
+      "timeout": 15000,
+      "description": "等待审核通过API"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待自动流转" },
+    {
+      "type": "screenshot",
+      "label": "f88-set-image-e2e-done",
+      "description": "截图-套图5操作端到端完成"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核套图审核任务（taskName含'套图审核'）。",
+    "realDomNotes": "套图审核使用SetImageReview组件，含8按钮（无驳回）；每张图片有独立工具栏（hover显示）；5个编辑操作：局部修改/替换/裁剪/高清化/负反馈；每个操作后验证下载。",
+    "riskPoints": [
+      "套图审核任务可能不存在（需构造套图链路数据）",
+      "套图中多张图片需分别hover触发各自工具栏",
+      "高清化和局部修改为异步操作，需等待结果",
+      "负反馈可能触发重生，等待时间不确定"
+    ]
+  }
+}

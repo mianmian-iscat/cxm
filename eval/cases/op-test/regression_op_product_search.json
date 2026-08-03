@@ -1,0 +1,135 @@
+{
+  "id": "regression-op-product-search-filter",
+  "name": "回归：原创保护商品管理搜索与筛选",
+  "description": "验证运营后台商品管理核心交互：取消「仅看我的」→搜索全量→按供给商品ID筛选→验证结果",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management?opGroupId=2.61036.61036.0.61036",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management?opGroupId=2.61036.61036.0.61036",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开品质联盟商品管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "总共",
+      "description": "验证商品列表已加载（含「总共 N 个 SKC」标记）"
+    },
+    {
+      "type": "uncheckCheckbox",
+      "labelText": "仅看我的",
+      "firstChecked": true,
+      "description": "取消「仅看我的」勾选，查看全量数据"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": "button[class*='tbd-btn']",
+      "description": "执行全量搜索"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "fsShopItem.searchSkcV2",
+      "timeout": 15000,
+      "description": "等待搜索API响应"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待表格刷新"
+    },
+    {
+      "type": "screenshot",
+      "label": "product-list-all",
+      "description": "截图-全量商品列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "总共",
+      "description": "验证全量搜索返回数据"
+    },
+    {
+      "type": "assert",
+      "assertion": "paginationConsistency",
+      "expected": "商品列表「总共N个」 vs 每页条数 vs 当前页实际行数一致",
+      "description": "数据一致性：校验商品管理页「总共 N 个 SKC」与当前页表格数据行数是否对得上（暴露总数/分页统计bug）"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='多个ID以英文逗号分隔']",
+      "value": "941488010456",
+      "react": true,
+      "description": "输入供给商品ID进行精确搜索"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": "button[class*='tbd-btn']",
+      "description": "按ID搜索"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "fsShopItem.searchSkcV2",
+      "timeout": 15000,
+      "description": "等待搜索API响应"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "product-search-by-id",
+      "description": "截图-按ID搜索结果"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "/cobweb/api/",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "预发环境可访问，存在测试商品数据（供给商品ID 941488010456）",
+    "riskPoints": [
+      "仅看我的 checkbox 状态联动",
+      "ID搜索精度",
+      "搜索API响应格式"
+    ],
+    "qoderworkRef": "yc-child-shoes-testcases/test_05_product_binding.py TC_BIND_001/002"
+  },
+  "source": "qoderwork/yc-child-shoes-testcases/test_05_product_binding.py",
+  "sourceIds": [
+    "TC_BIND_001",
+    "TC_BIND_002"
+  ]
+}

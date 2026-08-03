@@ -1,0 +1,80 @@
+# web-automation 判定规则（改动频率高，每次改动需回归冒烟测试）
+
+## 元素定位优先级
+
+按以下顺序尝试定位，前者优先：
+
+1. **文本匹配**（`text` 参数）：`innerText.trim() === text`
+   - 优点：UI 改动时 class 变化但文本通常稳定
+   - 适用：按钮、标签、菜单项
+
+2. **语义 CSS 选择器**（稳定 class + role）：
+   - 优先用 `[class*="drawer-body"] button`、`[role="button"]` 等语义组合
+   - 避免用 `div:nth-child(3)` 等位置选择器
+
+3. **精确 CSS 选择器**（`selector` 参数）：
+   - 仅在文本不唯一时使用
+   - 避免 hash class（如 `.abc-123def`）
+
+4. **坐标点击**（最后手段）：
+   - 仅在以上均失败且确认坐标稳定时使用
+
+---
+
+## 操作成功的判定标准
+
+| 操作 | 成功条件 |
+|------|---------|
+| click | 元素存在且 offsetParent !== null（可见）|
+| fill | 输入框 value === 期望值 且无 error-help 提示 |
+| waitForAPI | `Network.loadingFinished` 触发且 status < 400 |
+| assert(page) | `document.body.innerText` 包含期望字符串 |
+| assert(api) | 最近 waitForAPI 的 responseBody 包含期望字符串 |
+
+---
+
+## 等待时机判定
+
+| 场景 | 等待策略 |
+|------|---------|
+| 点击后有网络请求 | 用 `waitForAPI` 而非固定 `wait` |
+| 点击后纯 DOM 变化 | `wait 500ms` 后再操作 |
+| 页面加载后 | `context.waitAfterLoad` 默认 2000ms，动态内容丰富时调高到 3000ms |
+| 弹窗/侧边栏出现 | `wait 800ms`，等动画完成 |
+
+---
+
+## 断言设计原则
+
+- **优先断言业务语义**，而非 DOM 结构
+  - ✅ `assert page contains "524 SKC"` 
+  - ❌ `assert page contains "tbd-table-cell"`
+
+- **接口断言验证核心字段**
+  - ✅ `assert api contains '"code":"OK"'`
+  - ✅ `assert api contains '"skcCount"'`
+
+- **失败时的输出**：`assertResult.actual` 必须包含足够的上下文，方便定位问题
+
+---
+
+## 错误恢复策略
+
+| 错误类型 | 处理方式 |
+|---------|---------|
+| 元素找不到 | 截图 + 抛出，不重试（避免副作用） |
+| 接口超时 | 截图 + 抛出，记录已捕获的接口列表 |
+| 页面跳转到登录页 | 立即停止，status=error，message 提示用户重新登录 |
+| assert fail | 继续执行后续步骤（status 标记 fail，不中断）|
+| assert error（执行异常）| 截图 + 停止（status 标记 error，中断）|
+
+---
+
+## 抓包过滤建议
+
+| 系统 | 推荐 filter |
+|------|------------|
+| xiaoer.alibaba-inc.com | `/cobweb/api/` |
+| rmb.alibaba.com | `/api/` |
+| tppnext.alibaba-inc.com | `/web/v1/` |
+| 通用（仅 XHR/fetch） | 排除 `.js`、`.css`、`.png`、`mmstat.com`、`alilog` |

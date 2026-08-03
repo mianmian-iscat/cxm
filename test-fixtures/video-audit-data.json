@@ -1,0 +1,84 @@
+{
+  "pipeline": "视频审核",
+  "pipelineLifecycle": "实验",
+  "description": "mmttest - 视频审核测试数据",
+  "lastUpdated": "2026-06-30",
+
+  "commonParams": {
+    "tenant": "F88",
+    "env": "预发",
+    "baseUrl": "https://pre-aifashion-xiaoer.alibaba-inc.com",
+    "taskCenter": "/review/personal-task-center"
+  },
+
+  "videoAudit": {
+    "auditType": "视频审核",
+    "taskNamePattern": "视频审核-人工审核",
+    "samples": {
+      "pending_review": {
+        "description": "待审核的视频素材",
+        "materialId": "990100078901",
+        "merchantId": "21567890",
+        "merchantName": "测试商家A",
+        "videoUrl": "https://cloud.video.taobao.com/play/u/test/p/1/e/6/t/1/mock_video_001.mp4",
+        "auditStatus": "待审核",
+        "videoInfo": {
+          "duration": "15s",
+          "resolution": "1080p",
+          "format": "mp4",
+          "fileSize": "8.2MB"
+        },
+        "requirements": {
+          "minDuration": "≥3秒",
+          "maxDuration": "≤60秒",
+          "minResolution": "≥720p",
+          "noWatermark": true,
+          "noCornerBadge": true,
+          "audioCompliant": true
+        },
+        "testActions": ["通过", "驳回", "标记时间点"]
+      },
+      "for_approve_test": {
+        "description": "用于视频审核通过测试的合规视频",
+        "materialId": "990100078902",
+        "videoUrl": "https://cloud.video.taobao.com/play/u/test/p/1/e/6/t/1/mock_video_pass.mp4",
+        "expectedResult": "审核通过",
+        "testCases": ["TC05视频通过"]
+      },
+      "for_reject_test": {
+        "description": "用于视频审核驳回测试的不合规视频",
+        "materialId": "990100078903",
+        "videoUrl": "https://cloud.video.taobao.com/play/u/test/p/1/e/6/t/1/mock_video_blur.mp4",
+        "violationType": "视频模糊/画质不足",
+        "rejectReason": "视频模糊/画质不足",
+        "rejectCategory": "视频质量",
+        "expectedResult": "审核驳回",
+        "testCases": ["TC05视频驳回"]
+      },
+      "for_timestamp_mark": {
+        "description": "用于视频时间点标记测试",
+        "materialId": "990100078904",
+        "videoUrl": "https://cloud.video.taobao.com/play/u/test/p/1/e/6/t/1/mock_video_watermark.mp4",
+        "problemTimestamp": "00:05",
+        "problemDescription": "此时间点出现水印",
+        "testActions": ["拖动到问题时间点", "添加标记", "填写标记描述"]
+      }
+    },
+    "rejectReasons": [
+      "视频模糊/画质不足",
+      "视频时长不符",
+      "包含水印/角标",
+      "包含违规内容",
+      "音频不合规",
+      "视频格式不支持",
+      "其他"
+    ]
+  },
+
+  "_todo": [
+    "通过视频审核链路实际生成测试视频素材，填入真实的materialId和videoUrl",
+    "确认链路生成的视频能在个人任务中心的审核任务Tab中出现",
+    "确认视频审核详情页的播放器控件和时间轴标记功能",
+    "确认视频审核的驳回表单字段"
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "id": "ui-f88-template-mgmt-card-ops",
+  "name": "UI：模版包管理-店铺卡片操作(查看详情/编辑/激活/停用)验证",
+  "description": "验证模版包管理页面店铺卡片：字段展示/查看详情跳转/编辑弹窗/激活确认/停用确认，数据一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模版包管理",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard], [class*=card]'); const firstCard = cards[0]; if(!firstCard) return { found: false }; const text = firstCard.textContent.trim(); const fields = ['店铺名称', '店铺ID', '买手', '模板包', '使用状态']; const found = fields.filter(f => text.includes(f)); return { found: true, fields, foundFields: found, coverage: found.length + '/' + fields.length }; })()",
+      "description": "验证卡片字段",
+      "storeAs": "cardFields"
+    },
+    {
+      "type": "screenshot",
+      "label": "template-mgmt-cards",
+      "description": "店铺卡片"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const detailBtn = Array.from(document.querySelectorAll('a, button')).find(el => el.textContent.includes('查看详情')); if(detailBtn) { detailBtn.click(); return 'clicked'; } return 'not found'; })()",
+      "description": "点击查看详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "template-mgmt-detail",
+      "description": "模板包详情"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const backBtn = Array.from(document.querySelectorAll('button, a')).find(el => el.textContent.includes('返回')); if(backBtn) { backBtn.click(); return 'backed'; } return 'not found'; })()",
+      "description": "返回列表"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const editBtn = Array.from(document.querySelectorAll('a, button')).filter(el => el.textContent.trim() === '编辑'); if(editBtn.length > 0) { editBtn[0].click(); return 'clicked'; } return 'not found'; })()",
+      "description": "点击编辑"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "template-mgmt-edit",
+      "description": "编辑模板包"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close'); if(closeBtn) closeBtn.click(); return 'closed'; })()",
+      "description": "关闭"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const toggleBtn = Array.from(document.querySelectorAll('a, button')).find(el => el.textContent.includes('激活') || el.textContent.includes('停用')); return { found: !!toggleBtn, text: toggleBtn ? toggleBtn.textContent.trim() : 'none' }; })()",
+      "description": "查找激活/停用按钮",
+      "storeAs": "toggleBtn"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模版包数据。",
+    "realDomNotes": "店铺卡片字段：店铺名称/店铺ID/买手/模板包数量(N个)/使用状态标签(使用中/未使用)。操作：查看详情/编辑/激活/停用。激活需确认弹窗，同seller+range+scene仅一个IN_USE。",
+    "riskPoints": [
+      "激活/停用需确认弹窗",
+      "编辑后状态回退IDLE→DRAFT"
+    ]
+  }
+}

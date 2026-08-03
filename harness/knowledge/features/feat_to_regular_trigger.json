@@ -1,0 +1,15 @@
+{
+  "id": "feat_to_regular_trigger",
+  "category": "features",
+  "title": "转普通申请触发条件",
+  "content": "{\"rule\": \"仅预审/证书驳回触发; 快审驳回不触发; to_regular_status: TO_DO→DONE/TIMEOUT\"}",
+  "tags": [
+    "转普通",
+    "状态机",
+    "P1"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499697
+}

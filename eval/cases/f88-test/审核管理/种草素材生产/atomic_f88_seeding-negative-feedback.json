@@ -1,0 +1,176 @@
+{
+  "id": "atomic-f88-seeding-negative-feedback",
+  "name": "原子：种草链路 - 审核详情页负反馈按钮交互验证",
+  "description": "进入种草链路审核任务的审核详情（SetImageReview），hover待审核图触发工具栏，验证负反馈按钮存在并可点击，负反馈弹窗包含3个选项（背面/主体展示不完整/主体遮挡），确认后API正确触发。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 4000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "_comment": "===== 找到种草审核任务并进入 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { const t = row.textContent || ''; if (t.includes('种草') && (t.includes('待开始') || t.includes('进行中'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情'); if (btn) { btn.click(); return { clicked: true, taskText: t.slice(0, 80) }; } } } return { clicked: false }; })()",
+      "description": "找到种草审核任务并点击开始/查看详情",
+      "storeAs": "seedingTask"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务详情页加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { if (row.textContent?.includes('待审核')) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { clicked: true }; } } } return { clicked: false }; })()",
+      "description": "点击第一条待审核记录的审核按钮",
+      "storeAs": "auditClick"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待SetImageReview审核详情加载"
+    },
+    {
+      "_comment": "===== 验证审核详情基本结构 =====",
+      "type": "assert",
+      "target": "page",
+      "contains": "参考图",
+      "description": "验证参考图区域存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "待审核图",
+      "description": "验证待审核图区域存在"
+    },
+    {
+      "_comment": "===== hover待审核图触发工具栏 =====",
+      "type": "evaluate",
+      "expression": "(() => { const area = document.querySelector('[class*=imageArea]'); if (!area) return { found: false }; const imgs = area.querySelectorAll('[class*=imageContent] img'); if (imgs.length === 0) return { found: false, imgCount: 0 }; const rect = imgs[0].getBoundingClientRect(); return { found: true, imgCount: imgs.length, x: rect.x + rect.width/2, y: rect.y + rect.height/2 }; })()",
+      "description": "定位待审核图坐标",
+      "storeAs": "pendingImg"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const actions = document.querySelectorAll('[class*=imageActions]'); actions.forEach(a => { a.style.display = 'flex'; a.style.visibility = 'visible'; a.style.opacity = '1'; }); return { totalBars: actions.length, barDetails: Array.from(actions).map((a, i) => ({ index: i, childCount: a.children.length, alts: Array.from(a.children).map(c => c.querySelector('img')?.alt || c.textContent?.trim() || '').filter(Boolean) })) }; })()",
+      "description": "强制显示所有工具栏并读取按钮列表",
+      "storeAs": "actionBars"
+    },
+    {
+      "_comment": "===== 断言负反馈按钮存在 =====",
+      "type": "evaluate",
+      "expression": "(() => { const items = Array.from(document.querySelectorAll('[class*=actionItem]')); const fbItems = items.filter(i => { const img = i.querySelector('img'); return img && img.alt === '负反馈'; }); return { count: fbItems.length, exists: fbItems.length > 0 }; })()",
+      "description": "查找所有负反馈按钮",
+      "storeAs": "feedbackBtns"
+    },
+    {
+      "type": "assertStore",
+      "key": "feedbackBtns",
+      "path": "exists",
+      "equals": true,
+      "description": "断言负反馈按钮存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "feedbackBtns",
+      "path": "count",
+      "gte": 1,
+      "description": "断言至少有1个负反馈按钮"
+    },
+    {
+      "_comment": "===== 点击负反馈按钮 =====",
+      "type": "evaluate",
+      "expression": "(() => { const items = Array.from(document.querySelectorAll('[class*=actionItem]')); const fb = items.find(i => { const img = i.querySelector('img'); return img && img.alt === '负反馈'; }); if (fb) { fb.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击第一个负反馈按钮",
+      "storeAs": "fbClick"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待负反馈弹窗"
+    },
+    {
+      "_comment": "===== 验证负反馈弹窗选项 =====",
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal') || document.querySelector('.ant-popover') || document.querySelector('[class*=feedbackModal]'); if (!modal) return { hasModal: false, options: [] }; const options = Array.from(modal.querySelectorAll('.ant-checkbox-wrapper, .ant-radio-wrapper, [class*=option], [class*=item]')).map(o => o.textContent?.trim()); const hasBack = options.some(o => o.includes('背面')); const hasIncomp = options.some(o => o.includes('不完整')); const hasBlock = options.some(o => o.includes('遮挡')); return { hasModal: true, options, hasBack, hasIncomp, hasBlock }; })()",
+      "description": "读取负反馈弹窗选项",
+      "storeAs": "fbModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "fbModal",
+      "path": "hasModal",
+      "equals": true,
+      "description": "断言负反馈弹窗已出现"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-negative-feedback-modal",
+      "description": "截图-种草审核负反馈弹窗"
+    },
+    {
+      "_comment": "===== 选择选项并确认 =====",
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal') || document.querySelector('.ant-popover'); if (!modal) return { result: 'no modal' }; const firstOption = modal.querySelector('.ant-checkbox-wrapper, .ant-radio-wrapper'); if (firstOption) { firstOption.click(); return { result: 'selected option', text: firstOption.textContent?.trim() }; } return { result: 'no option' }; })()",
+      "description": "选择第一个负反馈选项",
+      "storeAs": "fbSelect"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('.ant-modal button, .ant-popover button')).find(b => /确\\s*定|提\\s*交/.test(b.textContent) && !b.disabled); if (btn) { btn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "确认负反馈",
+      "storeAs": "fbConfirm"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "imageFeedback|negativeFeedback|inspection.*feedback",
+      "timeout": 15000,
+      "description": "等待负反馈API请求"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-negative-feedback-after",
+      "description": "截图-负反馈提交后状态"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在种草审核任务（含待审核子任务）",
+    "realDomNotes": "审核详情使用SetImageReview组件；每张图片hover显示8按钮工具栏（局部修改/替换/未知×1/裁剪/高清化/负反馈/复位/复制URL）；负反馈按钮alt='负反馈'；负反馈弹窗选项：背面/主体展示不完整/主体遮挡",
+    "riskPoints": [
+      "种草审核任务可能不存在（需通过试运行构造数据）",
+      "负反馈弹窗选项可能随PRD迭代变更",
+      "负反馈提交后可能触发重生图，影响后续审核状态",
+      "TBD双字按钮渲染：确 认/丢 弃 含特殊空格"
+    ]
+  }
+}

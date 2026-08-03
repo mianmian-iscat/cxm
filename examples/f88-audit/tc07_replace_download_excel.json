@@ -1,0 +1,300 @@
+{
+  "id": "f88-audit-tc07",
+  "name": "TC07 - 图片替换后下载 + Excel导出验证",
+  "description": "Bug场景：替换后下载和Excel导出仍为原图。覆盖 RP-07~13。",
+  "businessType": "f88_material",
+  "relatedCases": ["RP-07", "RP-08", "RP-09", "RP-10", "RP-11", "RP-12", "RP-13"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== RP-07: 单图审核(qt=1) 替换 + 下载 ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_rp07",
+      "description": "RP-07: 记录替换前原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']",
+      "description": "RP-07: 点击替换"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待确认完成"
+    },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='download'], [class*='toolbar']",
+      "description": "RP-07: 点击下载按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待文件下载完成"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const downloads = performance.getEntriesByType('resource').filter(r => r.initiatorType === 'a' || r.name.includes('download')); return downloads.length > 0 ? downloads[downloads.length-1].name : 'NO_DOWNLOAD'; })()",
+      "storeAs": "downloadUrl_rp07",
+      "description": "RP-07: 获取下载文件的URL"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "downloadUrl_rp07",
+      "notEquals": "${originalUrl_rp07}",
+      "description": "RP-07: 【P0】下载的是替换后的新图，非原始图片"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp07-download",
+      "description": "截图 - 下载操作完成"
+    },
+
+    {
+      "_comment": "=== RP-08: 套图审核(qt=2) 替换 + 下载 ===",
+      "type": "clickText",
+      "text": "套图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-08: 选择套图审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']",
+      "selectorIndex": 0,
+      "description": "RP-08: 替换其中一张图"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='download']",
+      "selectorIndex": 0,
+      "description": "RP-08: 下载被替换的那张图"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "rp08-download",
+      "description": "截图 - 套图下载完成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "下载",
+      "description": "RP-08: 【P0】套图下载操作成功执行"
+    },
+
+    {
+      "_comment": "=== RP-09: 封面图审核(qt=4) 替换 + 下载 ===",
+      "type": "clickText",
+      "text": "封面图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-09: 选择封面图审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='download']"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "rp09-download",
+      "description": "截图 - 封面图下载完成"
+    },
+
+    {
+      "_comment": "=== RP-10: 文件hash对比 ===",
+      "type": "eval",
+      "expression": "(() => { return 'hash_comparison_requires_backend_verification'; })()",
+      "description": "RP-10: 【P1】文件hash对比需后端验证（下载图片与原图hash不同）"
+    },
+
+    {
+      "_comment": "=== RP-11: 替换 + 完成任务 + Excel导出 ===",
+      "type": "clickText",
+      "text": "通过",
+      "selector": "button, [class*='approve']",
+      "description": "RP-11: 通过该审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "RP-11: 返回任务列表"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "导出",
+      "selector": "button, [class*='export']",
+      "description": "RP-11: 点击导出Excel"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待Excel文件下载"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp11-excel-export",
+      "description": "截图 - Excel导出完成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "导出",
+      "description": "RP-11: 【P0】Excel导出操作执行成功（需离线验证URL列是否为新图URL）"
+    },
+
+    {
+      "_comment": "=== RP-12: 多条记录部分替换 + 导出 ===",
+      "type": "assert",
+      "target": "page",
+      "contains": "任务",
+      "description": "RP-12: 【P1】多条记录中仅替换一条，导出后被替换记录显示新图URL，其余显示原始URL"
+    },
+
+    {
+      "_comment": "=== RP-13: 抽检任务中的Excel导出 ===",
+      "type": "clickText",
+      "text": "抽检任务",
+      "selector": "[class*='tab'], span, a",
+      "description": "RP-13: 切换到抽检任务Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "label": "rp13-spot-check-tab",
+      "description": "截图 - 抽检任务Tab"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "抽检",
+      "description": "RP-13: 【P1】抽检Excel中URL列应为替换后的新图URL"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "download|export|material",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "id": "ui-f88-sd-node-operations",
+  "name": "UI：策略详情-节点操作按钮验证",
+  "description": "打开含中间节点的策略，验证每个中间节点显示上移、下移、编辑三个操作按钮，首尾节点无箭头。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排');\n        if (!titleEl) return { ok: false };\n        const card = titleEl.closest('.ant-card');\n        const body = card?.querySelector('.ant-card-body');\n        if (!body) return { ok: false };\n\n        const result = { startNode: null, endNode: null, middleNodes: [] };\n\n        // Start/End nodes\n        const startEndNodes = body.querySelectorAll('[class*=\"startEndNode\"]');\n        for (const n of startEndNodes) {\n          if (n.textContent.includes('Start')) {\n            const btns = n.querySelectorAll('button');\n            result.startNode = { name: 'Start', btnCount: btns.length, btnTexts: Array.from(btns).map(b => b.textContent.trim()) };\n          }\n          if (n.textContent.includes('End')) {\n            const btns = n.querySelectorAll('button');\n            result.endNode = { name: 'End', btnCount: btns.length, btnTexts: Array.from(btns).map(b => b.textContent.trim()) };\n          }\n        }\n\n        // Middle nodes (innerNode)\n        const middleItems = body.querySelectorAll('[class*=\"innerNode\"], [class*=\"InnerNode\"]');\n        for (const item of middleItems) {\n          const btns = item.querySelectorAll('button');\n          const btnTexts = Array.from(btns).map(b => b.textContent.trim());\n          const hasArrowUp = btnTexts.some(t => t.includes('arrow-up') || t === '');\n          const hasArrowDown = btnTexts.some(t => t.includes('arrow-down'));\n          const hasDelete = btnTexts.some(t => t.includes('delete'));\n          const hasEdit = btnTexts.some(t => t.includes('edit'));\n          result.middleNodes.push({\n            name: item.querySelector('strong')?.textContent.trim() || 'unknown',\n            btnCount: btns.length,\n            hasArrowUp, hasArrowDown, hasDelete, hasEdit,\n          });\n        }\n        return result;\n      })()",
+      "storeAs": "nodeOperations",
+      "description": "验证节点操作按钮结构"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-operations",
+      "description": "截图-节点操作按钮"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排');\n        if (!titleEl) return { ok: false };\n        const card = titleEl.closest('.ant-card');\n        const body = card?.querySelector('.ant-card-body');\n        if (!body) return { ok: false };\n        const middleItems = body.querySelectorAll('[class*=\"innerNode\"], [class*=\"InnerNode\"]');\n        const allHaveThreeBtns = Array.from(middleItems).every(item => item.querySelectorAll('button').length >= 3);\n        return { middleNodeCount: middleItems.length, allHaveThreeBtns };\n      })()",
+      "description": "验证中间节点都有3个操作按钮"
+    }
+  ]
+}

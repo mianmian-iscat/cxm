@@ -1,0 +1,193 @@
+{
+  "id": "regression-op-settlement-verify",
+  "name": "回归：原创保护结算管理页面（9类/非9类结算规则验证）",
+  "description": "通过小二结算管理页面验证结算订单状态显示、金额计算正确性，抓包验证结算查询/退款API",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/yc-child-shoes-testcases/test_06_settlement.py",
+  "sourceIds": ["TC_SETTLE_001", "TC_SETTLE_002", "TC_SETTLE_005", "TC_SETTLE_006"],
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/settlement-manage",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/settlement-manage",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开结算管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "结算",
+      "description": "验证结算管理页面已加载"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "settle|settlement",
+      "timeout": 15000,
+      "captureResponse": true,
+      "description": "抓包-结算列表查询API"
+    },
+    {
+      "type": "screenshot",
+      "label": "settlement-list",
+      "description": "截图-结算订单列表"
+    },
+    {
+      "type": "selectOption",
+      "label": "商家类型",
+      "option": "9类",
+      "description": "【TC_SETTLE_001】筛选9类商家结算"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "description": "执行搜索"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "settle|settlement",
+      "timeout": 15000,
+      "captureResponse": true,
+      "description": "抓包-9类商家结算列表"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待列表渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "eligible-settlement",
+      "description": "截图-9类商家结算列表"
+    },
+    {
+      "type": "click",
+      "text": "查看",
+      "description": "查看第一条结算详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待详情加载"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "settle/detail|settlement/detail",
+      "timeout": 10000,
+      "captureResponse": true,
+      "description": "抓包-结算详情API"
+    },
+    {
+      "type": "screenshot",
+      "label": "settle-detail-eligible",
+      "description": "截图-9类商家结算详情（验证金额335/33/133）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "结算金额",
+      "description": "【TC_SETTLE_001】验证结算详情含金额字段"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/settlement-manage",
+      "waitUntil": "networkidle",
+      "description": "返回结算列表"
+    },
+    {
+      "type": "selectOption",
+      "label": "商家类型",
+      "option": "非9类",
+      "description": "【TC_SETTLE_005】筛选非9类商家"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "description": "搜索非9类结算"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "settle|settlement",
+      "timeout": 15000,
+      "captureResponse": true,
+      "description": "抓包-非9类商家结算列表"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待列表渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "non-eligible-settlement",
+      "description": "截图-非9类商家结算列表"
+    },
+    {
+      "type": "click",
+      "text": "查看",
+      "description": "查看非9类结算详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待详情"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "settle/detail|settlement/detail",
+      "timeout": 10000,
+      "captureResponse": true,
+      "description": "抓包-非9类结算详情"
+    },
+    {
+      "type": "screenshot",
+      "label": "settle-detail-non-eligible",
+      "description": "截图-非9类结算详情（退款=500×剩余次数）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "settle|settlement|refund",
+    "captureBody": true
+  },
+  "post_asserts": [
+    {
+      "type": "apiResponse",
+      "urlPattern": "settle|settlement",
+      "path": "data.success",
+      "equals": true,
+      "description": "验证结算列表查询成功"
+    },
+    {
+      "type": "apiResponse",
+      "urlPattern": "settle/detail|settlement/detail",
+      "path": "data.data.settleAmount",
+      "notNull": true,
+      "description": "【TC_SETTLE_001】验证结算详情含金额"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "存在已结算的9类和非9类商家数据",
+    "riskPoints": ["9类:下架率>=70%付335元/SKU(TC_SETTLE_001)", "9类:下架率<70%退33(首发)/133(非首发)(TC_SETTLE_002/004)", "非9类:无补贴无官费,退款=500×剩余次数(TC_SETTLE_005/006)", "资损风险:金额计算错误"],
+    "qoderworkRef": "test_06_settlement.py TC_SETTLE_001~006"
+  }
+}

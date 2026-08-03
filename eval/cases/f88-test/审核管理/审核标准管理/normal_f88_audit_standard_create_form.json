@@ -1,0 +1,45 @@
+{
+  "id": "normal-f88-audit-standard-create-form",
+  "name": "正常流程：F88 审核标准管理-新增标准表单结构验证",
+  "description": "打开审核标准管理页，点击新增标准，验证表单弹窗结构（标准名称/标准类型/评分规则/图片示例区域）。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核标准管理页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待标准列表加载" },
+    { "type": "assert", "target": "page", "contains": "标准", "description": "验证审核标准管理页" },
+    { "type": "assert", "target": "page", "contains": "新增", "description": "验证新增标准按钮存在" },
+    {
+      "type": "clickText",
+      "text": "新增",
+      "description": "点击新增标准按钮"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待新增标准弹窗渲染" },
+    { "type": "assert", "target": "page", "contains": "标准", "description": "验证新增标准弹窗已打开" },
+    { "type": "assert", "target": "page", "contains": "名称", "description": "验证标准名称字段" },
+    { "type": "screenshot", "label": "f88-create-standard-form", "description": "截图-新增标准表单" },
+    { "type": "clickText", "text": "取消", "description": "取消不提交" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "tc02_audit_standard 对应；新增标准弹窗字段：标准名称/标准类型/评分规则/图片示例区域。",
+    "riskPoints": ["新增按钮文案可能有空格（'新 增'）", "页面加载依赖BUC SSO"]
+  }
+}

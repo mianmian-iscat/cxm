@@ -1,0 +1,101 @@
+{
+  "id": "e2e-f88-image-action-download",
+  "name": "端到端：F88 图片下载 → 通过 → 状态一致性校验",
+  "description": "进入图片审核详情，点击下载按钮触发下载，随后点击审核通过；抓包验证 approveMaterial 响应，并调用 queryMaterialAuditDetail 断言状态；DB 校验 material 表状态未因下载异常改变。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "dataSetup",
+      "kind": "f88-audit-task",
+      "params": { "questionType": 4, "rows": 1 },
+      "storeAs": "setupTask",
+      "description": "[造数] 自动创建待审核首图审核任务（数据自愈，解决无待审核数据阻塞）"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表" },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待筛选结果" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; return row ? { taskId: row.getAttribute('data-row-key') } : null; })()",
+      "storeAs": "firstTask",
+      "description": "读取首行任务ID"
+    },
+    { "type": "clickText", "text": "审核", "description": "打开第一条待审核任务" },
+    { "type": "wait", "ms": 2500, "description": "等待审核详情Drawer打开" },
+    { "type": "hover", "selector": "img", "description": "hover素材图触发工具栏" },
+    { "type": "wait", "ms": 1000, "description": "等待工具栏出现" },
+    { "type": "clickText", "text": "下载", "description": "点击下载按钮" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "\\.(jpg|jpeg|png|webp|gif)(\\?|$)",
+      "timeout": 15000,
+      "description": "等待图片下载请求"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待下载触发" },
+    { "type": "clickText", "text": "通过", "description": "点击审核通过" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "approveMaterial",
+      "timeout": 15000,
+      "description": "等待审核通过API"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待列表刷新" },
+    {
+      "type": "apiCall",
+      "api": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditDetail",
+      "v": "1.0",
+      "data": { "taskId": "${store.firstTask.taskId}" },
+      "storeAs": "auditDetail",
+      "description": "调用审核详情API"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.auditStatus",
+      "equals": "APPROVED",
+      "description": "API断言审核状态为已通过"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, status FROM material WHERE task_id = '${store.firstTask.taskId}' ORDER BY id DESC LIMIT 1",
+      "storeAs": "materialDb",
+      "description": "DB查询素材状态"
+    },
+    {
+      "type": "assertDbResult",
+      "expectations": [{ "field": "status", "equals": "APPROVED" }],
+      "description": "DB断言状态为已通过"
+    },
+    { "type": "screenshot", "label": "f88-download-e2e-done", "description": "截图-下载端到端完成" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核图片任务。",
+    "realDomNotes": "下载按钮触发浏览器下载；下载不改变素材数据，审核通过后状态为APPROVED。",
+    "riskPoints": ["无待审核任务时无法进入详情", "DB表名/字段需按真实schema调整"]
+  }
+}

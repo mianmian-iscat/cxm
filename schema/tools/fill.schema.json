@@ -1,0 +1,30 @@
+{
+  "name": "fill",
+  "version": "1.0.0",
+  "description": "填写表单（使用 React native setter，兼容受控组件）",
+  "triggers": ["填写", "输入", "fill", "input", "type"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "selector", "value"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "fill" },
+      "selector": { "type": "string", "description": "CSS 选择器" },
+      "selectorIndex": { "type": "integer", "default": 0, "description": "第几个匹配元素" },
+      "value": { "type": "string", "description": "填写的值" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID，用于变量引用" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "ok": { "type": "boolean" },
+      "value": { "type": "string" }
+    }
+  },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 300 }
+}

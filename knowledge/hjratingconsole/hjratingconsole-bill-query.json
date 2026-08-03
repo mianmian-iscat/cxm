@@ -1,0 +1,130 @@
+{
+  "id": "hjratingconsole-bill-query",
+  "platform": "汇金 Rating Console",
+  "description": "账单查询页面（通过外部订单号查询账单明细）",
+  "host": "hjratingconsole.alibaba-inc.com",
+  "hostPre": "pre-hjratingconsole.alibaba-inc.com",
+  "route": "hjratingconsole/faq/billQuery.htm",
+  "auth": {
+    "type": "buc",
+    "note": "阿里员工内网 SSO，登录态失效时页面跳转到 login.alibaba-inc.com"
+  },
+  "skill": null,
+  "lastUpdated": "2026-05-17",
+  "_meta": {
+    "initStatus": "draft",
+    "lastVerified": null,
+    "verifiedByRun": null,
+    "staleFields": []
+  },
+  "fields": {
+    "userIdType": {
+      "selector": "e18",
+      "type": "combobox",
+      "description": "用户 ID 类型选择（用户 id(商家 id) / 用户 NICK）",
+      "options": ["用户 id(商家 id)", "用户 NICK"]
+    },
+    "userId": {
+      "selector": "e20",
+      "type": "textbox",
+      "description": "用户 ID 输入框（交易单号无需输入此项）"
+    },
+    "outBizId": {
+      "selector": "e23",
+      "type": "textbox",
+      "description": "外部订单号 (outBizId) 输入框"
+    },
+    "hjBillIdType": {
+      "selector": "e26",
+      "type": "combobox",
+      "description": "汇金账单 ID 类型选择",
+      "options": ["汇金账单 id", "分账账单 id", "批次单 id", "打款单 id", "销账单 id", "结算账单 id", "订购订单 id", "订购 prodId", "账户 outBizId", "渠道账户", "账务明细数据查询", "账务春风数据查询"]
+    },
+    "hjBillId": {
+      "selector": "e28",
+      "type": "textbox",
+      "description": "汇金账单 ID 输入框"
+    },
+    "hjMessageId": {
+      "selector": "e31",
+      "type": "textbox",
+      "description": "汇金消息 ID 输入框"
+    },
+    "parentOrderId": {
+      "selector": "e35",
+      "type": "textbox",
+      "description": "主订单号输入框"
+    },
+    "childOrderId": {
+      "selector": "e38",
+      "type": "textbox",
+      "description": "子订单号输入框"
+    }
+  },
+  "actions": {
+    "search": {
+      "selector": "e40",
+      "type": "button",
+      "description": "一键排查按钮（主查询按钮）"
+    },
+    "searchChunfeng": {
+      "selector": "e41",
+      "type": "button",
+      "description": "一键排查 (春风) 按钮"
+    },
+    "reset": {
+      "selector": "e42",
+      "type": "button",
+      "description": "重置按钮"
+    }
+  },
+  "apis": {
+    "billQuery": {
+      "name": "账单查询接口",
+      "urlKeyword": "/hjratingconsole/",
+      "note": "页面加载后自动触发查询，或通过点击一键排查触发",
+      "responseFields": {
+        "bizType": "业务类型 (bizType)",
+        "status": "状态",
+        "outBizId": "外部订单号",
+        "userId": "用户 id(商家 id)",
+        "businessTime": "业务时间",
+        "createTime": "创建时间",
+        "modifyTime": "修改时间"
+      }
+    }
+  },
+  "assertHints": {
+    "querySuccess": {
+      "description": "查询成功标志",
+      "checks": [
+        "页面显示订单号提示信息（如：订单号：xxx 为主子合一订单）",
+        "消息查询结果表格有数据",
+        "详单查询结果表格有数据",
+        "账单查询结果表格有数据"
+      ]
+    },
+    "filterByBizType": {
+      "description": "按业务类型筛选结果",
+      "note": "在消息查询结果/详单查询结果/账单查询结果表格中，查找 业务类型 (bizType) 列匹配目标值的行"
+    }
+  },
+  "knownIssues": [
+    {
+      "issue": "页面包含多个表格（消息查询结果、详单查询结果、账单查询结果），需要分别提取",
+      "workaround": "使用 aria snapshot 时，通过表格的行列结构识别不同表格，然后根据 业务类型 (bizType) 列筛选目标行"
+    },
+    {
+      "issue": "查询结果可能包含多条记录，需要按 bizType 过滤",
+      "workaround": "提取所有行后，在代码中过滤 bizType 匹配的记录"
+    }
+  ],
+  "notes": [
+    "预发环境 URL: https://pre-hjratingconsole.alibaba-inc.com/hjratingconsole/faq/billQuery.htm",
+    "日常环境 URL: https://hjratingconsole-admin-daily.taobao.net/hjratingconsole/faq/billQuery.htm",
+    "线上环境 URL: https://hjratingconsole.admin.taobao.org/hjratingconsole/faq/billQuery.htm",
+    "查询结果分为三部分：消息查询结果、详单查询结果、账单查询结果",
+    "每个部分都有 业务类型 (bizType) 字段，可用于筛选特定业务类型的记录",
+    "常见业务类型：TB_FUSHI_CD_LIVE_YJ_STD_PROCESS（正常抽佣）、TB_FUSHI_CD_LIVE_YJ_REFUND_STD_PROCESS（退款）"
+  ]
+}

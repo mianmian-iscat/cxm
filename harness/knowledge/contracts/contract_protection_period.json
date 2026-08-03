@@ -1,0 +1,16 @@
+{
+  "id": "contract_protection_period",
+  "category": "contracts",
+  "title": "保护期与禁发期契约",
+  "content": "{\"protection_period_days\": 180, \"tolerance_days\": 1, \"blackout_days_before_expiry\": 20, \"expiry_calculation\": \"min(consistency_confirm + 180, patent_office_submit + 365 - 30)\", \"diamond_configurable\": true, \"blackout_effects\": {\"publish_button\": \"grayed + tooltip\", \"protect_button\": \"disabled\", \"report_clue\": \"closed + tooltip\"}, \"return_window\": {\"start\": \"consistency_confirm + 180 days\", \"end\": \"patent_office_apply + 11 months\"}}",
+  "tags": [
+    "保护期",
+    "禁发期",
+    "契约",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783394362.2919528
+}

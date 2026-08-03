@@ -1,0 +1,184 @@
+{
+  "id": "ui-f88-strategy-detail-text",
+  "name": "UI：F88 策略详情页文案验证",
+  "description": "打开策略详情页，逐条验证所有关键文案（区域标题、字段标签、按钮文案、状态文案、placeholder、引导文案）。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "screenshot",
+      "label": "text-verify",
+      "description": "截图-文案验证页面"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证文案: 区域标题-节点编排"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "落库配置",
+      "description": "验证文案: 区域标题-落库配置"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略阶段",
+      "description": "验证文案: 字段标签-策略阶段"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "环节",
+      "description": "验证文案: 字段标签-环节"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略说明",
+      "description": "验证文案: 字段标签-策略说明"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "适配场景",
+      "description": "验证文案: 字段标签-适配场景/商家画像"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "返回列表",
+      "description": "验证文案: 按钮-返回列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查看运行结果",
+      "description": "验证文案: 按钮-查看运行结果"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "试运行",
+      "description": "验证文案: 按钮-试运行"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "新增节点",
+      "description": "验证文案: 按钮-新增节点"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略入参",
+      "description": "验证文案: 状态-策略入参"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略出参",
+      "description": "验证文案: 状态-策略出参"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "点击下方每个节点编辑详情",
+      "description": "验证文案: 引导-点击下方每个节点编辑详情"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "已映射",
+      "description": "验证文案: 落库-已映射"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "个字段",
+      "description": "验证文案: 落库-个字段"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelectorAll('textarea'); const phs = Array.from(ta).map(t => t.placeholder); return { placeholders: phs }; })()",
+      "storeAs": "placeholders",
+      "description": "获取所有 textarea placeholder"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelectorAll('textarea'); for (const t of ta) { if (t.placeholder.includes('策略说明')) return { found: true }; } return { found: false }; })()",
+      "description": "验证 placeholder-策略说明"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelectorAll('textarea'); for (const t of ta) { if (t.placeholder.includes('适配场景')) return { found: true }; } return { found: false }; })()",
+      "description": "验证 placeholder-适配场景"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const texts = Array.from(btns).filter(b => b.offsetHeight > 0).map(b => b.textContent.replace(/\\s/g, '')); return { visibleButtons: texts }; })()",
+      "storeAs": "buttonTexts",
+      "description": "获取所有可见按钮文案"
+    }
+  ]
+}

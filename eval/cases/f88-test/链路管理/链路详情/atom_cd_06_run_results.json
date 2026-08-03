@@ -1,0 +1,57 @@
+{
+  "id": "atom-cd-06-run-results",
+  "name": "原子：查看运行结果",
+  "description": "点击查看运行结果按钮，验证跳转到运行结果页面",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const btn = [...btns].find(b => b.textContent.includes('查看运行结果')); if (!btn) return { ok: false }; btn.click(); return { ok: true }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "run-results"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; const text = document.body.innerText; return { url, hasTaskCards: text.includes('进行中') || text.includes('已完成'), hasTerminate: text.includes('终止'), pageText: text.substring(0, 300) }; })()",
+      "storeAs": "resultPage"
+    }
+  ]
+}

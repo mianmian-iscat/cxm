@@ -1,0 +1,65 @@
+{
+  "id": "tc-stream-INSPECT-004",
+  "name": "流式审核抽检 — 审核节点抽检配置项验证",
+  "description": "验证审核节点管理页面中，流式抽检相关配置项（抽检开关、比例、抽检人、样本来源）的展示与编辑。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "流式审核抽检",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核节点管理页面"
+    },
+    { "type": "wait", "ms": 3000 },
+    { "type": "assert", "target": "page", "contains": "审核节点", "description": "验证审核节点管理页面已加载" },
+    { "type": "screenshot", "label": "stream-inspect-004-node-management", "description": "截图-审核节点管理" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const hasInspection = text.includes('检查设置') || text.includes('抽检') || text.includes('质检'); const editBtns = Array.from(document.querySelectorAll('button, a, span')).filter(e => e.textContent.trim() === '编辑'); return { hasInspectionConfig: hasInspection, editButtonCount: editBtns.length, pagePreview: text.substring(0, 500) }; })()",
+      "description": "验证审核节点列表含检查设置/抽检配置",
+      "storeAs": "nodeCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const editBtns = Array.from(document.querySelectorAll('button, a, span')).filter(e => e.textContent.trim() === '编辑'); if (editBtns[0]) { editBtns[0].click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击编辑按钮查看节点配置",
+      "storeAs": "editClick"
+    },
+    { "type": "wait", "ms": 2000 },
+    { "type": "screenshot", "label": "stream-inspect-004-node-edit", "description": "截图-节点编辑" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const configItems = { inspectionSwitch: text.includes('抽检') || text.includes('检查'), inspectionRatio: text.includes('比例') || text.includes('抽检任务比例'), inspectionPerson: text.includes('抽检人') || text.includes('参与人'), sampleSource: text.includes('样本来源') || text.includes('抽检样本') }; return { configItems, pagePreview: text.substring(0, 800) }; })()",
+      "description": "验证节点配置含抽检相关配置项",
+      "storeAs": "configCheck"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard.f88|review|node",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问；审核节点管理页面有可编辑的审核节点",
+    "stepsText": "1.打开审核节点管理 2.验证列表含检查设置 3.点击编辑 4.验证配置项",
+    "expectedResult": "审核节点编辑页含抽检开关、抽检比例、抽检人、样本来源等配置",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": ["编辑操作可能弹窗或跳转新页面"],
+    "relatedDocs": ["Aone#84266820 PRD - 配置项生效逻辑"],
+    "prdMapping": "配置项生效逻辑表"
+  }
+}

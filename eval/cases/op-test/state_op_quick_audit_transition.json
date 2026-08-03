@@ -1,0 +1,106 @@
+{
+  "id": "state-op-quick-audit-transition",
+  "name": "状态机：快审节点状态流转合法性",
+  "description": "验证PRD中快审节点的状态流转路径——SAVING→QUICK_AUDITING→PRE_PRE_AUDITING，确保state_machine.py正确约束非法转换",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "state_machine",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao",
+    "harnessModules": [
+      "state_machine",
+      "assertion_framework"
+    ]
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "description": "打开商家端原创保护预发首页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "screenshot",
+      "name": "op-merchant-home",
+      "description": "商家端首页截图"
+    },
+    {
+      "type": "apiCall",
+      "method": "mtop",
+      "api": "taobao.industry.yc.right.apply.detail",
+      "params": {
+        "applyId": "${testApplyId}"
+      },
+      "description": "查询测试申请单的当前状态"
+    },
+    {
+      "type": "assert",
+      "assertion": "stateTransition",
+      "stateMachine": "harness/state_machines/patent_application.yaml",
+      "from": "SAVING",
+      "to": "QUICK_AUDITING",
+      "trigger": "submit_quick_audit",
+      "description": "断言 SAVING→QUICK_AUDITING 状态转换合法"
+    },
+    {
+      "type": "assert",
+      "assertion": "stateTransition",
+      "stateMachine": "harness/state_machines/patent_application.yaml",
+      "from": "QUICK_AUDITING",
+      "to": "PRE_PRE_AUDITING",
+      "trigger": "quick_audit_pass",
+      "description": "断言 QUICK_AUDITING→PRE_PRE_AUDITING 状态转换合法"
+    },
+    {
+      "type": "assert",
+      "assertion": "stateTransitionInvalid",
+      "stateMachine": "harness/state_machines/patent_application.yaml",
+      "from": "SAVING",
+      "to": "PRE_PRE_AUDITING",
+      "trigger": "skip_quick_audit",
+      "description": "断言不允许跳过快审节点（非法转换）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "taobao.industry.yc",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "状态机YAML已定义QUICK_AUDITING节点，测试申请单处于SAVING状态",
+    "riskPoints": [
+      "状态机定义文件缺少QUICK_AUDITING节点",
+      "非法转换未被正确拦截",
+      "并发提交导致状态跳变"
+    ],
+    "relatedDocs": [
+      "harness/state_machines/patent_application.yaml",
+      "scenes/op-test/references/原创保护-测试知识库.md"
+    ],
+    "verifyFields": [
+      "output.steps[4].status == 'pass'",
+      "output.steps[5].status == 'pass'",
+      "output.steps[6].status == 'pass'"
+    ],
+    "prdSource": "原创保护-增加快审节点(2026.07.02)",
+    "prdKeyMetric": "快审通过率目标: 降低83.1%驳回率"
+  },
+  "source": null,
+  "sourceIds": null
+}

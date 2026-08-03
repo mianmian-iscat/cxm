@@ -1,0 +1,222 @@
+{
+  "id": "xiaoer-adplacement",
+  "description": "运营工作台 - 平台商品报名（广告位）",
+  "uiFramework": "react-antd",
+  "captureFilter": "/cobweb/api/bzb.api.fsyx_quality_guard",
+  "lastUpdated": "2026-04-26",
+  "initStatus": "verified",
+  "lastVerified": "2026-04-26T19:26:00+08:00",
+  "verifiedByRun": "xiaoer-adplacement-search-001-20260426112612",
+
+  "pageUrl": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement",
+  "urlPattern": "pre-xiaoer.alibaba-inc.com",
+  "urlRoute": "product-batch-registration/adPlacement",
+
+  "notes": [
+    "页面为 React + Ant Design 组件",
+    "搜索框为受控组件，fill 操作需设置 react: true",
+    "搜索按钮类名包含 searchBtn--zKU5Qdy0",
+    "筛选栏默认展开，无需额外操作",
+    "表格加载完成后显示搜索结果"
+  ],
+
+  "fields": {
+    "供给商品ID": {
+      "type": "fill",
+      "selector": "input[type='text']",
+      "selectorIndex": 0,
+      "react": true,
+      "placeholder": "请输入",
+      "note": "第一个文本输入框，用于输入供给商品ID进行搜索"
+    },
+    "商品类目": {
+      "type": "selectOption",
+      "labelClass": "ant-cascader",
+      "note": "级联选择器，选择商品类目"
+    },
+    "商品信息": {
+      "type": "fill",
+      "selector": "input[placeholder*='标题']",
+      "react": true,
+      "note": "输入商品标题或商品ID进行搜索"
+    },
+    "店铺信息": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "mode": "multiple",
+      "note": "多选下拉，选择店铺"
+    },
+    "活动报名状态": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "mode": "multiple",
+      "options": ["待报名", "报名成功", "报名失败", "已清退"],
+      "note": "多选下拉，按报名状态筛选"
+    },
+    "买手小二": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "mode": "multiple",
+      "note": "多选下拉，选择买手"
+    },
+    "招商小二": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "mode": "multiple",
+      "note": "多选下拉，选择招商"
+    },
+    "报名时间": {
+      "type": "dateRange",
+      "component": "tbd-picker tbd-picker-range",
+      "selector": ".tbd-picker.tbd-picker-range",
+      "startInput": "input[placeholder='选择日期']:nth-of-type(0)",
+      "dateCell": "td[title='YYYY-MM-DD']",
+      "note": "报入超级立减时间筛选器。操作方式：1）点击 selector 打开面板；2）点击 td[title='起始日期'] 选开始日期；3）点击 td[title='结束日期'] 选结束日期（不能与起始日期相同，否则时间区间为零等于无筛选）。坐标点击方式：getBoundingClientRect() 取中心点，用 page.mouse.click()",
+      "knownIssue": "起止日期相同时区间为零，实际无筛选效果；另有后端 Bug #81651344 导致筛选结果包含区间外数据"
+    },
+    "商品状态": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "options": ["上架", "下架"],
+      "note": "单选下拉，按商品上下架状态筛选"
+    }
+  },
+
+  "actions": {
+    "重置": {
+      "type": "clickText",
+      "text": "重置",
+      "selector": "button[class*='resetBtn']",
+      "waitAfter": 500,
+      "note": "清空所有筛选条件"
+    },
+    "搜索": {
+      "type": "clickText",
+      "text": "搜 索",
+      "selector": "button[class*='searchBtn'], button",
+      "waitAfter": 3000,
+      "note": "执行搜索，等待表格加载完成。按钮文字为'搜 索'（中间有空格），已于 2026-04-27 验证"
+    },
+    "导入商品表格": {
+      "type": "clickText",
+      "text": "导入商品表格",
+      "note": "打开导入弹窗，上传 Excel 文件批量导入"
+    }
+  },
+
+  "rowActions": {
+    "note": "每行操作按钮组。按商品ID或标题定位行，再点击对应按钮。",
+    "locateRowCode": "Array.from(document.querySelectorAll('[class*=\"ant-table-row\"]')).find(row => row.innerText?.includes(identifier))",
+    "mainButtons": {
+      "报名": "对商品执行报名操作",
+      "查看sku价格明细": "打开 SKU 详情面板",
+      "清退": "对已报名商品执行清退，弹出确认弹窗，确认按钮文字为'确认清退'"
+    }
+  },
+
+  "apis": {
+    "搜索商品列表": {
+      "name": "queryItemSuperDiscountActivity",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.queryItemSuperDiscountActivity",
+      "requestFields": {
+        "供给商品ID": "supplyItemId",
+        "商品ID": "itemId",
+        "商品标题": "itemSearchKey",
+        "店铺ID": "shopIdList[]",
+        "报名状态": "applyStatusList[]",
+        "买手工号": "buyerUserIdList[]",
+        "招商工号": "merchantUserIdList[]",
+        "报名开始时间": "applyStartDate",
+        "报名结束时间": "applyEndDate",
+        "商品状态": "itemStatus",
+        "分页": "currentPage / pageSize"
+      },
+      "responseFields": {
+        "总数": "data.data.totalCount",
+        "商品列表": "data.data.items[]",
+        "商品标题": "items[].title",
+        "商品ID": "items[].itemId",
+        "平台商品ID": "items[].platformItemId",
+        "供给商品ID": "items[].supplyItemId",
+        "报名状态": "items[].applyStatus",
+        "店铺名称": "items[].shopName",
+        "商家名称": "items[].merchantName"
+      }
+    },
+    "商品报名": {
+      "name": "applySuperDiscountActivity",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.applySuperDiscountActivity",
+      "requestFields": {
+        "商品ID": "itemId",
+        "活动ID": "activityId"
+      },
+      "responseFields": {
+        "结果": "data.success"
+      }
+    },
+    "商品清退": {
+      "name": "cancelSuperItemDiscountActivity",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.cancelSuperItemDiscountActivity",
+      "requestFields": {
+        "商品ID": "itemId",
+        "原因": "reason"
+      },
+      "responseFields": {
+        "结果": "data.success"
+      }
+    }
+  },
+
+  "assertHints": {
+    "有搜索结果": {
+      "target": "page",
+      "contains": "总共",
+      "note": "验证页面有搜索结果"
+    },
+    "无结果": {
+      "target": "page",
+      "contains": "暂无数据"
+    },
+    "验证报名成功": {
+      "target": "page",
+      "contains": "报名成功",
+      "note": "验证商品报名状态为报名成功"
+    },
+    "验证商品ID": {
+      "target": "page",
+      "contains": "1044587480343",
+      "note": "验证搜索结果中包含指定商品ID"
+    },
+    "验证报名成功-API": {
+      "target": "api",
+      "urlPattern": "queryItemSuperDiscountActivity",
+      "path": "data.data.items[?(@.itemId=='1044587480343')].applyStatus",
+      "equals": "报名成功",
+      "note": "通过 API 响应验证报名状态"
+    }
+  },
+
+  "knownIssues": [
+    "【Bug #81651344】报入时间筛选未生效：API 正确接收 applyStartDate/applyEndDate 参数，但后端返回了区间外的数据（已提 Bug，项目 1168837，工作项 81651344）",
+    "报入时间筛选器同一天起止逻辑：起始时间和终止时间默认都是 00:00:00，若选同一天则时间区间为零，实际等于无筛选。需将终止日期选为不同的一天（如今天）才能正确筛选",
+    "搜索按钮文字为'搜 索'（中间有全角/普通空格），clickText 需使用精确文字匹配",
+    "页面接口均为 /cobweb/api/bzb.api.fsyx_quality_guard.* 路径，有效 captureFilter 为 'bzb.api.fsyx_quality_guard'",
+    "请求之前可能命中应用缓存（transferSize=0）导致 CDP 抓包失败；_node_bridge.js 已全局加入 Network.setCacheDisabled(true) 修复",
+    "搜索框为 React 受控组件，必须使用 react: true 进行 fill 操作",
+    "多个下拉筛选器使用相同的 ant-select 类名，需通过 label 或 placeholder 区分",
+    "表格数据加载需要时间，搜索后建议等待 2-3 秒或 waitForAPI",
+    "导入功能需要上传 Excel 文件，文件格式有特定要求"
+  ],
+
+  "_meta": {
+    "initStatus": "verified",
+    "lastVerified": "2026-04-26T19:26:00+08:00",
+    "verifiedByRun": "xiaoer-adplacement-search-001-20260426112612",
+    "staleFields": [],
+    "totalRuns": 1,
+    "passRate": 100
+  }
+}

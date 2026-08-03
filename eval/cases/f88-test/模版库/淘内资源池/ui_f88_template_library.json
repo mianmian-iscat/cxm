@@ -1,0 +1,38 @@
+{
+  "id": "ui-f88-template-library",
+  "name": "UI：F88 淘内资源池页结构验证",
+  "description": "打开淘内资源池，验证模版资源池加载、标签筛选维度与基础信息筛选项。基于预发真实路由 /templateLibrary。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开淘内资源池页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待资源池加载" },
+    { "type": "assert", "target": "page", "contains": "模版资源池", "description": "验证淘内资源池页已加载" },
+    { "type": "assert", "target": "page", "contains": "标签筛选", "description": "验证含标签筛选区" },
+    { "type": "assert", "target": "page", "contains": "拍摄-模特维度", "description": "验证含拍摄维度标签" },
+    { "type": "assert", "target": "page", "contains": "Seller ID", "description": "验证含 Seller ID 筛选项" },
+    { "type": "screenshot", "label": "template-library", "description": "截图-淘内资源池页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /templateLibrary；模版资源池；标签筛选（设计-主品描述/搭配-配饰穿搭/拍摄-模特维度/场景维度/光影维度/构图维度/整体视觉）；筛选：Seller ID/店铺名称/Item ID/图片ID；商品表现：推荐曝光数等。",
+    "riskPoints": ["标签维度可能随配置调整"]
+  }
+}

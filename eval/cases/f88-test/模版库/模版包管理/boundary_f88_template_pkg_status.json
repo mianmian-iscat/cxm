@@ -1,0 +1,116 @@
+{
+  "id": "boundary-f88-template-pkg-status",
+  "name": "模板包 - 状态流转与并发风险点覆盖",
+  "description": "覆盖总纲风险点#15-#20：模板包状态回退IDLE→DRAFT验证、setValid并发场景、标签缓存验证",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); for (const c of cards) { const text = c.textContent; const match = text.match(/(\\d+)个/); if (match && parseInt(match[1]) > 0) { const btn = c.querySelector('button, a, span'); const detailBtn = [...c.querySelectorAll('button, a, span')].find(b => b.textContent.includes('查看详情')); if (detailBtn) { detailBtn.click(); return { clicked: true, packageCount: parseInt(match[1]) }; } } } return { clicked: false }; })()",
+      "storeAs": "detailClick",
+      "description": "点击有模板包店铺的查看详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待详情页加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "pkg-detail",
+      "description": "截图-模板包详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; return { hasStatus: text.includes('DRAFT') || text.includes('IDLE') || text.includes('审核') || text.includes('状态'), hasPackageList: text.includes('模板') || text.includes('模版') }; })()",
+      "description": "检查详情页是否展示状态信息"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const activeMatches = text.match(/使用中|激活|有效/g); return { activeCount: activeMatches ? activeMatches.length : 0, pageText: text.substring(0, 500) }; })()",
+      "storeAs": "activeInfo",
+      "description": "检查激活状态展示"
+    },
+    {
+      "type": "screenshot",
+      "label": "pkg-status-check",
+      "description": "截图-状态检查"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "返回列表"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "description": "导航到淘内资源池验证标签缓存"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; return { hasTagFilter: text.includes('标签筛选'), tagDimensions: ['设计', '搭配', '拍摄', '场景', '光影', '构图', '视觉'].filter(d => text.includes(d)) }; })()",
+      "storeAs": "tagCache",
+      "description": "验证标签维度是否正确加载（非过期缓存）"
+    },
+    {
+      "type": "screenshot",
+      "label": "tag-cache-check",
+      "description": "截图-标签缓存验证"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "template|workflow",
+    "captureBody": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。存在有模板包的店铺。",
+    "realDomNotes": "风险点#15:setValid并发竞态; #16:标签缓存永不失效; #20:状态回退IDLE→DRAFT。需通过UI+API组合验证。",
+    "riskPoints": [
+      "详情页可能无显式状态文本",
+      "并发场景需API辅助验证",
+      "缓存验证需对比前后端数据一致性"
+    ]
+  }
+}

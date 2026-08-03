@@ -1,0 +1,53 @@
+{
+  "id": "TC-SR-005",
+  "name": "TC-SR-005 — 买手审核判定规则验证 [P1]",
+  "description": "验证判定规则：单组可用≥5张为该组通过，迭代通过组数≥3组为通过，否则为驳回",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const passGroups = text.match(/(\\d+)\\s*组?通过/)?.[1]; const totalGroups = text.match(/总(\\d+)组|共(\\d+)组/)?.[1] || text.match(/(\\d+)\\/(\\d+)/)?.[2]; const verdict = text.includes('判定通过') ? 'pass' : text.includes('判定驳回') ? 'reject' : 'unknown'; return { passGroups, totalGroups, verdict }; })()",
+      "description": "读取当前判定结论",
+      "storeAs": "verdict"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasStandard = text.includes('单组') && text.includes('5'); const hasIterStandard = text.includes('3') && text.includes('组'); return { hasSingleGroupStandard: hasStandard, hasIterationStandard: hasIterStandard }; })()",
+      "description": "验证判定标准展示",
+      "storeAs": "standards"
+    },
+    {
+      "type": "screenshot",
+      "label": "buyer-verdict"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "IN_REVIEW状态，当前用户是买手",
+    "stepsText": "1. 检查判定标准展示\n2. 弃用部分图片后验证结论实时刷新\n3. 验证通过/驳回判定逻辑",
+    "expectedResult": "1. 判定标准展示：单组可用≥5张、迭代通过≥3组\n2. 当前结论随标注实时刷新\n3. 驳回时需填写整体驳回原因",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "id": "ui-f88-strategy-detail-edit-info",
+  "name": "UI：F88 策略详情编辑（说明/场景）",
+  "description": "打开策略详情页，编辑策略说明和适配场景/商家画像，保存后刷新验证数据持久化。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-initial",
+      "description": "截图-策略详情页初始状态"
+    },
+    {
+      "type": "fill",
+      "selector": "textarea[placeholder*=\"策略说明\"]",
+      "value": "自动化测试-策略说明文本",
+      "description": "填写策略说明"
+    },
+    {
+      "type": "fill",
+      "selector": "textarea[placeholder*=\"适配场景\"]",
+      "value": "自动化测试-适配场景描述",
+      "description": "填写适配场景/商家画像"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-edited",
+      "description": "截图-编辑后"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略保存完成"
+    },
+    {
+      "type": "navigate",
+      "url": "current",
+      "waitUntil": "networkidle",
+      "description": "刷新页面验证持久化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面重新加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelectorAll('textarea'); let desc = '', scene = ''; for (const t of ta) { if (t.placeholder.includes('策略说明')) desc = t.value; if (t.placeholder.includes('适配场景')) scene = t.value; } return { desc, scene, descPersisted: desc.includes('自动化测试'), scenePersisted: scene.includes('自动化测试') }; })()",
+      "storeAs": "afterRefresh",
+      "description": "检查刷新后 textarea 值是否持久化"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-refresh",
+      "description": "截图-刷新后验证"
+    }
+  ]
+}

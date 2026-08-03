@@ -1,0 +1,24 @@
+{
+  "name": "screencast",
+  "version": "1.0.0",
+  "description": "启动/停止 CDP 实时截屏流",
+  "triggers": ["截屏流", "录屏流", "screencast"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "screencast" },
+      "action": { "type": "string", "enum": ["start", "stop"], "default": "start" },
+      "format": { "type": "string", "enum": ["jpeg", "png"], "default": "jpeg" },
+      "quality": { "type": "integer", "default": 60 },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "screencastAction": { "type": "string" } } },
+  "timeout_ms": 5000,
+  "retry_policy": { "max_retries": 0 }
+}

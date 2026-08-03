@@ -1,0 +1,72 @@
+{
+  "id": "atomic-f88-qt-progress-entry",
+  "name": "UI：优质模板库-查看任务进度入口验证",
+  "description": "点击查看任务进度按钮，验证弹窗或抽屉",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开优质模板库"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "查看任务进度",
+      "description": "点击查看任务进度"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer'); return { hasModal: !!modal, hasDrawer: !!drawer }; })()",
+      "description": "验证进度展示形式",
+      "storeAs": "progressForm"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-progress-entry",
+      "description": "查看任务进度"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const close = document.querySelector('.ant-modal-close,.ant-drawer-close'); if(close) close.click(); return 'closed'; })()",
+      "description": "关闭"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在优质模板数据",
+    "realDomNotes": "展示: 任务名称/任务状态/进度/创建时间",
+    "riskPoints": []
+  }
+}

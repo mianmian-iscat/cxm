@@ -1,0 +1,104 @@
+{
+  "id": "ui-f88-task-management-tree-expand",
+  "name": "UI：任务管理-树形结构展开与数据一致性验证",
+  "description": "验证链路→批次→审核节点→任务表格的树形展开，每层数据字段完整性与文案正确性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher, [class*=switcher]'); const expandable = Array.from(arrows).filter(a => !a.classList.contains('ant-tree-switcher-noop')); return { expandableCount: expandable.length, firstArrow: expandable[0] ? 'exists' : 'none' }; })()",
+      "description": "探查可展开节点",
+      "storeAs": "treeState"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const firstArrow = document.querySelector('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); if(firstArrow) firstArrow.click(); return 'expanded'; })()",
+      "description": "展开第一个链路节点"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待子节点加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-mgmt-tree-expanded",
+      "description": "树形展开后截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const nodes = document.querySelectorAll('.ant-tree-treenode'); const levels = Array.from(nodes).map(n => { const text = n.textContent.trim().substring(0, 50); const hasChildren = n.querySelector('.ant-tree-switcher:not(.ant-tree-switcher-noop)') !== null; return { text, hasChildren }; }); return levels.slice(0, 5); })()",
+      "description": "记录展开后的节点层级",
+      "storeAs": "nodeLevels"
+    },
+    {
+      "type": "assertStore",
+      "key": "nodeLevels",
+      "path": "length",
+      "greaterThanOrEqual": 2,
+      "description": "断言展开后至少有2层节点"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); if(arrows.length >= 2) { arrows[1].click(); return 'expanded 2nd'; } return 'no 2nd arrow'; })()",
+      "description": "展开第二个节点"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tables = document.querySelectorAll('table, .ant-table'); return { tableCount: tables.length, hasTaskTable: tables.length > 0 }; })()",
+      "description": "检查任务表格是否出现",
+      "storeAs": "tableState"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-mgmt-tree-full-expanded",
+      "description": "树形完全展开截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在链路→批次→节点→任务的完整树形数据。",
+    "realDomNotes": "树形结构：链路(可展开)→批次(可展开)→审核节点(可展开)→任务表格。表头包含：任务名称/预期交付时间/审核状态&进度/抽检状态&进度/埋雷状态&进度/任务时长/操作。",
+    "riskPoints": [
+      "树形数据可能为空",
+      "展开动画需等待"
+    ]
+  }
+}

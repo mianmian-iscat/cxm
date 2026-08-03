@@ -1,0 +1,100 @@
+{
+  "id": "normal-f88-template-mgmt-card",
+  "name": "模版包管理 - 店铺卡片字段完整性",
+  "description": "验证每个店铺卡片包含完整字段：店铺名称、店铺ID、买手、模板包数量、使用状态标签、查看详情按钮",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待卡片列表完整加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card], [class*=Card]'); return { cardCount: cards.length }; })()",
+      "storeAs": "cardInfo",
+      "description": "统计卡片数量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88测试店铺",
+      "description": "验证含F88测试店铺卡片"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "2219662018344",
+      "description": "验证含店铺ID"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "阿赫",
+      "description": "验证含买手名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "使用中",
+      "description": "验证含使用中状态标签"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "未使用",
+      "description": "验证含未使用状态标签"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const matches = text.match(/\\d+个/g); return { countFormats: matches ? matches.slice(0, 5) : [] }; })()",
+      "description": "验证模板包数量格式为N个"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button, a, span'); const details = [...btns].filter(b => b.textContent.includes('查看详情')); return { detailBtnCount: details.length }; })()",
+      "storeAs": "detailBtns",
+      "description": "统计查看详情按钮数量"
+    },
+    {
+      "type": "screenshot",
+      "label": "card-structure",
+      "description": "截图-卡片结构全景"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "卡片布局非ant-table；每卡片含店铺名称/店铺ID/买手/N个模版包/使用状态标签/查看详情按钮。",
+    "riskPoints": [
+      "卡片class可能非ant-card，需用多选择器fallback",
+      "状态标签颜色可能区分使用中/未使用"
+    ]
+  }
+}

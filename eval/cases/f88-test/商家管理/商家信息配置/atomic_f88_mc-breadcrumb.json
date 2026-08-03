@@ -1,0 +1,97 @@
+{
+  "id": "atomic-f88-mc-breadcrumb",
+  "name": "UI：店铺信息配置-面包屑返回列表验证",
+  "description": "编辑页点击返回列表面包屑，验证返回列表页",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')).filter(el => el.textContent.trim() === '编辑'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "点击编辑进入表单"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待表单加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const breadcrumb = document.body.innerText.includes('店铺管理'); const hasBack = document.body.innerText.includes('返回列表'); return { hasBreadcrumb: breadcrumb, hasBackLink: hasBack }; })()",
+      "description": "验证面包屑存在",
+      "storeAs": "breadcrumb"
+    },
+    {
+      "type": "assertStore",
+      "key": "breadcrumb",
+      "path": "hasBackLink",
+      "equals": true,
+      "description": "面包屑包含返回列表"
+    },
+    {
+      "type": "clickText",
+      "text": "返回列表",
+      "description": "点击返回列表"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待列表加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const title = document.body.innerText.includes('店铺信息配置'); const hasTable = !!document.querySelector('table,.ant-table'); return { isListPage: title, hasTable }; })()",
+      "description": "验证已返回列表页",
+      "storeAs": "backResult"
+    },
+    {
+      "type": "assertStore",
+      "key": "backResult",
+      "path": "isListPage",
+      "equals": true,
+      "description": "成功返回列表页"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-breadcrumb-back",
+      "description": "返回列表页"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在店铺配置数据",
+    "realDomNotes": "面包屑: 店铺管理 / 信息配置 + 返回列表链接",
+    "riskPoints": []
+  }
+}

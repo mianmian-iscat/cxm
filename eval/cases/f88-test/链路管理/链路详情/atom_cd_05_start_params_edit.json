@@ -1,0 +1,65 @@
+{
+  "id": "atom-cd-05-start-params-edit",
+  "name": "原子：链路起点入参编辑",
+  "description": "点击起点入参的编辑按钮，验证弹出编辑弹窗，可查看/修改入参",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const headings = document.querySelectorAll('h5'); let paramsHeading = null; for (const h of headings) { if (h.textContent.includes('链路起点入参')) { paramsHeading = h; break; } } if (!paramsHeading) return { ok: false }; const container = paramsHeading.closest('div[class]'); const editBtn = container?.querySelector('button'); if (!editBtn) return { ok: false, msg: 'edit btn not found' }; editBtn.click(); return { ok: true }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "label": "params-edit-dialog"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer-open'); const target = modal || drawer; if (!target) return { type: 'none' }; return { type: modal ? 'modal' : 'drawer', text: target.innerText.substring(0, 500), hasCheckboxes: target.querySelectorAll('input[type=checkbox]').length, hasTags: target.querySelectorAll('.ant-tag').length }; })()",
+      "storeAs": "paramsDialog"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    }
+  ]
+}

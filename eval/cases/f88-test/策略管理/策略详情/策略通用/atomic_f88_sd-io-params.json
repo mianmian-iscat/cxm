@@ -1,0 +1,67 @@
+{
+  "id": "atomic-f88-sd-io-params",
+  "name": "UI：策略详情-入参出参配置验证",
+  "description": "验证策略入参Start和策略出参End节点配置",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '打开'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no open btn'; })()",
+      "description": "打开第一条策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const hasStart = t.includes('策略入参') || t.includes('Start'); const hasEnd = t.includes('策略出参') || t.includes('End'); return { hasStart, hasEnd }; })()",
+      "description": "验证入参出参节点",
+      "storeAs": "ioNodes"
+    },
+    {
+      "type": "screenshot",
+      "label": "sd-io-params",
+      "description": "入参出参配置"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在策略数据",
+    "realDomNotes": "节点编排: 策略入参Start/策略出参End/+新增节点",
+    "riskPoints": []
+  }
+}

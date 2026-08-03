@@ -1,0 +1,107 @@
+{
+  "id": "atomic-f88-node-video_upload-validation",
+  "name": "UI：视频上传节点-边界值验证(空商品ID/空视频URL/上传类型切换)",
+  "description": "验证视频上传节点的输入校验：商品ID为空时保存、视频URL为空时保存、上传类型切换",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '打开'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no open btn'; })()",
+      "description": "打开第一条策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点选择弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modals = document.querySelectorAll('.ant-modal'); for (const m of modals) { if (m.classList.contains('ant-modal-hidden')) continue; const r = m.getBoundingClientRect(); if (r.width < 200) continue; const cards = m.querySelectorAll('.ant-card-hoverable, .ant-card'); for (const card of cards) { const t = card.querySelector('.ant-card-meta-title'); if (t && t.textContent.trim() === '视频上传') { card.scrollIntoView({ block: 'center' }); card.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择视频上传节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待视频上传编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const titleItem = formItems.find(i => (i.querySelector('.ant-form-item-label')?.textContent || '').includes('标题')); if (!titleItem) return { open: true, noTitleField: true }; const titleInput = titleItem.querySelector('input, textarea'); if (!titleInput) return { open: true, noTitleInput: true }; const maxLen = titleInput.getAttribute('maxlength'); return { open: true, titleMaxLength: maxLen ? parseInt(maxLen) : null, titleTagName: titleInput.tagName }; })()",
+      "description": "检查商品ID字段是否为必填",
+      "storeAs": "itemIdField"
+    },
+    {
+      "type": "assertStore",
+      "key": "itemIdField",
+      "path": "open",
+      "equals": true,
+      "description": "编辑抽屉已打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const videoItem = formItems.find(i => { const label = (i.querySelector('.ant-form-item-label')?.textContent || ''); return label.includes('视频') && !label.includes('上传'); }); if (!videoItem) return { noVideoField: true }; const videoInput = videoItem.querySelector('input, textarea'); if (!videoInput) return { noVideoInput: true }; const placeholder = videoInput.getAttribute('placeholder') || ''; return { videoPlaceholder: placeholder, videoTagName: videoInput.tagName }; })()",
+      "description": "检查视频URL字段",
+      "storeAs": "videoField"
+    },
+    {
+      "type": "screenshot",
+      "label": "video_upload-validation",
+      "description": "边界值验证截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const c = document.querySelector('.ant-drawer:not(.ant-drawer-hidden) .ant-drawer-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭抽屉"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录",
+    "realDomNotes": "视频上传节点字段: 上传类型(Select)/商品ID(Input)/视频(Input)；无标题/文案/达人账号字段",
+    "riskPoints": [
+      "商品ID为空时保存是否报错",
+      "视频URL为空时保存是否报错",
+      "上传类型切换是否影响其他字段显隐"
+    ]
+  }
+}

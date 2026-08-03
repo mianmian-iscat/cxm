@@ -1,0 +1,43 @@
+{
+  "id": "ui-f88-task-create-modal",
+  "name": "UI：F88 新建任务弹窗-4步流程表单结构验证",
+  "description": "从任务大厅点击「新建任务」打开创建弹窗，验证4步流程（任务创建/任务基础设置/任务分配/检查设置）及第一步表单字段（任务名称/任务节点选择/上传数据）与操作按钮。基于预发真实DOM。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=test",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=test",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务大厅-测试来源tab"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务表格加载" },
+    { "type": "clickText", "text": "新建任务", "description": "点击新建任务按钮打开创建弹窗" },
+    { "type": "wait", "ms": 2500, "description": "等待弹窗与表单渲染" },
+    { "type": "assert", "target": "page", "contains": "任务创建", "description": "验证步骤1-任务创建" },
+    { "type": "assert", "target": "page", "contains": "任务基础设置", "description": "验证步骤2-任务基础设置" },
+    { "type": "assert", "target": "page", "contains": "任务分配", "description": "验证步骤3-任务分配" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证第一步含任务名称字段" },
+    { "type": "assert", "target": "page", "contains": "任务节点选择", "description": "验证含任务节点选择字段" },
+    { "type": "assert", "target": "page", "contains": "上传数据", "description": "验证含上传数据字段" },
+    { "type": "assert", "target": "page", "contains": "下一步", "description": "验证含下一步按钮" },
+    { "type": "screenshot", "label": "task-create-modal", "description": "截图-新建任务弹窗第一步" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "「新建任务」按钮无空格可clickText;弹窗标题「新建任务」,4步:1任务创建/2任务基础设置/3任务分配/4检查设置;第一步字段:任务名称(0/50)/任务节点选择/上传数据(xlsx/xls);后续步骤字段:审核标准/优先级/预期交付时间/难度预估/人效预估/职能角色/能力标签要求/参与人员/分配结果/平均分配/按商家分配/抽检是否开启/参与人/分配方式/抽检样本来源/抽检任务比例/人均抽检任务数量上限;按钮:取 消(含空格)/下一步/一键分配。",
+    "riskPoints": ["取消按钮真实文本为「取 消」含空格,clickText会失败,故用截图结束不做取消操作", "弹窗为分步表单,后续字段需点下一步才渲染"]
+  }
+}

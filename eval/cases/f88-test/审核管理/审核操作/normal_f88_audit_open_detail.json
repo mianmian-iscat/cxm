@@ -1,0 +1,91 @@
+{
+  "id": "normal-f88-audit-open-detail",
+  "name": "正常流程：F88 个人任务中心-打开审核详情抽屉",
+  "description": "进入个人任务中心，验证任务列表渲染，点击第一条任务的审核按钮，验证审核详情抽屉（.ant-drawer）出现及关键字段（审核状态/商家ID/素材大图区域）。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "个人任务中心",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证审核Tab/入口存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-list-loaded",
+      "description": "截图-任务中心列表"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "点击审核操作按钮（列表第一条任务）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待审核详情Drawer动画完成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核详情",
+      "description": "验证审核详情Drawer已打开"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-detail-drawer",
+      "description": "截图-审核详情抽屉"
+    },
+    {
+      "type": "clickText",
+      "text": "取消",
+      "description": "关闭抽屉，不提交"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在待审核任务（若无任务则步骤6~9会跳过或fail）。",
+    "realDomNotes": "审核详情使用.ant-drawer组件；Drawer内含：审核状态标签、商家名称/ID、素材图片列表、通过/驳回按钮；驳回原因为必填项。",
+    "riskPoints": [
+      "列表无任务时clickText'审核'会找不到元素",
+      "Drawer动画需等待200ms以上"
+    ]
+  }
+}

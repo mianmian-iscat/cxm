@@ -1,0 +1,25 @@
+{
+  "name": "selectOption",
+  "version": "1.0.0",
+  "description": "选择下拉选项",
+  "triggers": ["选择", "下拉", "select", "option"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "label", "option"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "selectOption" },
+      "label": { "type": "string", "description": "下拉框标签文本" },
+      "option": { "type": "string", "description": "选项文本" },
+      "labelClass": { "type": "string", "default": "tbd-formily-item-label" },
+      "multiple": { "type": "boolean", "default": false },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "selected": { "type": "string" } } },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 500 }
+}

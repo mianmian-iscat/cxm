@@ -1,0 +1,100 @@
+{
+  "id": "atomic-f88-mc-edit-form",
+  "name": "UI：店铺信息配置-编辑表单字段结构验证",
+  "description": "进入编辑表单，验证锁定字段和可编辑字段",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')).filter(el => el.textContent.trim() === '编辑'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "点击编辑进入表单"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待表单加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const disabledInputs = Array.from(document.querySelectorAll('input[disabled]')).map(i => i.getAttribute('aria-label') || i.value || '').slice(0,5); const textareas = Array.from(document.querySelectorAll('textarea')); const taInfo = textareas.map(t => ({ placeholder: t.placeholder?.substring(0,30), disabled: t.disabled, maxLen: t.getAttribute('maxlength') || t.parentElement?.textContent?.match(/(\\d+)\\s*\\/\\s*(\\d+)/)?.[2] })); const hasLockIcons = document.querySelectorAll('.anticon-lock,[class*=lock]').length; const uploadArea = !!document.querySelector('.ant-upload'); return { hasSellerID: text.includes('Seller ID'), hasShopName: text.includes('店铺名称'), hasBuyer: text.includes('负责买手'), hasShopStyle: text.includes('店铺风格'), hasSuppliers: text.includes('合作供应商'), hasCompetitors: text.includes('参考竞店'), hasVisualPref: text.includes('视觉偏好'), hasMatchPref: text.includes('搭配偏好'), hasRefImages: text.includes('参考视觉图例'), lockIconCount: hasLockIcons, textareaCount: textareas.length, textareaDetails: taInfo, hasUpload: uploadArea, hasSaveBtn: text.includes('保 存'), hasCancelBtn: text.includes('取 消') }; })()",
+      "description": "验证表单字段结构",
+      "storeAs": "formFields"
+    },
+    {
+      "type": "assertStore",
+      "key": "formFields",
+      "path": "hasSellerID",
+      "equals": true,
+      "description": "包含Seller ID字段"
+    },
+    {
+      "type": "assertStore",
+      "key": "formFields",
+      "path": "hasVisualPref",
+      "equals": true,
+      "description": "包含视觉偏好字段"
+    },
+    {
+      "type": "assertStore",
+      "key": "formFields",
+      "path": "hasMatchPref",
+      "equals": true,
+      "description": "包含搭配偏好字段"
+    },
+    {
+      "type": "assertStore",
+      "key": "formFields",
+      "path": "hasUpload",
+      "equals": true,
+      "description": "包含图片上传区域"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-edit-form-fields",
+      "description": "编辑表单完整字段"
+    },
+    {
+      "type": "clickText",
+      "text": "取 消",
+      "description": "取消返回列表"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在店铺配置数据",
+    "realDomNotes": "锁定字段(Seller ID/店铺名称/负责买手/合作供应商) + 可编辑textarea(视觉偏好4个+搭配偏好4个,各100字) + 图片上传(3:4,20MB)",
+    "riskPoints": []
+  }
+}

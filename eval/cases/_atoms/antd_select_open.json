@@ -1,0 +1,15 @@
+{
+  "id": "antd_select_open",
+  "description": "打开 Ant Design Select 下拉框（模拟 mousedown 以触发 ant 内部逻辑）。支持 scopeSelector 限定作用域。",
+  "params": [
+    { "name": "scopeSelector", "type": "string", "default": ".ant-select", "desc": "作用域选择器（如 '.ant-drawer .ant-select'）" },
+    { "name": "storeAs",       "type": "string", "default": "antdSelectState", "desc": "Store 键名" }
+  ],
+  "steps": [
+    {
+      "type": "evaluate",
+      "expression": "(() => { const scope = document.querySelector('{{scopeSelector}}'); if (!scope) return { ok: false, error: 'scope_not_found', scope: '{{scopeSelector}}' }; const currentValue = (scope.querySelector('.ant-select-selection-item')?.textContent || '').trim(); const selector = scope.querySelector('.ant-select-selector') || scope; selector.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window })); return { ok: true, currentValue, scope: '{{scopeSelector}}' }; })()",
+      "storeAs": "{{storeAs}}"
+    }
+  ]
+}

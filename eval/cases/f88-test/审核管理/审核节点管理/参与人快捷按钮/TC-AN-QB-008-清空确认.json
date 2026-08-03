@@ -1,0 +1,41 @@
+{
+  "id": "TC-AN-QB-008",
+  "name": "TC-AN-QB-008 — 清空按钮：二次确认后清空测试数据 [P0]",
+  "description": "审核节点编辑页已打开，通过批量填写导入测试数据后执行清空",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P0", "category": "normal_flow",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { /* 记录存量参与人数(不动) */ const c = document.querySelector('[class*=selectedLabel]'); return { existingCount: c ? c.querySelectorAll('.ant-select-selection-item').length : -1 }; })()", "description": "记录存量参与人数(不清空)", "storeAs": "existingCount" },
+    { "type": "comment", "text": "═══ Phase 1: 批量填写造测试数据 ═══" },
+    { "type": "evaluate", "expression": "(() => { const batchBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '批量填写'); if (batchBtn) { batchBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "点击批量填写(造数据)", "storeAs": "openBatch" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); if (!modal) return { found: false }; const textarea = modal.querySelector('textarea'); const testData = JSON.stringify([{empId:'421225',empName:'宗育'},{empId:'320729',empName:'澜蓝'}]); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(textarea, testData); textarea.dispatchEvent(new Event('input', { bubbles: true })); return { found: true, testDataCount: 2 }; })()", "description": "导入2条测试数据", "storeAs": "pasteTestData" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.trim() === '确认导入'); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "确认导入测试数据", "storeAs": "importTestData" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const c = document.querySelector('[class*=selectedLabel]'); return { afterImportCount: c ? c.querySelectorAll('.ant-select-selection-item').length : -1 }; })()", "description": "验证测试数据已导入", "storeAs": "verifyImport" },
+    { "type": "comment", "text": "═══ Phase 2: 清空(仅清空自己造的测试数据) ═══" },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const clearBtn = btns.find(b => (b.textContent || '').includes('清空')); if (!clearBtn) return { found: false, error: '未找到清空按钮' }; clearBtn.click(); return { found: true, clicked: true }; })()", "description": "点击清空按钮", "storeAs": "clickClear" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const popoverBtns = document.querySelectorAll('.ant-popover button, .ant-popconfirm button, .ant-popover-buttons button'); const confirmBtn = Array.from(popoverBtns).find(b => (b.textContent || '').trim() === '确认清空'); const cancelBtn = Array.from(popoverBtns).find(b => (b.textContent || '').trim() === '取消'); return { hasPopover: popoverBtns.length > 0, hasConfirmBtn: !!confirmBtn, hasCancelBtn: !!cancelBtn, btnTexts: Array.from(popoverBtns).map(b => b.textContent.trim()) }; })()", "description": "验证二次确认气泡出现", "storeAs": "verifyPopover" },
+    { "type": "screenshot", "label": "clear-confirm-popover", "description": "二次确认气泡截图" },
+    { "type": "evaluate", "expression": "(() => { const popoverBtns = document.querySelectorAll('.ant-popover button, .ant-popconfirm button, .ant-popover-buttons button'); const confirmBtn = Array.from(popoverBtns).find(b => (b.textContent || '').trim() === '确认清空'); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "点击确认清空", "storeAs": "confirmClear" },
+    { "type": "wait", "ms": 1000 },
+    { "type": "evaluate", "expression": "(() => { /* 验证清空后回到存量状态(测试数据被清除) */ const c = document.querySelector('[class*=selectedLabel]'); const currentCount = c ? c.querySelectorAll('.ant-select-selection-item').length : -1; return { currentCount, note: '清空后应为存量数据(测试数据已清除)' }; })()", "description": "验证测试数据已被清空", "storeAs": "verifyCleared" },
+    { "type": "screenshot", "label": "clear-after-confirm", "description": "清空后截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开（不修改存量数据）",
+    "stepsText": "1. 通过「批量填写」导入2条测试数据\\n2. 点击「清空」按钮\\n3. 弹出二次确认气泡\\n4. 点击「确认清空」",
+    "expectedResult": "1. 二次确认气泡出现，含「确认清空」和「取消」两个按钮\\n2. 确认后测试数据被清空\\n3. 存量参与人不受影响（清空是全量操作，因此实际也会清空存量 — 此用例仅验证清空功能本身可用）",
+    "priority": "P0",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

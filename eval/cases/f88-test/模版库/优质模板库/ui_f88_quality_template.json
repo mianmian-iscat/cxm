@@ -1,0 +1,39 @@
+{
+  "id": "ui-f88-quality-template",
+  "name": "UI：F88 优质模板库页结构验证",
+  "description": "打开优质模板库，验证优质模版库加载、标签筛选与批量操作/创建任务入口。基于预发真实路由 /selfTemplateLibrary_f88。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开优质模板库页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待优质模版库加载" },
+    { "type": "assert", "target": "page", "contains": "优质模版库", "description": "验证优质模板库页已加载" },
+    { "type": "assert", "target": "page", "contains": "标签筛选", "description": "验证含标签筛选区" },
+    { "type": "assert", "target": "page", "contains": "批量操作", "description": "验证含批量操作入口" },
+    { "type": "assert", "target": "page", "contains": "创建任务", "description": "验证含创建任务入口" },
+    { "type": "assert", "target": "page", "contains": "查看任务进度", "description": "验证含查看任务进度入口" },
+    { "type": "screenshot", "label": "quality-template", "description": "截图-优质模板库页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /selfTemplateLibrary_f88；优质模版库；标签筛选（同资源池维度）+洗图状态+应用场景；按钮：批量操作/查看任务进度/创建任务；筛选：模板来源/Seller ID/模板来源店铺名称/模板组ID。",
+    "riskPoints": ["洗图状态/应用场景筛选值可能变化"]
+  }
+}

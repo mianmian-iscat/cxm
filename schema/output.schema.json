@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "web-automation/output",
+  "title": "BrowserTestOutput",
+  "description": "web-automation skill 的执行结果输出结构",
+  "type": "object",
+  "required": ["id", "name", "status", "startTime", "duration", "steps", "screenshots", "capture"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "对应输入的用例 ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "用例名称"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail", "error", "login_required", "checkpoint_saved"],
+      "description": "pass=全部步骤通过；fail=有断言失败；error=执行异常；login_required=需要人工登录后重试"
+    },
+    "startTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "执行开始时间 ISO 8601"
+    },
+    "duration": {
+      "type": "integer",
+      "description": "总执行耗时（ms）"
+    },
+    "steps": {
+      "type": "array",
+      "description": "逐步执行结果",
+      "items": {
+        "type": "object",
+        "required": ["index", "type", "status", "duration"],
+        "additionalProperties": false,
+        "properties": {
+          "index": { "type": "integer", "description": "步骤序号（0-based）" },
+          "type": { "type": "string", "description": "步骤类型" },
+          "description": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["pass", "fail", "skip", "error"]
+          },
+          "duration": { "type": "integer", "description": "该步骤耗时（ms）" },
+          "screenshotPath": {
+            "type": "string",
+            "description": "该步骤截图的绝对路径（如有）"
+          },
+          "assertResult": {
+            "type": "object",
+            "description": "assert 步骤的详细结果",
+            "additionalProperties": false,
+            "properties": {
+              "expected": { "type": "string" },
+              "actual": { "type": "string" },
+              "pass": { "type": "boolean" }
+            }
+          },
+          "error": {
+            "type": "string",
+            "description": "该步骤的错误信息（如有）"
+          }
+        }
+      }
+    },
+    "screenshots": {
+      "type": "array",
+      "description": "所有截图的索引",
+      "items": {
+        "type": "object",
+        "required": ["stepIndex", "label", "path"],
+        "additionalProperties": false,
+        "properties": {
+          "stepIndex": { "type": "integer", "description": "关联的步骤序号，-1 表示 error 截图" },
+          "label": { "type": "string", "description": "截图标签" },
+          "path": { "type": "string", "description": "截图绝对路径" }
+        }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "description": "网络抓包结果",
+      "required": ["requests"],
+      "additionalProperties": false,
+      "properties": {
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "url", "status", "duration"],
+            "additionalProperties": false,
+            "properties": {
+              "method": { "type": "string" },
+              "url": { "type": "string" },
+              "status": { "type": "integer" },
+              "duration": { "type": "integer", "description": "请求耗时（ms）" },
+              "requestBody": {
+                "description": "请求体，JSON 则为对象，否则为字符串",
+                "oneOf": [{ "type": "object" }, { "type": "string" }, { "type": "null" }]
+              },
+              "responseBody": {
+                "description": "响应体，JSON 则为对象，否则为字符串",
+                "oneOf": [{ "type": "object" }, { "type": "string" }, { "type": "null" }]
+              }
+            }
+          }
+        },
+        "harPath": {
+          "type": "string",
+          "description": "HAR 文件绝对路径（exportHAR=true 时才有）"
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "description": "status=checkpoint_saved 时存在，包含续跑所需信息",
+      "additionalProperties": false,
+      "properties": {
+        "runId": { "type": "string", "description": "当前 run ID，续跑时传入 --resume" },
+        "completedSteps": { "type": "integer", "description": "已完成的步骤数" },
+        "totalSteps": { "type": "integer", "description": "总步骤数" },
+        "remainingSteps": { "type": "integer", "description": "剩余步骤数" },
+        "nextSegmentStart": { "type": "integer", "description": "下一段从第几步开始（0-based）" },
+        "stateFile": { "type": "string", "description": "state.json 的绝对路径" }
+      }
+    },
+    "error": {
+      "type": "object",
+      "description": "执行异常信息（status=error 或 login_required 时才有）",
+      "additionalProperties": false,
+      "properties": {
+        "stepIndex": { "type": "integer", "description": "出错的步骤序号，-1 表示连接阶段" },
+        "message": { "type": "string" },
+        "stack": { "type": "string" },
+        "loginType": {
+          "type": "string",
+          "enum": ["buc", "taobao", "unknown"],
+          "description": "login_required 时标明登录类型"
+        },
+        "currentUrl": {
+          "type": "string",
+          "description": "login_required 时的当前页面 URL"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "度量指标摘要（详见 metrics_report.json）",
+      "additionalProperties": false,
+      "properties": {
+        "businessType": { "type": "string", "description": "业务类型标识" },
+        "taskSuccessRate": { "type": "number", "description": "任务成功率 (0~1)" },
+        "avgDurationMs": { "type": "integer", "description": "平均任务耗时（ms）" },
+        "totalTokenUsed": { "type": "integer", "description": "总 Token 消耗" },
+        "llmConfidenceAvg": { "type": ["number", "null"], "description": "LLM 决策置信度均值" },
+        "selfHealSuccessRate": { "type": ["number", "null"], "description": "自愈成功率" },
+        "falsePositiveRate": { "type": "number", "description": "误报率 (0~1)" },
+        "visualEvidenceScore": { "type": "number", "description": "视觉取证完整率 (0~1)" },
+        "fullReportPath": { "type": "string", "description": "完整度量报告文件路径" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Harness 证据链摘要",
+      "properties": {
+        "traceId": { "type": "string", "description": "追踪 ID" },
+        "evidenceCount": { "type": "integer", "description": "证据条数" },
+        "validatedCount": { "type": "integer", "description": "通过 schema 校验的步骤数" },
+        "errorCount": { "type": "integer", "description": "有错误的步骤数" },
+        "totalDurationMs": { "type": "integer", "description": "总耗时（ms）" },
+        "conclusion": { "type": "string", "description": "诊断/执行结论" }
+      }
+    },
+    "assertions": {
+      "type": "object",
+      "description": "Harness 三层断言结果摘要",
+      "properties": {
+        "total": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "criticalFailures": { "type": "integer" },
+        "phases": { "type": "object" }
+      }
+    }
+  }
+}

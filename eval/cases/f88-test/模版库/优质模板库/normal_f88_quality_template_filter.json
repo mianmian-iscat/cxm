@@ -1,0 +1,333 @@
+{
+  "id": "normal_f88_quality_template_filter",
+  "name": "优质模板库 - 筛选专项(4筛选+洗图状态+应用场景+标签+重置)",
+  "description": "覆盖优质模板库全部筛选功能：4个基础筛选(模板来源Select/Seller ID/店铺名称/模板组ID)+洗图状态筛选+应用场景筛选+7维度标签+重置按钮+筛选结果验证。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "quality-template",
+    "filter",
+    "regression"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 4000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "description": "打开优质模板库页面"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "验证租户身份"
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder], input.ant-input'); const selects = document.querySelectorAll('.ant-select'); const labels = document.querySelectorAll('label, .ant-form-item-label, [class*=label], [class*=filter-title]'); const btns = document.querySelectorAll('button, .ant-btn'); return { inputCount: inputs.length, inputs: Array.from(inputs).map(i=>({placeholder:i.placeholder,type:i.type})), selectCount: selects.length, selectTexts: Array.from(selects).map(s=>s.querySelector('.ant-select-selection-item,.ant-select-selection-placeholder')?.textContent?.trim()||''), labels: Array.from(labels).map(l=>l.textContent.trim()).filter(Boolean).slice(0,15), hasReset: Array.from(btns).some(b=>/重置/.test(b.textContent)), buttonLabels: Array.from(btns).map(b=>b.textContent.trim()).filter(Boolean).slice(0,10) }; })()",
+      "description": "探查全部筛选组件: Input/Select/Label/重置按钮"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|library|filter|search|wash",
+      "description": "开始网络抓包-监控筛选API"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=card],[class*=template],[class*=thumb],[class*=item]'); const checkboxes = document.querySelectorAll('input[type=checkbox]'); return { initialCardCount: cards.length, initialCheckboxCount: checkboxes.length }; })()",
+      "description": "记录初始卡片/checkbox数量(筛选前基准)"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "selectorIndex": 0,
+      "data-test-target": "filter-template-source",
+      "description": "展开模板来源Select(AntD需mouse.click)",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')).map(el=>el.textContent)",
+      "description": "获取模板来源选项列表",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "/(淘内|优质|自有|外部)/",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择第一个模板来源选项",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-template-source",
+      "description": "截图-模板来源筛选后",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=card],[class*=template],[class*=thumb],[class*=item]'); return { countAfterSourceFilter: cards.length }; })()",
+      "description": "统计模板来源筛选后卡片数量",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "data-test-target": "reset-btn",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='Seller'], input[placeholder*='seller']",
+      "value": "2219662018344",
+      "react": true,
+      "data-test-target": "filter-seller-id",
+      "description": "填充Seller ID筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-seller-id",
+      "description": "截图-Seller ID筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='店铺名称'], input[placeholder*='店铺']",
+      "value": "F88测试",
+      "react": true,
+      "data-test-target": "filter-shop-name",
+      "description": "填充店铺名称筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-shop-name",
+      "description": "截图-店铺名称筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='模板组'], input[placeholder*='组ID']",
+      "value": "10086",
+      "react": true,
+      "data-test-target": "filter-group-id",
+      "description": "填充模板组ID筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-group-id",
+      "description": "截图-模板组ID筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder]'); const hasValue = Array.from(inputs).some(i => i.value && i.value.trim()); return { allCleared: !hasValue, inputValues: Array.from(inputs).map(i=>({placeholder:i.placeholder,value:i.value})) }; })()",
+      "description": "验证重置后所有筛选条件已清空"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const radios = document.querySelectorAll('.ant-radio-button-wrapper, .ant-radio-wrapper, [class*=radio]'); const tabs = document.querySelectorAll('.ant-tabs-tab'); const hasWashStatus = Array.from(document.body.querySelectorAll('*')).some(el => /洗图状态/.test(el.textContent)); return { hasWashStatus, radioCount: radios.length, radioTexts: Array.from(radios).map(r=>r.textContent.trim()).filter(Boolean).slice(0,10), tabCount: tabs.length }; })()",
+      "description": "探查洗图状态筛选形式(Radio/Tab/Select)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const radio = document.querySelector('.ant-radio-button-wrapper, .ant-radio-wrapper'); if(radio) { radio.click(); return { clicked: true, text: radio.textContent.trim() }; } return { clicked: false }; })()",
+      "data-test-target": "wash-status-filter",
+      "description": "点击洗图状态筛选选项",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-wash-status",
+      "description": "截图-洗图状态筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const hasAppScene = Array.from(document.body.querySelectorAll('*')).some(el => /应用场景/.test(el.textContent)); return { hasAppSceneFilter: hasAppScene }; })()",
+      "description": "探查应用场景筛选是否存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select'); const appSel = Array.from(selects).find(s => { const prev = s.previousElementSibling; const label = prev?.textContent || s.querySelector('.ant-select-selection-placeholder')?.textContent || ''; return /应用场景|场景/.test(label); }); if(appSel) { appSel.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "data-test-target": "app-scene-filter",
+      "description": "点击应用场景筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-app-scene",
+      "description": "截图-应用场景筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dims = ['设计','搭配','拍摄','场景','光影','构图','视觉']; const tags = document.querySelectorAll('[class*=tag], .ant-tag, [class*=dimension]'); return { tagCount: tags.length, tagTexts: Array.from(tags).map(t=>t.textContent.trim()).filter(Boolean).slice(0,15), dimFound: dims.map(d => ({dim:d, found: Array.from(tags).some(t=>t.textContent.includes(d))})) }; })()",
+      "description": "检查7维度标签渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tag = document.querySelector('[class*=tag], .ant-tag, [class*=dimension]'); if(tag) { tag.click(); return { clicked: true, text: tag.textContent.trim() }; } return { clicked: false }; })()",
+      "data-test-target": "tag-filter-click",
+      "description": "点击第一个标签维度",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待标签筛选",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-tag-filtered",
+      "description": "截图-标签筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "最终重置"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder]'); const hasValue = Array.from(inputs).some(i => i.value && i.value.trim()); return { finalCleared: !hasValue }; })()",
+      "description": "最终验证重置清空"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "qf-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "优质模板库筛选专项: ①模板来源(Select, AntD mouse.click) ②Seller ID(fill react:true) ③店铺名称(fill react:true) ④模板组ID(fill react:true) ⑤洗图状态(Radio/Tab/Select) ⑥应用场景(Select) ⑦7维度标签 ⑧重置按钮。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，优质模板库存在数据"
+}

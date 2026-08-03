@@ -1,0 +1,82 @@
+{
+  "id": "smoke-aifashion-filter",
+  "name": "冒烟：AI Fashion 选款页筛选链路",
+  "description": "验证选款页能加载、价格筛选可填写、搜索按钮可点击",
+  "businessType": "unknown",
+  "scene": "aifashion",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "sellerhome-myseller.taobao.com",
+    "url": "https://pre-sellerhome-myseller.taobao.com/home.htm/afd/home/styleSelection"
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "选款",
+      "description": "验证选款页已渲染"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='最低价']",
+      "selectorIndex": 0,
+      "value": "100",
+      "description": "填写最低价"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='最高价']",
+      "selectorIndex": 0,
+      "value": "200",
+      "description": "填写最高价"
+    },
+    {
+      "type": "clickText",
+      "text": "搜 索",
+      "description": "点击搜索（注意含空格）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "aifashion-filter-result",
+      "description": "筛选结果截图"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "款式",
+      "description": "验证结果页有「款式」字样（有数据或无数据提示均可）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "api/afd/",
+    "captureBody": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "淘宝商家账号已登录",
+    "riskPoints": [
+      "选款页加载超时",
+      "筛选组件未渲染"
+    ]
+  },
+  "source": null,
+  "sourceIds": null,
+  "_note": "预发账号可能无款式数据，但链路（填价格→搜索→结果渲染）必须通"
+}

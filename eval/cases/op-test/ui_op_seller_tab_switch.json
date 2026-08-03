@@ -1,0 +1,43 @@
+{
+  "id": "ui-op-seller-tab-switch",
+  "name": "UI：原创保护商家端-保护模式Tab切换验证（全网专利保护/淘内首发保护）",
+  "description": "验证商家端首页两大模式Tab切换功能：点击「全网专利保护」和「淘内首发保护」Tab，检查列表数据是否更新、保护步骤引导是否变化、状态筛选项是否不同。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 5000,
+    "auth": "taobao"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开商家端首页" },
+    { "type": "wait", "ms": 5000, "description": "等待首页加载" },
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护", "description": "验证首页已加载" },
+
+    { "type": "assert", "target": "page", "contains": "全网专利保护", "description": "【Tab1】验证含全网专利保护Tab" },
+    { "type": "assert", "target": "page", "contains": "淘内首发保护", "description": "【Tab2】验证含淘内首发保护Tab" },
+
+    { "type": "clickText", "text": "淘内首发保护", "description": "切换到淘内首发保护Tab" },
+    { "type": "wait", "ms": 3000, "description": "等待Tab切换后数据加载" },
+    { "type": "screenshot", "label": "seller-tab-first-publish", "description": "截图-淘内首发保护Tab" },
+
+    { "type": "clickText", "text": "全网专利保护", "description": "切回全网专利保护Tab" },
+    { "type": "wait", "ms": 3000, "description": "等待Tab切换后数据加载" },
+    { "type": "screenshot", "label": "seller-tab-patent", "description": "截图-全网专利保护Tab" },
+
+    { "type": "assert", "target": "page", "contains": "专利保护中", "description": "【状态筛选】验证Tab切换后状态筛选仍可见" },
+    { "type": "assert", "target": "page", "contains": "商品信息", "description": "【表格列】验证Tab切换后表格列仍可见" },
+    { "type": "assert", "assertion": "paginationConsistency", "expected": "分页总数 vs 每页条数 vs 当前页实际行数一致", "description": "【数据一致性】Tab切换后校验分页一致性" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "淘宝SSO已登录商家端。",
+    "realDomNotes": "商家端首页含两大模式Tab：全网专利保护（默认）和淘内首发保护。切换Tab后列表数据、保护步骤引导、状态筛选项可能不同。",
+    "riskPoints": ["Tab切换后列表数据可能不同", "保护步骤文案可能随Tab变化", "部分Tab可能无数据"]
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "id": "settlement-post-subsidy-terminate",
+  "name": "结算资金流：补贴后终止/驳回/取消（补贴已发，不返回服务次数）",
+  "description": "验证10个补贴后终止场景，分3组：①补贴后国知局驳回(4)：首发/非首发 × 受理节点/补充材料节点，退商家500-302=198或500-202=298（测试0.04/0.06），不收官费；②补贴后商家终止(2)：首发/非首发，同①规则；③补贴后YC取消(4)：首发/非首发 × 补充材料/审核通过节点，同①规则。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P2",
+  "category": "regression",
+  "source": "dingtalk-spreadsheet/6LeBq413JA9BOdm2iBjQdjE7JDOnGvpb Sheet1 Row15-28",
+  "sourceIds": [
+    "TC_SETTLE_POST_001",
+    "TC_SETTLE_POST_002",
+    "TC_SETTLE_POST_003",
+    "TC_SETTLE_POST_004",
+    "TC_SETTLE_POST_005",
+    "TC_SETTLE_POST_006",
+    "TC_SETTLE_POST_007",
+    "TC_SETTLE_POST_008",
+    "TC_SETTLE_POST_009",
+    "TC_SETTLE_POST_010"
+  ],
+  "context": {
+    "type": "db",
+    "dbGroup": "scenario",
+    "dbEnv": "prod",
+    "script": "scripts/verify_settlement.py"
+  },
+  "scenarios": {
+    "补贴后国知局驳回": [
+      {
+        "id": "TC_SETTLE_POST_001",
+        "name": "受理节点+首发→补贴0.06→驳回",
+        "applyId": "200000342",
+        "orderId": "322055800420271",
+        "expected": {
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 4,
+          "note": "退商家 total-补贴 = 10-6 = 4分（0.04元），不收官费"
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_002",
+        "name": "受理节点+非首发→补贴0.04→驳回",
+        "applyId": "200000341",
+        "orderId": "322055800410271",
+        "expected": {
+          "init_allowance_amount": 4,
+          "serv_finish_refund_amount": 6,
+          "note": "退商家 10-4 = 6分（0.06元），不收官费"
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_003",
+        "name": "补充材料+首发→补贴0.06→驳回",
+        "applyId": "200000344",
+        "orderId": "322055800440271",
+        "expected": {
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 4
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_004",
+        "name": "补充材料+非首发→补贴0.04→驳回",
+        "applyId": "200000343",
+        "orderId": "322055800430271",
+        "expected": {
+          "init_allowance_amount": 4,
+          "serv_finish_refund_amount": 6
+        }
+      }
+    ],
+    "补贴后商家终止": [
+      {
+        "id": "TC_SETTLE_POST_005",
+        "name": "补充材料+首发→补贴0.06→商家终止",
+        "applyId": "200000340",
+        "orderId": "322056100330271",
+        "expected": {
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 4,
+          "note": "不返回服务次数，退商家500-302=198（测试4分）"
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_006",
+        "name": "补充材料+非首发→补贴0.04→商家终止",
+        "applyId": "200000339",
+        "orderId": "322056100320271",
+        "expected": {
+          "init_allowance_amount": 4,
+          "serv_finish_refund_amount": 6
+        }
+      }
+    ],
+    "补贴后YC取消": [
+      {
+        "id": "TC_SETTLE_POST_007",
+        "name": "补充材料+首发→补贴0.06→YC取消",
+        "applyId": "200000338",
+        "orderId": "322056100310271",
+        "expected": {
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 4
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_008",
+        "name": "补充材料+非首发→补贴0.04→YC取消",
+        "applyId": "200000331",
+        "orderId": "322056100280271",
+        "expected": {
+          "init_allowance_amount": 4,
+          "serv_finish_refund_amount": 6
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_009",
+        "name": "审核通过+首发→补贴0.06→YC取消",
+        "applyId": "200000330",
+        "orderId": "321687804510271",
+        "expected": {
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 4
+        }
+      },
+      {
+        "id": "TC_SETTLE_POST_010",
+        "name": "审核通过+非首发→补贴0.04→YC取消",
+        "applyId": "200000328",
+        "orderId": "321775904870271",
+        "expected": {
+          "init_allowance_amount": 4,
+          "serv_finish_refund_amount": 6
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && for id in 200000342 200000341 200000344 200000343 200000340 200000339 200000338 200000331 200000330 200000328; do python3 scripts/verify_settlement.py $id; done",
+      "description": "逐条执行10个补贴后终止场景的DB结算校验"
+    }
+  ],
+  "post_asserts": [
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, settle_status, init_allowance_amount, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000342,200000341,200000344,200000343,200000340,200000339,200000338,200000331,200000330,200000328) AND is_deleted=0 AND settle_status='FINISH'",
+      "expectCount": 10,
+      "description": "补贴后终止的10条结算单都应为FINISH"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, init_allowance_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000342,200000344,200000340,200000338,200000330) AND is_deleted=0 AND settle_status='FINISH' AND init_allowance_amount=6",
+      "expectCount": 5,
+      "description": "首发场景补贴=6分"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, init_allowance_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000341,200000343,200000339,200000331,200000328) AND is_deleted=0 AND settle_status='FINISH' AND init_allowance_amount=4",
+      "expectCount": 5,
+      "description": "非首发场景补贴=4分"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "10个专利申请已走完补贴流程（init_allowance已完成），随后被驳回/终止/取消",
+    "riskPoints": [
+      "补贴后终止不返回服务次数（vs 补贴前取消返回次数）",
+      "首发补贴6分 vs 非首发4分 不能搞反",
+      "退商家金额 = total - 补贴（测试环境10-6=4或10-4=6）",
+      "不收官费（165/2分不参与）",
+      "资金流水方向：服务市场垫付账户 → 商家（非服饰主体直接退）"
+    ],
+    "prdRef": "PRD结算规则表-补贴后行：驳回/商家终止/YC终止 → 系统触发服务市场垫付退回商家500-302/500-202"
+  }
+}

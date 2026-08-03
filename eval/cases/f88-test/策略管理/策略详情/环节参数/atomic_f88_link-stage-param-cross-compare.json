@@ -1,0 +1,217 @@
+{
+  "id": "atomic-f88-link-stage-param-cross-compare",
+  "name": "UI：环节参数详情-多环节入参对比(刷标签vs首图生图)",
+  "description": "验证不同环节的入参配置存在差异：刷标签环节是链路起点(无前序依赖)，首图生图环节依赖刷标签的出参(含season_tag/style_tag)",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "打开链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const paramSpans = spans.filter(s => (s.textContent || '').trim() === '入参'); const results = paramSpans.map((span, idx) => { const rect = span.getBoundingClientRect(); const card = span.closest('[class*=card], [class*=Card], [class*=stage], [class*=Stage]') || span.parentElement?.parentElement?.parentElement; return { idx, cardText: (card?.textContent || '').substring(0, 80), x: rect.x + rect.width/2, y: rect.y + rect.height/2, visible: rect.y > 0 }; }); return { total: results.length, spans: results }; })()",
+      "description": "获取所有入参span及其环节上下文",
+      "storeAs": "allParamLinks"
+    },
+    {
+      "type": "assertStore",
+      "key": "allParamLinks",
+      "path": "total",
+      "gte": 2,
+      "description": "至少2个环节(刷标签+首图生图)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const paramSpans = spans.filter(s => (s.textContent || '').trim() === '入参'); const first = paramSpans[0]; if (!first) return { found: false }; first.scrollIntoView({ block: 'center' }); const r = first.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "滚动到第1个环节(刷标签)并入参",
+      "storeAs": "stage1Link"
+    },
+    {
+      "type": "click",
+      "description": "打开刷标签环节参数详情",
+      "useCoordinates": true,
+      "coordinateSource": "stage1Link"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const text = drawer.textContent || ''; const allParams = ['seller_id', 'seed_image_url', 'tao_cate', 'item_id', 'back_img_url', 'skc_img_url', 'season_tag', 'style_tag', 'main_img_url', 'template_image_url']; const inputIdx = text.indexOf('入参取值配置'); const strategyIdx = text.indexOf('策略列表'); const inputSection = text.substring(inputIdx >= 0 ? inputIdx : 0, strategyIdx >= 0 ? strategyIdx : text.length); const found = allParams.filter(p => inputSection.includes(p)); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); return { open: true, stage: '刷标签', inputParams: found, inputParamCount: found.length, strategyCount: wrappers.length, hasTemplateSyntax: inputSection.includes('{{'), hasSeasonTag: found.includes('season_tag'), hasStyleTag: found.includes('style_tag'), fullInputSection: inputSection.substring(0, 500) }; })()",
+      "description": "提取刷标签环节入参",
+      "storeAs": "stage1Params"
+    },
+    {
+      "type": "assertStore",
+      "key": "stage1Params",
+      "path": "open",
+      "equals": true,
+      "description": "刷标签弹窗已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "stage1Params",
+      "path": "inputParamCount",
+      "gte": 3,
+      "description": "刷标签环节至少有3个入参"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn1"
+    },
+    {
+      "type": "click",
+      "description": "关闭刷标签弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn1"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待关闭+页面稳定"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const paramSpans = spans.filter(s => (s.textContent || '').trim() === '入参'); const second = paramSpans[1]; if (!second) return { found: false }; second.scrollIntoView({ block: 'center' }); const r = second.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "滚动到第2个环节(首图生图)并入参",
+      "storeAs": "stage2Link"
+    },
+    {
+      "type": "click",
+      "description": "打开首图生图环节参数详情",
+      "useCoordinates": true,
+      "coordinateSource": "stage2Link"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const text = drawer.textContent || ''; const allParams = ['seller_id', 'seed_image_url', 'tao_cate', 'item_id', 'back_img_url', 'skc_img_url', 'season_tag', 'style_tag', 'main_img_url', 'template_image_url']; const inputIdx = text.indexOf('入参取值配置'); const strategyIdx = text.indexOf('策略列表'); const inputSection = text.substring(inputIdx >= 0 ? inputIdx : 0, strategyIdx >= 0 ? strategyIdx : text.length); const found = allParams.filter(p => inputSection.includes(p)); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); return { open: true, stage: '首图生图', inputParams: found, inputParamCount: found.length, strategyCount: wrappers.length, hasTemplateSyntax: inputSection.includes('{{'), hasSeasonTag: found.includes('season_tag'), hasStyleTag: found.includes('style_tag'), fullInputSection: inputSection.substring(0, 500) }; })()",
+      "description": "提取首图生图环节入参",
+      "storeAs": "stage2Params"
+    },
+    {
+      "type": "assertStore",
+      "key": "stage2Params",
+      "path": "open",
+      "equals": true,
+      "description": "首图生图弹窗已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "stage2Params",
+      "path": "inputParamCount",
+      "gte": 3,
+      "description": "首图生图环节至少有3个入参"
+    },
+    {
+      "type": "assertStore",
+      "key": "stage2Params",
+      "path": "strategyCount",
+      "gte": 2,
+      "description": "首图生图环节至少有2个策略(4路并行)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s1 = store.stage1Params; const s2 = store.stage2Params; if (!s1 || !s2 || !s1.inputParams || !s2.inputParams) return { canCompare: false }; const s1Set = new Set(s1.inputParams); const s2Set = new Set(s2.inputParams); const onlyInS1 = s1.inputParams.filter(p => !s2Set.has(p)); const onlyInS2 = s2.inputParams.filter(p => !s1Set.has(p)); const common = s1.inputParams.filter(p => s2Set.has(p)); const paramsDiffer = onlyInS1.length > 0 || onlyInS2.length > 0; return { canCompare: true, stage1Count: s1.inputParamCount, stage2Count: s2.inputParamCount, common, onlyInStage1: onlyInS1, onlyInStage2: onlyInS2, paramsDiffer, stage1Strategies: s1.strategyCount, stage2Strategies: s2.strategyCount, strategyCountDiffer: s1.strategyCount !== s2.strategyCount }; })()",
+      "description": "对比两个环节的入参差异",
+      "storeAs": "comparison"
+    },
+    {
+      "type": "assertStore",
+      "key": "comparison",
+      "path": "canCompare",
+      "equals": true,
+      "description": "两个环节数据均可比较"
+    },
+    {
+      "type": "assertStore",
+      "key": "comparison",
+      "path": "common",
+      "gte": 2,
+      "description": "至少有2个公共入参(seller_id/seed_image_url等)"
+    },
+    {
+      "type": "assertStore",
+      "key": "comparison",
+      "path": "stage2Count",
+      "gte": "store.comparison.stage1Count",
+      "description": "首图生图入参数≥刷标签入参数(下游环节依赖上游出参)"
+    },
+    {
+      "type": "assertStore",
+      "key": "comparison",
+      "path": "strategyCountDiffer",
+      "equals": true,
+      "description": "两环节策略数量不同(刷标签1策略 vs 首图生图4策略)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn2"
+    },
+    {
+      "type": "click",
+      "description": "关闭弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn2"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-param-cross-compare",
+      "description": "多环节入参对比验证截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180存在；至少2个环节",
+    "realDomNotes": "刷标签环节(第1环节): 链路起点,无前序依赖,1个策略; 首图生图环节(第2环节): 依赖刷标签出参(season_tag/style_tag),4个策略",
+    "riskPoints": [
+      "不同环节入参字段集是否有差异(下游环节应多出上游计算字段)",
+      "策略数量是否正确(1 vs 4)",
+      "滚动后入参span坐标是否更新"
+    ],
+    "crossStageLogic": "链路DAG中上游环节的出参=下游环节的入参基础,因此不同环节入参字段集应有差集"
+  }
+}

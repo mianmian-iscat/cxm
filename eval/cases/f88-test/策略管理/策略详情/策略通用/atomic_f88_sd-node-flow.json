@@ -1,0 +1,78 @@
+{
+  "id": "atomic-f88-sd-node-flow",
+  "name": "UI：策略详情-节点编排流程验证",
+  "description": "验证策略详情节点编排：Start→节点1→节点2→End流程结构",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10568"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10568",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const hasStart = t.includes('Start'); const hasEnd = t.includes('End'); const hasNodeSection = t.includes('节点编排'); const addNodeBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('新增节点')); const editHint = t.includes('点击下方每个节点编辑详情'); return { hasStart, hasEnd, hasNodeSection, hasAddNodeBtn: !!addNodeBtn, hasEditHint: editHint }; })()",
+      "description": "验证节点编排",
+      "storeAs": "flowInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "flowInfo",
+      "path": "hasStart",
+      "equals": true,
+      "description": "验证Start节点存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "flowInfo",
+      "path": "hasEnd",
+      "equals": true,
+      "description": "验证End节点存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "flowInfo",
+      "path": "hasNodeSection",
+      "equals": true,
+      "description": "验证节点编排区域存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "sd-node-flow",
+      "description": "节点编排流程"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "Start(策略入参)→中间节点→End(策略出参+落库配置)",
+    "riskPoints": []
+  }
+}

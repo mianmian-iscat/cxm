@@ -1,0 +1,71 @@
+{
+  "id": "boundary-f88-slot-material-types",
+  "name": "边界条件：商品详情页槽位素材类型全覆盖验证",
+  "description": "验证生产链路支持输出全部槽位素材类型：主图5-8张、白底平铺图1-2张、背面图1-2张、skc图1-2张、一衣多搭2-4张、模特试穿图1-2张，且各类型带有明确标识",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 50, "outputCompact": true },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait", "ms": 2000, "description": "等待生产看板加载"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "主图",
+      "description": "验证主图素材类型标识存在"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "白底平铺图",
+      "description": "验证白底平铺图素材类型标识存在"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "背面图",
+      "description": "验证背面图素材类型标识存在"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "skc图",
+      "description": "验证skc图素材类型标识存在"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "一衣多搭",
+      "description": "验证一衣多搭图素材类型标识存在"
+    },
+    {
+      "type": "assert", "target": "page", "contains": "模特试穿",
+      "description": "验证模特试穿图素材类型标识存在"
+    },
+    {
+      "type": "screenshot", "label": "slot-material-types", "description": "截图 - 槽位素材类型全覆盖"
+    }
+  ],
+  "capture": { "enabled": true, "filter": "bzb.api.fsyx_quality_guard", "captureBody": true },
+  "screenshot": { "onError": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录，存在已完成生产的任务数据",
+    "riskPoints": [
+      "各槽位素材数量范围：主图5-8张、白底平铺图1-2张、背面图1-2张、skc图1-2张、一衣多搭2-4张、模特试穿图1-2张",
+      "固定prompt字段标识：【主图素材】【白底平铺图素材】【背面图素材】【skc图素材】【一衣多搭图素材】【模特试穿图素材】",
+      "接口出参需包含图片url数据类型标识",
+      "标准接口入参支持供应商itemid或平台品itemid"
+    ],
+    "boundaryType": "pagination",
+    "relatedDocs": ["F88主图素材供给产品方案 v3.0 20260623"]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

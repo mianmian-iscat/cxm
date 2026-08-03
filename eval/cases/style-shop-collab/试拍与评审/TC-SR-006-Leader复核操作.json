@@ -1,0 +1,53 @@
+{
+  "id": "TC-SR-006",
+  "name": "TC-SR-006 — Leader复核三种决策 [P0]",
+  "description": "验证Leader复核：确认通过(归档)、确认驳回(重拍)、打回买手，按买手结论展示可用action",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const btns = Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim()); const confirmPass = btns.find(b => b.includes('确认通过')); const confirmReject = btns.find(b => b.includes('确认驳回')); const returnBuyer = btns.find(b => b.includes('打回买手')); const defaultView = text.includes('结果视图'); return { confirmPass: !!confirmPass, confirmReject: !!confirmReject, returnBuyer: !!returnBuyer, defaultResultView: defaultView, allBtns: btns.slice(0, 15) }; })()",
+      "description": "验证Leader复核操作按钮",
+      "storeAs": "leaderActions"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasReviewRecord = text.includes('评审记录') || text.includes('买手判定'); const isReadonly = !document.querySelector('[class*=discard-action], button[class*=discard]'); return { hasReviewRecord, isReadonly }; })()",
+      "description": "验证Leader只读属性",
+      "storeAs": "readonly"
+    },
+    {
+      "type": "screenshot",
+      "label": "leader-review"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为PENDING_LEADER，当前用户是Leader",
+    "stepsText": "1. 验证默认进入结果视图\n2. 检查操作按钮按买手结论展示\n3. 验证Leader不支持单图操作\n4. 验证评审记录组件展示",
+    "expectedResult": "1. 默认进入结果视图\n2. 买手判定通过时展示：确认通过、打回买手\n3. 买手判定驳回时展示：确认驳回、打回买手\n4. Leader不支持单图/整组弃用操作\n5. 评审记录组件展示买手结论和历史",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

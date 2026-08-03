@@ -1,0 +1,76 @@
+{
+  "id": "xm-16-小二端PatentDetail转回Modal写死mocky-URL",
+  "name": "小二端PatentDetail转回Modal写死mocky URL",
+  "description": "小二端发起转回",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "module": "05-专利回转与到期",
+  "page": "小二端",
+  "testScope": "ui",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/05-专利回转与到期",
+  "sourceIds": [
+    "05-专利回转与到期/小二端/xm-16-小二端PatentDetail转回Modal写死mocky-URL"
+  ],
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const checks = [\"上传到真实接口而非mock\"]; const results = checks.map(c => ({ check: c, found: text.includes(c) })); const passCount = results.filter(r => r.found).length; return { totalChecks: checks.length, passCount, results, pageTextPreview: text.substring(0, 300) }; })()",
+      "description": "验证预期结果",
+      "storeAs": "resultCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "小二端发起转回",
+    "stepsText": "1.检查上传URL",
+    "expectedResult": "上传到真实接口而非mock",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": [
+      "小二端#13"
+    ],
+    "relatedDocs": [],
+    "sourceType": "xmind",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/yc-protection-qa-workbench/skills/原创保护用例生成/references/test-cases/05-专利回转与到期.xmind，2026-07-11T05:02:12.794241"
+  }
+}

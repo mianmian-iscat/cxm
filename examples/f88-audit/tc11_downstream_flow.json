@@ -1,0 +1,203 @@
+{
+  "id": "f88-audit-tc11",
+  "name": "TC11 - 编辑后审核通过 → 下游流转验证（数据链路完整性）",
+  "description": "验证审核通过后图片URL正确传递到下游节点（算法过滤、套图生产等）。关键数据链路：审核确认 → output_json(passedImg) → g_workflow_instance.common_variable → 下游节点input_data。通过DMS查询验证。",
+  "businessType": "f88_material",
+  "relatedCases": ["RP-D01", "RP-D02", "RP-D03", "RP-D04", "RP-D05", "RP-D06", "RP-D07", "RP-D08", "RP-D09", "RP-D10", "RP-D11", "RP-D12", "RP-D13", "RP-D14"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "requiresDMS": true,
+    "dmsNote": "下游验证需通过DMS查询workflow_record_log的output_json和下游节点input_data"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== RP-D01: 单图(qt=1) 替换 → 通过 → 下游算法过滤 ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_d01",
+      "description": "RP-D01: 记录替换前原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']",
+      "description": "RP-D01: 替换图片"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "replacedUrl_d01",
+      "description": "RP-D01: 记录替换后URL"
+    },
+    {
+      "type": "clickText",
+      "text": "通过",
+      "selector": "button, [class*='approve']",
+      "description": "RP-D01: 审核通过，触发下游流转"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待审核通过及下游节点触发"
+    },
+    {
+      "type": "screenshot",
+      "label": "d01-approved",
+      "description": "截图 - 单图审核通过"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const materialId = window.__currentMaterialId || document.querySelector('[data-material-id]')?.dataset.materialId; return materialId || 'NO_ID'; })()",
+      "storeAs": "materialId_d01",
+      "description": "RP-D01: 获取materialId用于DMS查询"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D01', check: 'DMS查询: SELECT output_json FROM workflow_record_log WHERE material_id = ${materialId_d01} ORDER BY id DESC LIMIT 1', expected: 'output_json中的passedImg应为替换后的新图URL: ${replacedUrl_d01}', notExpected: '不应包含原始URL: ${originalUrl_d01}' }); })()",
+      "description": "RP-D01: 【P0】下游算法过滤节点的input_data应包含替换后URL（需DMS查询验证）"
+    },
+
+    {
+      "_comment": "=== RP-D02: 套图(qt=2) 替换其中一张 → 下游 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-D02: 套图替换其中一张→通过→下游input_data中被替换的图为新URL，其余不变 - P0，需DMS验证'; })()",
+      "description": "RP-D02: 【P0】需选择套图场景手动操作"
+    },
+
+    {
+      "_comment": "=== RP-D03: 封面图(qt=4) 替换 → output_json passedImg ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-D03: 封面图替换→通过→output_json中passedImg1~5应为替换后URL - P0，需DMS验证'; })()",
+      "description": "RP-D03: 【P0】需选择封面图场景手动操作"
+    },
+
+    {
+      "_comment": "=== RP-D04/D05/D06: 裁剪场景下游验证 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-D04~D06: 裁剪→通过→下游验证（同替换场景结构，操作改为裁剪）- P0，需DMS验证'; })()",
+      "description": "RP-D04~D06: 【P0】裁剪场景下游验证"
+    },
+
+    {
+      "_comment": "=== RP-D07: common_variable passedImg 验证 ===",
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D07', check: 'DMS查询: SELECT common_variable FROM g_workflow_instance WHERE id = ${workflowInstanceId}', expected: 'common_variable.passedImg = 替换后的新图URL', priority: 'P0' }); })()",
+      "description": "RP-D07: 【P0】common_variable中的passedImg为替换后URL（需DMS查询）"
+    },
+
+    {
+      "_comment": "=== RP-D08: 裁剪后 common_variable 验证 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-D08: 【P1】裁剪→通过→common_variable.passedImg为裁剪后URL - 需DMS验证'; })()",
+      "description": "RP-D08: 【P1】裁剪后common_variable验证"
+    },
+
+    {
+      "_comment": "=== RP-D09: 下游算法过滤节点执行 ===",
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D09', check: 'DMS查询: SELECT output_json FROM workflow_record_log WHERE node_name = \"算法过滤\" AND material_id = ${materialId}', expected: '算法过滤消费和输出的URL均为替换后URL', priority: 'P1' }); })()",
+      "description": "RP-D09: 【P1】算法过滤节点执行验证"
+    },
+
+    {
+      "_comment": "=== RP-D10: 下游套图生产节点 ===",
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D10', check: 'DMS查询: SELECT * FROM workflow_record_log WHERE node_name = \"套图生产\" AND material_id = ${materialId}', expected: '套图生产使用的图片URL为替换后URL', priority: 'P1' }); })()",
+      "description": "RP-D10: 【P1】套图生产节点验证"
+    },
+
+    {
+      "_comment": "=== RP-D11: 套图多张替换 → 下游各节点 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-D11: 【P1】套图替换多张→通过→下游各节点input_data中各图URL均为各自替换后URL'; })()",
+      "description": "RP-D11: 【P1】套图多图替换下游验证"
+    },
+
+    {
+      "_comment": "=== RP-D12: 部分通过 → output_json ===",
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D12', check: 'DMS查询: SELECT output_json FROM workflow_record_log WHERE material_id = ${materialId}', expected: 'passedImg仅含通过的图URL（编辑后），notPassImgUrl含被驳回图的URL', priority: 'P1' }); })()",
+      "description": "RP-D12: 【P1】部分通过场景output_json验证"
+    },
+
+    {
+      "_comment": "=== RP-D13: 下游素材生产record验证 ===",
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D13', check: 'DMS查询: SELECT * FROM material WHERE id IN (SELECT material_id FROM workflow_record_log WHERE node_name = \"素材生产\")', expected: '素材生产record关联的material.url为编辑后URL', priority: 'P0' }); })()",
+      "description": "RP-D13: 【P0】下游素材生产record验证"
+    },
+
+    {
+      "_comment": "=== RP-D14: 驳回重生→通过→下游完整链路 ===",
+      "type": "eval",
+      "expression": "(() => { return JSON.stringify({ step: 'RP-D14', check: 'DMS查询: 追踪驳回→重生→通过→下游全链路', expected: '下游input_data中URL为重生后URL，且common_variable同步更新', priority: 'P1', related: 'RP-36' }); })()",
+      "description": "RP-D14: 【P1】驳回重生下游完整链路验证（与RP-36互补）"
+    },
+
+    {
+      "type": "screenshot",
+      "label": "downstream-final",
+      "description": "截图 - 下游流转验证完成"
+    }
+  ],
+  "dmsQueries": {
+    "note": "以下SQL用于验证下游数据链路，需通过DMS Alibaba CLI执行",
+    "queryOutputJson": "SELECT output_json FROM workflow_record_log WHERE material_id = :materialId AND node_name = '人工审核' ORDER BY id DESC LIMIT 1",
+    "queryCommonVariable": "SELECT common_variable FROM g_workflow_instance WHERE id IN (SELECT workflow_instance_id FROM workflow_record_log WHERE material_id = :materialId) LIMIT 1",
+    "queryDownstreamInput": "SELECT input_data FROM workflow_record_log WHERE material_id = :materialId AND node_name IN ('算法过滤', '套图生产') ORDER BY id",
+    "queryMaterialUrl": "SELECT url, origin_url FROM material WHERE id = :materialId"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow|material|approve",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

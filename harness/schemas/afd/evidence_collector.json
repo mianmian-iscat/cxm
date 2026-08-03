@@ -1,0 +1,63 @@
+{
+  "name": "afd_evidence_collector",
+  "version": "1.0.0",
+  "description": "AFD 证据采集工具：截图、DOM快照、API抓包、状态追踪等多维取证",
+  "triggers": ["证据", "截图", "取证", "evidence", "抓包"],
+  "parameters": {
+    "type": "object",
+    "required": ["collect_type"],
+    "properties": {
+      "collect_type": {
+        "type": "string",
+        "enum": ["screenshot", "dom_snapshot", "api_capture", "state_trace", "full_chain"],
+        "description": "采集类型"
+      },
+      "iteration_id": {
+        "type": "string",
+        "description": "视觉迭代ID（可选，用于证据归属）"
+      },
+      "tenant_identity": {
+        "type": "string",
+        "enum": ["AFD", "F88"],
+        "description": "当前租户身份（用于证据归属）"
+      },
+      "selector": {
+        "type": "string",
+        "description": "DOM 选择器（dom_snapshot 时使用）"
+      },
+      "api_pattern": {
+        "type": "string",
+        "description": "API URL 匹配模式（api_capture 时使用）"
+      },
+      "trace_id": {
+        "type": "string",
+        "description": "追踪ID（full_chain 时使用，串联所有证据）"
+      },
+      "include_timestamp": {
+        "type": "boolean",
+        "default": true,
+        "description": "是否在证据中包含时间戳"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "evidence_id": { "type": "string" },
+      "collect_type": { "type": "string" },
+      "artifact_path": { "type": "string", "description": "产物存储路径" },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string" },
+          "iteration_id": { "type": "string" },
+          "tenant_identity": { "type": "string" },
+          "page_url": { "type": "string" }
+        }
+      }
+    }
+  },
+  "timeout_ms": 15000,
+  "retry_policy": { "max_retries": 1, "backoff": "fixed" }
+}

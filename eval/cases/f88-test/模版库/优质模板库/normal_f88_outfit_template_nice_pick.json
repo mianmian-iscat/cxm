@@ -1,0 +1,91 @@
+{
+  "id": "normal-f88-outfit-template-nice-pick",
+  "name": "正常流程：搭配模板择优 - 构图标准最优图标记为matchedImg_nice",
+  "description": "验证搭配模板匹配在模板组中选择构图标准最优的一张图打上择优标识，记作matchedImg1_nice，同为最优则取第一张",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击模板匹配"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待面板"
+    },
+    {
+      "type": "selectOption",
+      "label": "应用环节",
+      "option": "搭配",
+      "description": "选择搭配"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待更新"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_nice",
+      "description": "验证搭配模板择优标识变量存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "择优",
+      "description": "验证择优标识说明"
+    },
+    {
+      "type": "screenshot",
+      "label": "outfit-nice-pick",
+      "description": "截图 - 搭配模板择优逻辑"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录",
+    "riskPoints": [
+      "搭配模板：构图标准最优→matchedImg_nice",
+      "与视觉模板不同：不要求已洗图",
+      "同为最优取第一张"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

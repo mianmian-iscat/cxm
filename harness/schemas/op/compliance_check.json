@@ -1,0 +1,31 @@
+{
+  "name": "op_compliance_check",
+  "version": "1.0.0",
+  "description": "原创保护合规检查器，覆盖电子签章、商家资质、保护期时效、数据脱敏四大维度",
+  "triggers": ["合规检查", "签章验证", "资质校验", "脱敏检查"],
+  "parameters": {
+    "type": "object",
+    "required": ["check_type"],
+    "properties": {
+      "check_type": {
+        "type": "string",
+        "enum": ["SIGNATURE", "QUALIFICATION", "PROTECTION_PERIOD", "DATA_MASKING", "ALL"],
+        "description": "检查类型"
+      },
+      "entity_id": { "type": "string", "description": "实体ID" },
+      "reference_time": { "type": "string", "description": "参考时间(ISO 8601)，默认当前时间" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "passed": { "type": "boolean" },
+      "total_checks": { "type": "integer" },
+      "passed_checks": { "type": "integer" },
+      "failed_checks": { "type": "integer" },
+      "results": { "type": "array" }
+    }
+  },
+  "dependencies": ["dms-mcp", "e-sign-validator"],
+  "timeout_ms": 30000
+}

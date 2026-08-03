@@ -1,0 +1,135 @@
+{
+  "id": "atomic-f88-node-video_upload-type-switch",
+  "name": "UI：视频上传节点-上传类型切换联动",
+  "description": "验证视频上传节点的上传类型Select切换后，其他字段是否联动显隐或默认值变化",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '打开'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no open btn'; })()",
+      "description": "打开第一条策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点选择弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modals = document.querySelectorAll('.ant-modal'); for (const m of modals) { if (m.classList.contains('ant-modal-hidden')) continue; const r = m.getBoundingClientRect(); if (r.width < 200) continue; const cards = m.querySelectorAll('.ant-card-hoverable, .ant-card'); for (const card of cards) { const t = card.querySelector('.ant-card-meta-title'); if (t && t.textContent.trim() === '视频上传') { card.scrollIntoView({ block: 'center' }); card.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择视频上传节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待视频上传编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const selectEl = drawer.querySelector('.ant-select'); if (!selectEl) return { open: true, noSelect: true }; const currentValue = (selectEl.querySelector('.ant-select-selection-item')?.textContent || '').trim(); const formItemsBefore = Array.from(drawer.querySelectorAll('.ant-form-item')); const fieldCountBefore = formItemsBefore.length; const fieldsBefore = formItemsBefore.map(i => (i.querySelector('.ant-form-item-label')?.textContent || '').trim()).filter(Boolean); return { open: true, currentValue, fieldCountBefore, fieldsBefore }; })()",
+      "description": "记录切换前的上传类型默认值和字段列表",
+      "storeAs": "beforeSwitch"
+    },
+    {
+      "type": "assertStore",
+      "key": "beforeSwitch",
+      "path": "open",
+      "equals": true,
+      "description": "编辑抽屉已打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { ok: false }; const selectEl = drawer.querySelector('.ant-select'); if (!selectEl) return { ok: false, noSelect: true }; const selector = selectEl.querySelector('.ant-select-selector') || selectEl; selector.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window })); return { ok: true, clicked: true }; })()",
+      "description": "点击上传类型Select展开下拉",
+      "storeAs": "openSelect"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const dropdowns = Array.from(document.querySelectorAll('.ant-select-dropdown')); const visible = dropdowns.filter(d => d.offsetHeight > 0 && !d.classList.contains('ant-select-dropdown-hidden')); const allOptions = []; for (const dd of visible) { const opts = Array.from(dd.querySelectorAll('.ant-select-item-option, .ant-select-item')); for (const opt of opts) { allOptions.push((opt.textContent || '').trim()); } } return { dropdownCount: visible.length, options: allOptions }; })()",
+      "description": "枚举上传类型所有选项",
+      "storeAs": "selectOptions"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const dropdowns = Array.from(document.querySelectorAll('.ant-select-dropdown')); const visible = dropdowns.filter(d => d.offsetHeight > 0 && !d.classList.contains('ant-select-dropdown-hidden')); for (const dd of visible) { const opts = Array.from(dd.querySelectorAll('.ant-select-item-option, .ant-select-item')); for (const opt of opts) { const text = (opt.textContent || '').trim(); if (text.includes('详情') || text.includes('非主图') || text.includes('花絮')) { const r = opt.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, text }; } } } return { noAlt: true }; })()",
+      "description": "尝试选择另一个上传类型选项",
+      "storeAs": "altOption"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待切换生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const selectEl = drawer.querySelector('.ant-select'); const currentValue = (selectEl?.querySelector('.ant-select-selection-item')?.textContent || '').trim(); const formItemsAfter = Array.from(drawer.querySelectorAll('.ant-form-item')); const fieldCountAfter = formItemsAfter.length; const fieldsAfter = formItemsAfter.map(i => (i.querySelector('.ant-form-item-label')?.textContent || '').trim()).filter(Boolean); return { currentValue, fieldCountAfter, fieldsAfter }; })()",
+      "description": "记录切换后的字段列表变化",
+      "storeAs": "afterSwitch"
+    },
+    {
+      "type": "screenshot",
+      "label": "video_upload-type-switch",
+      "description": "上传类型切换后截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const c = document.querySelector('.ant-drawer:not(.ant-drawer-hidden) .ant-drawer-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭抽屉"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录",
+    "realDomNotes": "上传类型Select默认值为主图视频；可能包含详情视频/花絮视频等选项",
+    "riskPoints": [
+      "上传类型切换后商品ID/视频字段是否仍显示",
+      "切换上传类型后是否重置其他字段值",
+      "切换后字段必填性是否变化"
+    ]
+  }
+}

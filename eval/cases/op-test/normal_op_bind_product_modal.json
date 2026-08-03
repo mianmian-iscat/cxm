@@ -1,0 +1,49 @@
+{
+  "id": "normal-op-bind-product-modal",
+  "name": "正常流程：原创保护商家端-绑定商品弹窗（BindProductModal）结构验证",
+  "description": "从商家端进入一条专利详情，触发绑定商品弹窗，验证两个Tab过滤区域与批量选择功能存在。",
+  "businessType": "xiaoer_original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开原创保护商家端首页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待商家端加载" },
+    { "type": "assert", "target": "page", "contains": "原创", "description": "验证商家端已加载" },
+    {
+      "type": "clickText",
+      "text": "详情",
+      "description": "点击第一条专利的详情"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待专利详情渲染" },
+    {
+      "type": "clickText",
+      "text": "绑定商品",
+      "description": "触发绑定商品弹窗"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待BindProductModal渲染" },
+    { "type": "assert", "target": "page", "contains": "商品", "description": "验证绑定商品弹窗已打开" },
+    { "type": "screenshot", "label": "op-bind-product-modal", "description": "截图-绑定商品弹窗" },
+    { "type": "clickText", "text": "取消", "description": "取消不绑定" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "isv测试账号已登录；商家端存在至少一条专利（确权状态）。",
+    "realDomNotes": "BindProductModal：两个Tab过滤（已售商品/全部商品）、批量选择；专利详情页入口：'绑定商品'按钮。",
+    "riskPoints": ["专利状态未确权时绑定商品按钮不可见", "详情入口文案需探查真实文案"]
+  }
+}

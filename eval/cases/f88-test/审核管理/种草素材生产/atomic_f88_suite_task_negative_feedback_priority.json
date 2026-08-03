@@ -1,0 +1,147 @@
+{
+  "id": "atomic-f88-suite-task-negative-feedback-priority",
+  "name": "原子：种草链路 - 套图任务类型参考图负反馈优先覆盖",
+  "description": "PRD：优先覆盖套图任务类型。验证套图审核任务中参考图负反馈按钮存在且交互正常；同时验证首图审核(单图)任务中参考图负反馈按钮也存在。对比套图和首图两种任务类型下负反馈功能的一致性。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 4000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "_comment": "===== PRD：优先覆盖套图任务类型 - 查找套图审核任务 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); const taskTypes = []; for (const row of rows) { const t = row.textContent || ''; if (t.includes('待开始') || t.includes('进行中') || t.includes('待审核')) { const isSuite = t.includes('套图'); const isSeeding = t.includes('种草'); const isFirstImg = t.includes('首图'); taskTypes.push({ text: t.slice(0, 80), isSuite, isSeeding, isFirstImg }); } } return { totalTasks: taskTypes.length, tasks: taskTypes, hasSuiteTask: taskTypes.some(t => t.isSuite), hasSeedingTask: taskTypes.some(t => t.isSeeding) }; })()",
+      "description": "扫描可用审核任务，区分套图/首图/种草",
+      "storeAs": "taskScan"
+    },
+    {
+      "_comment": "===== 优先进入套图审核任务 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { const t = row.textContent || ''; if (t.includes('套图') && (t.includes('待开始') || t.includes('进行中') || t.includes('待审核'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情' || b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { clicked: true, taskType: '套图' }; } } } for (const row of rows) { const t = row.textContent || ''; if (t.includes('种草') && (t.includes('待开始') || t.includes('进行中'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情'); if (btn) { btn.click(); return { clicked: true, taskType: '种草' }; } } } return { clicked: false }; })()",
+      "description": "优先进入套图审核任务",
+      "storeAs": "suiteTaskEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务详情页加载"
+    },
+    {
+      "_comment": "===== 进入审核详情 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { if (row.textContent?.includes('待审核')) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { clicked: true }; } } } return { alreadyInDetail: true }; })()",
+      "description": "进入审核详情",
+      "storeAs": "auditEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待审核详情加载"
+    },
+    {
+      "_comment": "===== 验证套图审核详情中参考图负反馈按钮 =====",
+      "type": "evaluate",
+      "expression": "(() => { const pageText = document.body.innerText; const isSuiteReview = pageText.includes('套图') || pageText.includes('SetImage') || pageText.includes('首图审核'); const gridBtns = document.querySelectorAll('[class*=ReferenceImageCarousel--gridFeedbackBtn]'); const singleBtns = document.querySelectorAll('[class*=ReferenceImageCarousel--actionItem]'); const refHasFeedback = gridBtns.length > 0 || Array.from(singleBtns).some(b => b.querySelector('img')?.alt === '负反馈'); const resultActions = document.querySelectorAll('[class*=CoverImageReview--actionItem]'); const resultHasFeedback = Array.from(resultActions).some(a => a.querySelector('img')?.alt === '负反馈'); const feedbackBadges = document.querySelectorAll('[class*=ReferenceImageCarousel--feedbackBadge]'); return { isSuiteReview, gridBtnCount: gridBtns.length, singleBtnCount: singleBtns.length, refHasFeedback, resultHasFeedback, feedbackBadgeCount: feedbackBadges.length, badges: Array.from(feedbackBadges).map(b => b.textContent?.trim()) }; })()",
+      "description": "验证套图审核中参考图和结果图负反馈按钮",
+      "storeAs": "suiteFeedbackCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "suiteFeedbackCheck",
+      "path": "refHasFeedback",
+      "equals": true,
+      "description": "【PRD核心-套图优先】断言套图审核中参考图区域存在负反馈按钮"
+    },
+    {
+      "_comment": "===== 验证结果图也有负反馈（两者共存） =====",
+      "type": "evaluate",
+      "expression": "(() => { const check = ${suiteFeedbackCheck}; return { refAndResultBothHaveFeedback: check.refHasFeedback && check.resultHasFeedback, note: 'PRD：参考图和结果图各自独立有负反馈按钮' }; })()",
+      "description": "验证参考图和结果图负反馈共存",
+      "storeAs": "coexistCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "suite-task-ref-feedback-priority",
+      "description": "截图-套图任务参考图负反馈"
+    },
+    {
+      "_comment": "===== 点击参考图负反馈验证弹窗（套图模式） =====",
+      "type": "evaluate",
+      "expression": "(() => { const fbBtn = document.querySelector('[class*=ReferenceImageCarousel--actionItem] img[alt=\"负反馈\"]'); if (fbBtn) { fbBtn.closest('[class*=actionItem]').click(); return { clicked: true, mode: 'single' }; } const gridFb = document.querySelector('[class*=ReferenceImageCarousel--gridFeedbackBtn]'); if (gridFb) { gridFb.click(); return { clicked: true, mode: 'grid' }; } return { clicked: false }; })()",
+      "description": "点击套图任务参考图负反馈",
+      "storeAs": "suiteFbClick"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal') || document.querySelector('.ant-popover'); if (!modal) return { hasModal: false }; const options = Array.from(modal.querySelectorAll('.ant-checkbox-wrapper, .ant-radio-wrapper')).map(o => o.textContent?.trim()); return { hasModal: true, optionCount: options.length, options }; })()",
+      "description": "验证套图模式负反馈弹窗选项",
+      "storeAs": "suiteFbModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "suiteFbModal",
+      "path": "hasModal",
+      "equals": true,
+      "description": "断言套图任务参考图负反馈弹窗正常弹出"
+    },
+    {
+      "type": "screenshot",
+      "label": "suite-task-ref-feedback-modal",
+      "description": "截图-套图任务参考图负反馈弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('.ant-modal button, .ant-popover button')).find(b => /取\\s*消|关\\s*闭/.test(b.textContent)); if(btn){btn.click();return 'dismissed';} return 'no dismiss btn'; })()",
+      "description": "关闭弹窗"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在套图审核任务（优先）和种草审核任务",
+    "realDomNotes": "PRD：优先覆盖套图任务类型；参考图负反馈按钮在套图和首图审核中均应存在；套图审核8个按钮(无驳回)，首图审核9个按钮(含驳回)",
+    "riskPoints": [
+      "套图审核任务可能不存在",
+      "套图和首图的参考图DOM结构可能有差异",
+      "套图模式下参考图可能有多张，影响按钮显隐逻辑"
+    ],
+    "prdMapping": {
+      "套图优先": "PRD明确优先覆盖套图任务类型",
+      "参考图负反馈": "套图审核详情参考图区域有负反馈按钮",
+      "共存验证": "参考图和结果图各自独立有负反馈入口"
+    }
+  }
+}

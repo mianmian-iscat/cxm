@@ -1,0 +1,132 @@
+{
+  "id": "ui-f88-strategy-storage-config",
+  "name": "UI：F88 落库配置",
+  "description": "打开策略详情页，验证落库配置区域存在，检查字段映射入口和文案，点击配置按钮验证弹窗。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "落库配置",
+      "description": "验证落库配置区域标题存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "已映射",
+      "description": "验证已映射字段计数文案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "个字段",
+      "description": "验证个字段文案"
+    },
+    {
+      "type": "screenshot",
+      "label": "storage-config-area",
+      "description": "截图-落库配置区域"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); for (const b of btns) { const txt = b.textContent.replace(/\\s/g, ''); if (txt === '配置' && b.offsetHeight > 0) { const r = b.getBoundingClientRect(); if (r.y > 300) { return { x: r.x + r.width/2, y: r.y + r.height/2, found: true }; } } } return { found: false }; })()",
+      "storeAs": "configBtn",
+      "description": "定位落库配置按钮"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); for (const b of btns) { const txt = b.textContent.replace(/\\s/g, ''); if (txt === '配置' && b.offsetHeight > 0) { const r = b.getBoundingClientRect(); if (r.y > 300) { b.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "点击落库配置按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待落库配置弹窗/抽屉"
+    },
+    {
+      "type": "screenshot",
+      "label": "storage-config-opened",
+      "description": "截图-落库配置弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (modal) return { type: 'modal', title: modal.querySelector('.ant-modal-title')?.textContent.trim() }; if (drawer) return { type: 'drawer', title: drawer.querySelector('.ant-drawer-title')?.textContent.trim() }; return { type: 'none' }; })()",
+      "storeAs": "storageUI",
+      "description": "检查落库配置 UI 类型"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭落库配置"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "storage-config-closed",
+      "description": "截图-落库配置已关闭"
+    }
+  ]
+}

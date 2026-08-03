@@ -1,0 +1,113 @@
+{
+  "id": "ui-f88-audit-image-zoom",
+  "name": "UI：审核详情-图片放大查看验证",
+  "description": "验证审核详情页图片放大功能：点击图片→放大预览→关闭，图片URL一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "打开审核详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('.ant-drawer img, .ant-modal img')).filter(i => i.src && i.getBoundingClientRect().width > 100); return imgs.length > 0 ? { url: imgs[0].src.substring(0, 120), count: imgs.length } : { url: null, count: 0 }; })()",
+      "description": "记录图片URL",
+      "storeAs": "imgUrl"
+    },
+    {
+      "type": "assertStore",
+      "key": "imgUrl",
+      "path": "count",
+      "greaterThanOrEqual": 1,
+      "description": "断言至少有一张图片"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('.ant-drawer img, .ant-modal img'); const img = Array.from(imgs).find(i => i.getBoundingClientRect().width > 100); if(img) { img.click(); return 'clicked'; } return 'no img'; })()",
+      "description": "点击图片放大"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const previewModal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const previewImg = previewModal?.querySelector('img'); return { hasPreview: !!previewModal, previewUrl: previewImg?.src?.substring(0, 120) || null }; })()",
+      "description": "验证放大预览",
+      "storeAs": "zoomPreview"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-image-zoom",
+      "description": "图片放大预览"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close'); if(closeBtn) closeBtn.click(); return 'closed'; })()",
+      "description": "关闭预览"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核图片任务。",
+    "realDomNotes": "点击图片触发放大预览(Ant Design Image Preview)，支持缩放/旋转/关闭。",
+    "riskPoints": [
+      "图片可能懒加载"
+    ]
+  }
+}

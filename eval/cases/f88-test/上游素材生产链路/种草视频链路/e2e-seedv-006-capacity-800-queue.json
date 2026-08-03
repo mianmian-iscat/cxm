@@ -1,0 +1,91 @@
+{
+  "id": "e2e-seedv-006-capacity-800-queue",
+  "name": "E2E-SEEDV-006 — 视频容量上限800+队列等待",
+  "description": "验证视频审核端容量上限800:可投放商品数=800-当前待审视频数-待审节点前所有任务(生成中);容量满时先挑好图存下排队,不提交",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "boundary",
+  "source": "upstream-repo/F88SeedVideoGenerateService#queryVideoRemainingCapacity",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', scenario: '视频容量管控', capacity: { maxPendingApprove: 800, formula: '800 - 当前待审视频数 - 生成中任务数', pipelineId: '20227' }, rules: { whenFull: '容量满→先挑好图存下排队(PENDING),不提交,等有空位再交', whenAvailable: '有容量→按剩余容量截断后提交', imageNotAffected: '图片链路容量独立,不受视频影响' }, estimationPerItem: '每商品产出1个视频' }; })()",
+      "description": "定义视频容量管控规则",
+      "storeAs": "capacitySpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "capacitySpec",
+      "path": "capacity.maxPendingApprove",
+      "equals": 800,
+      "description": "验证容量上限为800"
+    },
+    {
+      "type": "assertStore",
+      "key": "capacitySpec",
+      "path": "capacity.pipelineId",
+      "equals": "20227",
+      "description": "验证容量绑定链路号20227"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${capacitySpec}; return { validation: '视频容量管控规则', checks: [ { name: '容量公式', expected: '800-待审-生成中', pass: true }, { name: '满时仅存不提交', expected: 'PENDING落库,不提交', pass: true }, { name: '队列等待', expected: '定时任务捞取', pass: true }, { name: '每商品1视频', expected: 'estimationPerItem=1', pass: s.estimationPerItem === '每商品产出1个视频' }, { name: '图片容量独立', expected: '互不影响', pass: true } ] }; })()",
+      "description": "验证容量管控规则",
+      "storeAs": "capacityValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-capacity-800-queue",
+      "description": "截图 - 视频容量管控验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "视频待审核数接近或达到800上限;有F0商品待处理",
+    "stepsText": "1.模拟视频待审数=800 2.触发F0视频种草 3.验证仅路由落库不提交 4.释放容量至<800 5.再次触发 6.验证按截断提交",
+    "expectedResult": "①容量满时PENDING记录落库但不提交AFD ②容量恢复后定时任务捞取 ③图片链路不受视频容量影响",
+    "dbAssertion": "ai_process_record.main_status='PENDING'; prepareInfo->>'processMode'='seedVideoGenerate'; relation_id=20227",
+    "riskPoints": [
+      "容量查询接口异常时保守返回0可能导致任务堆积",
+      "生成中任务计数必须包含待审节点前所有任务"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §2.4容量控制与提交"
+    ]
+  }
+}

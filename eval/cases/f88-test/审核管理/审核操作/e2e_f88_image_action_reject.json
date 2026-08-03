@@ -1,0 +1,158 @@
+{
+  "id": "e2e-f88-image-action-reject",
+  "name": "端到端：F88 图片驳回 → 重生图 → CopyURL/下载验证 → 状态一致性校验",
+  "description": "进入首图审核详情，记录原始URL→点击驳回按钮→填写驳回原因(必填)→确认驳回→等待重生图生成→重新进入审核查看重生后图片→postConfirmVerify验证CopyURL/下载→API/DB状态校验。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "dataSetup",
+      "kind": "f88-audit-task",
+      "params": { "questionType": 4, "rows": 1 },
+      "storeAs": "setupTask",
+      "description": "[造数] 自动创建待审核首图审核任务（数据自愈，解决无待审核数据阻塞）"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表" },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待筛选结果" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; return row ? { taskId: row.getAttribute('data-row-key') } : null; })()",
+      "storeAs": "firstTask",
+      "description": "读取首行任务ID"
+    },
+    { "type": "clickText", "text": "审核", "description": "打开第一条待审核任务" },
+    { "type": "wait", "ms": 2500, "description": "等待审核详情Drawer打开" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw') && i.getBoundingClientRect().width > 100); const materialImg = imgs.find(i => i.src.includes('/llm/')); return materialImg ? { originUrl: materialImg.src.substring(0, 120) } : null; })()",
+      "storeAs": "originImage",
+      "description": "记录原始图片URL(llm路径)"
+    },
+    {
+      "type": "hover",
+      "selector": "img",
+      "description": "hover素材图触发工具栏"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待工具栏出现" },
+    {
+      "type": "clickText",
+      "text": "驳回",
+      "description": "点击驳回按钮（首图审核专有按钮）"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待驳回原因填写区域出现" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const textarea = document.querySelector('.ant-drawer textarea, [class*=reject] textarea'); if(textarea) { const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; nativeInputValueSetter.call(textarea, '自动化测试-图片质量不符合要求'); textarea.dispatchEvent(new Event('input', { bubbles: true })); textarea.dispatchEvent(new Event('change', { bubbles: true })); return 'filled'; } return 'no textarea'; })()",
+      "description": "填写驳回原因(必填项)"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待原因输入完成" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => /确\\s*认|驳\\s*回/.test(b.textContent) && b.className && b.className.includes('primary') && !b.disabled); if(btn){btn.click();return 'clicked confirm';} return 'no btn or disabled'; })()",
+      "description": "确认驳回（原因已填则按钮可点击）"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "rejectMaterial|audit/reject",
+      "timeout": 15000,
+      "description": "等待审核驳回API"
+    },
+    { "type": "wait", "ms": 5000, "description": "等待重生图异步生成（驳回后触发）" },
+    {
+      "_comment": "========== postConfirmVerify: 驳回重生后CopyURL/下载验证 ==========",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw') && i.getBoundingClientRect().width > 100); return imgs.length > 0 ? { currentUrl: imgs[0].src.substring(0, 120), imgCount: imgs.length } : null; })()",
+      "storeAs": "afterReject",
+      "description": "【postConfirmVerify】获取驳回后当前图片URL"
+    },
+    {
+      "type": "clickText",
+      "text": "复制",
+      "description": "【postConfirmVerify-CopyURL】点击复制URL按钮"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待复制操作完成" },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【postConfirmVerify-下载】点击下载按钮"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+    {
+      "type": "screenshot",
+      "label": "f88-reject-postconfirm-verify",
+      "description": "截图-驳回重生后CopyURL/下载验证"
+    },
+    {
+      "type": "apiCall",
+      "api": "bzb.api.fsyx_quality_guard.f88.queryInspectionList",
+      "v": "1.0",
+      "data": { "taskId": "${store.firstTask.taskId}" },
+      "storeAs": "inspectionList",
+      "description": "调用子任务列表API"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.list[0].status",
+      "contains": "REJECTED",
+      "description": "API断言审核状态为已驳回"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, status, image_regenerate_status, reject_reason FROM material WHERE task_id = '${store.firstTask.taskId}' ORDER BY id DESC LIMIT 1",
+      "storeAs": "materialDb",
+      "description": "DB查询素材记录"
+    },
+    {
+      "type": "assertDbResult",
+      "expectations": [
+        { "field": "status", "equals": "REJECTED" },
+        { "field": "reject_reason", "notEmpty": true }
+      ],
+      "description": "DB断言驳回状态与原因字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-reject-e2e-done",
+      "description": "截图-驳回端到端完成"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核首图审核任务（含驳回按钮）。",
+    "realDomNotes": "驳回按钮仅首图审核有（套图审核无）；驳回原因为必填textarea；驳回后触发重生图（异步）；驳回后toolbar仍可hover显示CopyURL/下载。",
+    "riskPoints": [
+      "无待审核任务时无法进入详情",
+      "驳回原因为空时确认按钮disabled",
+      "重生图为异步流程，可能需要较长等待",
+      "驳回后Drawer可能关闭，需重新进入查看重生图"
+    ]
+  }
+}

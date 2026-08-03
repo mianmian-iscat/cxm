@@ -1,0 +1,105 @@
+{
+  "id": "normal-f88-video-action-replace",
+  "name": "正常流程：F88 视频审核-替换按钮触发",
+  "description": "进入视频审核详情，hover视频触发工具栏，点击替换按钮，验证文件选择器/替换UI出现。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务列表"
+    },
+    {
+      "type": "selectOption",
+      "label": "素材类型",
+      "option": "视频",
+      "description": "筛选视频任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "打开第一条待审核视频任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待审核详情Drawer打开"
+    },
+    {
+      "type": "hover",
+      "selector": "video",
+      "description": "hover视频触发工具栏"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待工具栏出现"
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "description": "点击替换按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待替换文件选择器"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "替换",
+      "description": "验证替换UI文案"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-video-replace-ui",
+      "description": "截图-视频替换UI"
+    },
+    {
+      "type": "clickText",
+      "text": "取消",
+      "description": "取消替换"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核视频任务。",
+    "realDomNotes": "视频工具栏替换按钮触发视频文件选择器。",
+    "riskPoints": [
+      "无待审核视频任务时无法进入详情",
+      "替换按钮文案可能带空格"
+    ]
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "id": "f88-audit-tc04",
+  "name": "TC04 - 任务管理页：任务列表加载 + 多条件筛选 + 查看详情 + 批量导出",
+  "businessType": "f88_material",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开 F88 运营平台"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】页面必须包含F88标识"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面渲染"
+    },
+
+    {
+      "type": "clickText",
+      "text": "审核管理",
+      "selector": "[class*='menu'], [class*='nav'], li, span",
+      "description": "点击左侧导航'审核管理'展开子菜单"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待子菜单展开"
+    },
+    {
+      "type": "clickText",
+      "text": "任务管理",
+      "selector": "[class*='menu'], [class*='nav'], li, span, a",
+      "description": "点击'任务管理'子菜单"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待任务管理页面加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-list-initial",
+      "description": "截图 - 任务管理列表初始状态"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "任务管理",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "任务ID",
+      "description": "验证表格包含'任务ID'列"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核状态",
+      "description": "验证表格包含'审核状态'列"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核人",
+      "description": "验证表格包含'审核人'列"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='任务']",
+      "value": "1212831",
+      "description": "按任务ID搜索"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待搜索结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-search-by-id",
+      "description": "截图 - 按任务ID搜索后"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "1212831",
+      "description": "验证搜索结果包含任务ID 1212831"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='任务']",
+      "value": "",
+      "description": "清空任务ID搜索"
+    },
+
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "value": "待审核",
+      "selector": ".ant-select",
+      "description": "按审核状态'待审核'筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-filter-pending",
+      "description": "截图 - 按待审核状态筛选后"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "待审核",
+      "description": "验证筛选结果包含待审核状态"
+    },
+
+    {
+      "type": "click",
+      "selector": "[class*='ant-table-row'] a, [class*='ant-table-row'] td:first-child",
+      "description": "点击第一条任务查看详情"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待详情页加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-detail",
+      "description": "截图 - 任务详情页"
+    },
+
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "description": "返回任务列表"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待列表重新加载"
+    },
+
+    {
+      "type": "screenshot",
+      "label": "task-list-final",
+      "description": "截图 - 任务管理页最终状态"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "待抓包确认",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

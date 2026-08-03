@@ -1,0 +1,92 @@
+{
+  "id": "e2e-seedv-005-pipeline-20227-submit",
+  "name": "E2E-SEEDV-005 — 视频链路提交至下游20227(含入参校验)",
+  "description": "验证视频首帧选图后提交到下游视频审核链路20227,入参包含seller_id/seed_image_url/tao_cate/item_id,任务名称=种草视频_日期",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "upstream-repo/F88SeedVideoGenerateService#submitToPipeline",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const today = new Date().toISOString().slice(0,10).replace(/-/g,''); return { testType: 'upstream-rule-validation', scenario: '视频链路提交', pipelineId: '20227', inputParams: { seller_id: '${seedVideoSellerId}', seed_image_url: '视频首帧URL', tao_cate: '商品类目', item_id: '${seedVideoItemId}' }, taskName: '种草视频_' + today, strategyId: 10569, expected: { pipelineHit: true, allParamsPresent: true, taskNameFormat: '种草视频_yyyyMMdd' } }; })()",
+      "description": "定义视频链路提交规格",
+      "storeAs": "submitSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "submitSpec",
+      "path": "pipelineId",
+      "equals": "20227",
+      "description": "验证链路号为20227"
+    },
+    {
+      "type": "assertStore",
+      "key": "submitSpec",
+      "path": "strategyId",
+      "equals": 10569,
+      "description": "验证策略ID为10569"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${submitSpec}; const keys = Object.keys(s.inputParams); return { validation: '视频链路提交校验', checks: [ { name: '链路号', expected: '20227', actual: s.pipelineId, pass: s.pipelineId === '20227' }, { name: 'seller_id', expected: '存在', pass: !!s.inputParams.seller_id }, { name: 'seed_image_url', expected: '存在', pass: !!s.inputParams.seed_image_url }, { name: 'tao_cate', expected: '存在', pass: !!s.inputParams.tao_cate }, { name: 'item_id', expected: '存在', pass: !!s.inputParams.item_id }, { name: '任务名称格式', expected: '种草视频_yyyyMMdd', actual: s.taskName, pass: /^种草视频_\\d{8}$/.test(s.taskName) }, { name: '策略ID', expected: 10569, pass: s.strategyId === 10569 } ] }; })()",
+      "description": "验证视频链路提交",
+      "storeAs": "submitValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-pipeline-20227-submit",
+      "description": "截图 - 视频链路提交校验"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "视频总开关打开;F0商品选图完成;链路20227已配置",
+    "stepsText": "1.触发视频种草 2.选图完成 3.提交链路20227 4.校验入参seller_id/seed_image_url/tao_cate/item_id 5.校验任务名称=种草视频_日期",
+    "expectedResult": "①链路号=20227 ②4个入参全部存在 ③任务名称匹配'种草视频_yyyyMMdd' ④策略ID=10569",
+    "dbAssertion": "ai_process_record.extra_info 包含 seller_id/seed_image_url/tao_cate/item_id; relation_id=20227",
+    "apiAssertion": "afdMaterialProdHsfService.submit(20227, params) 调用成功",
+    "riskPoints": [
+      "seed_image_url URL编码问题",
+      "任务名称时区导致日期偏差"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §3关键参数"
+    ]
+  }
+}

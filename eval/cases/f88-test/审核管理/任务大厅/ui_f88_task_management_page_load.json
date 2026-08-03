@@ -1,0 +1,122 @@
+{
+  "id": "ui-f88-task-management-page-load",
+  "name": "UI：任务管理页面加载与文案完整性验证",
+  "description": "验证任务管理页面加载后所有关键文案元素正确显示：顶部Tab、筛选区、树形列表、表头列名",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略平台-F88",
+      "description": "验证顶部Tab文案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略平台-测试",
+      "description": "验证测试Tab文案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "手动创建",
+      "description": "验证手动创建Tab文案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模版库",
+      "description": "验证模版库Tab文案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查看任务排期",
+      "description": "验证查看任务排期按钮文案"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路：",
+      "description": "验证链路筛选label"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "批次：",
+      "description": "验证批次筛选label"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "重置",
+      "description": "验证重置按钮文案"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-mgmt-page-load",
+      "description": "任务管理页面加载截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const hasSchedule = document.querySelector('button') && Array.from(document.querySelectorAll('button')).some(b => b.textContent.includes('查看任务排期')); return { tabs, hasScheduleBtn: hasSchedule }; })()",
+      "description": "探查Tab和按钮",
+      "storeAs": "pageState"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageState",
+      "path": "tabs",
+      "notEmpty": true,
+      "description": "断言Tab列表非空"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageState",
+      "path": "hasScheduleBtn",
+      "equals": true,
+      "description": "断言查看任务排期按钮存在"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在策略平台任务数据。",
+    "realDomNotes": "页面顶部4个Tab（策略平台-F88/测试/手动创建/模版库），右上角查看任务排期按钮，筛选区链路+批次+重置。",
+    "riskPoints": [
+      "无任务数据时树形列表为空",
+      "Tab可能因权限不同而不同"
+    ]
+  }
+}

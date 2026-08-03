@@ -1,0 +1,68 @@
+{
+  "id": "smoke-sku-detail",
+  "name": "冒烟：SKU详情弹窗可打开",
+  "description": "验证「更多→查看sku详情」能打开弹窗，弹窗包含SKU列表",
+  "businessType": "unknown",
+  "scene": "xiaoer",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "xiaoer.alibaba-inc.com"
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "fill",
+      "selector": "input[placeholder='多个ID以英文逗号分隔']",
+      "selectorIndex": 1,
+      "value": "1046387089006",
+      "description": "填入平台商品ID"
+    },
+    {
+      "type": "wait",
+      "ms": 300
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "description": "点击搜索"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "总共",
+      "description": "验证有搜索结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "search-result",
+      "description": "搜索结果截图"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "/cobweb/api/",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "BUC 登录态有效，列表有数据",
+    "riskPoints": [
+      "SKU详情弹窗未弹出",
+      "弹窗内容未加载"
+    ]
+  },
+  "source": null,
+  "sourceIds": null,
+  "_note": "只验证到搜索结果，不验证 SKU 弹窗（弹窗操作依赖坐标，冒烟只验证核心链路）"
+}

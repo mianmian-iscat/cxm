@@ -1,0 +1,81 @@
+{
+  "id": "boundary-long-wait-loading",
+  "name": "边界条件：表格 loading 态持续等待",
+  "description": "验证表格在 loading 状态时的等待策略，确保不会在 Spin 转圈时提前断言",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "短暂等待（可能还在loading）"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": "button.ant-btn-primary",
+      "description": "立即点搜索（不等loading消失）"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "queryMaterialAuditList",
+      "timeout": 15000,
+      "description": "等待API返回（确保数据加载完成）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "额外等待确保 Spin 消失"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "共",
+      "description": "验证数据已加载完毕（不在loading态）"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-loading-complete",
+      "description": "截图 - loading完成后状态"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard",
+    "captureBody": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "环境可访问，有审核数据",
+    "riskPoints": [
+      "Spin 消失前断言导致误报",
+      "waitForAPI 超时但数据实际已返回"
+    ],
+    "boundaryType": "loading_state",
+    "relatedDocs": [
+      "references/boundary_cases.md"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

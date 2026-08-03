@@ -1,0 +1,15 @@
+{
+  "id": "feat_protection_period",
+  "category": "features",
+  "title": "保护期180天与禁发期20天",
+  "content": "{\"rule\": \"保护期180天±1天容差; 到期前20天为禁发期: 发布灰态+维权禁用+上报关闭\"}",
+  "tags": [
+    "保护期",
+    "禁发期",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499697
+}

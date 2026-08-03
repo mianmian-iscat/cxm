@@ -1,0 +1,50 @@
+{
+  "id": "debug-tpp",
+  "name": "TPP 页面加载",
+  "status": "pass",
+  "startTime": "2026-06-22T11:30:52.007086Z",
+  "duration": 12078,
+  "steps": [
+    {
+      "index": 0,
+      "type": "wait",
+      "description": "",
+      "status": "pass",
+      "duration": 4000
+    },
+    {
+      "index": 1,
+      "type": "assert",
+      "description": "桶列表渲染",
+      "status": "pass",
+      "duration": 5,
+      "assertResult": {
+        "expected": "bucket",
+        "actual": "(包含)",
+        "pass": true
+      }
+    },
+    {
+      "index": 2,
+      "type": "screenshot",
+      "description": "TPP截图",
+      "status": "pass",
+      "duration": 235,
+      "screenshotPath": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/debug-tpp-20260622113052/screenshots/step2-tpp-layer.png"
+    }
+  ],
+  "screenshots": [
+    {
+      "stepIndex": 2,
+      "label": "tpp-layer",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/debug-tpp-20260622113052/screenshots/step2-tpp-layer.png"
+    }
+  ],
+  "capture": {
+    "requests": []
+  },
+  "artifacts": {
+    "runId": "debug-tpp-20260622113052"
+  },
+  "authType": "none"
+}

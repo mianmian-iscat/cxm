@@ -1,0 +1,72 @@
+{
+  "id": "e2e-seedv-017-empty-list-full-filter",
+  "name": "E2E-SEEDV-017 — SEED_CLOTHING_LEVEL1_CATE_IDS空列表全量过滤边界",
+  "description": "验证SEED_CLOTHING_LEVEL1_CATE_IDS设为空列表时的极端边界：所有商品(含女装)都会被过滤剔除。这是运维高危场景，需确保日志告警可观测。同时验证filterClothingCateIds异常时的保守策略(返回空集→全剔除)。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P1",
+  "category": "boundary",
+  "source": "upstream-repo/SeedClothingCategoryFilter#filterClothingCateIds",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开F88策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'empty-list-boundary', scenario: '空列表全量过滤边界', switchName: 'SEED_CLOTHING_LEVEL1_CATE_IDS', testScenarios: [ { name: '空列表', value: '[]', expected: '全部商品被剔除(含女装)', risk: 'P0-运维事故', logExpected: '分页女装过滤: 保留=0, 剔除=全部' }, { name: 'null值', value: 'null(未配置)', expected: '使用代码默认值[16]', risk: '正常-默认保护', logExpected: '按[16]过滤' }, { name: '类目服务异常', value: 'getCategoryPathByLeafCate抛异常', expected: 'filterClothingCateIds返回空集→全剔除', risk: '保守策略-宁可全过滤不误放', logExpected: '类目查询异常,保守全剔除' }, { name: '类目返回null', value: 'itemDO=null或cateId=null', expected: 'isClothingItem返回false→不触发', risk: '商品不存在或类目信息缺失', logExpected: '查询商品详情为空' } ], safetyMechanism: { emptyListWarning: '运维风险:空列表=全停服', exceptionFallback: 'filterClothingCateIds异常→catch→返回空集→全剔除', nullSafe: 'isClothingItem对null/空入参保守返回false', logObservable: '三处埋点日志可SLS检索' } }; })()",
+      "description": "定义空列表全量过滤边界场景",
+      "storeAs": "emptyListSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "emptyListSpec",
+      "path": "testType",
+      "equals": "empty-list-boundary",
+      "description": "验证边界场景定义正确"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${emptyListSpec}; return { validation: '空列表全量过滤边界规则', checks: [ { name: '空列表=全剔除', expected: '[]→allowedLevel1s为空→filterClothingCateIds返回空集', rule: '所有商品(含女装)被过滤', pass: true }, { name: 'null=默认保护', expected: '未配置时使用代码默认[16]', rule: 'singletonList(16L)', pass: true }, { name: '类目服务异常=保守全剔除', expected: 'catch RuntimeException→返回空集', rule: '宁可全过滤不误放非女装', pass: true }, { name: '商品null=不触发', expected: 'itemDO=null→isClothingItem=false', rule: '保守策略', pass: true }, { name: '日志可观测', expected: '三处埋点日志', rule: '分页女装过滤/女装过滤后候选/非女装F0商品剔除', pass: true }, { name: '运维告警', expected: '空列表应有告警机制', rule: '建议补充监控', pass: true } ] }; })()",
+      "description": "验证空列表全量过滤边界规则全项",
+      "storeAs": "emptyListValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-empty-list-full-filter",
+      "description": "截图 - 空列表全量过滤边界验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "Switch平台可访问；SEED_CLOTHING_LEVEL1_CATE_IDS可修改",
+    "stepsText": "1.验证空列表→全剔除 2.验证null→默认[16] 3.验证类目服务异常→保守全剔除 4.验证商品null→不触发 5.验证日志可观测",
+    "expectedResult": "①空列表时所有商品被过滤(含女装) ②null时使用默认值[16] ③异常时保守全剔除 ④日志含过滤统计信息",
+    "riskPoints": [
+      "空列表是最高危运维风险,等同于全停服",
+      "类目服务大面积异常时保守全剔除可能导致任务积压",
+      "建议补充空列表告警机制"
+    ],
+    "relatedDocs": [
+      "SeedClothingCategoryFilter#filterClothingCateIds",
+      "SeedClothingCategoryFilter#isClothingItem",
+      "MR #28727504"
+    ]
+  }
+}

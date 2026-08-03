@@ -1,0 +1,86 @@
+{
+  "id": "ui-f88-template-library-preview-detail",
+  "name": "UI：淘内资源池-模板预览详情验证",
+  "description": "点击模板图片卡片→预览弹窗/Drawer→验证大图/标签信息/推荐曝光数/所属店铺展示",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开淘内资源池"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "淘内资源池",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=templateCard], [class*=card], img'); const first = cards[0]; if(first) { first.click(); return 'clicked'; } return 'no card'; })()",
+      "description": "点击第一个模板"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); const previewImg = document.querySelector('.ant-modal img, .ant-drawer img, [class*=preview] img'); return { hasModal: !!modal, hasDrawer: !!drawer, hasPreviewImg: !!previewImg }; })()",
+      "description": "验证预览展示",
+      "storeAs": "preview"
+    },
+    {
+      "type": "screenshot",
+      "label": "template-library-preview",
+      "description": "模板预览"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const container = document.querySelector('.ant-modal:not(.ant-modal-hidden), .ant-drawer:not(.ant-drawer-hidden)'); if(!container) return {}; const text = container.textContent; const fields = ['标签', '曝光', '店铺']; const found = fields.filter(f => text.includes(f)); return { fields, found, coverage: found.length + '/' + fields.length }; })()",
+      "description": "验证预览内容字段",
+      "storeAs": "previewContent"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close, .ant-drawer-close'); if(closeBtn) closeBtn.click(); return 'closed'; })()",
+      "description": "关闭预览"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模板数据。",
+    "realDomNotes": "预览展示：大图预览/标签信息(7维度)/推荐曝光数/所属店铺。预览形式可能为Drawer/Modal/图片放大。",
+    "riskPoints": [
+      "预览形式需实际确认"
+    ]
+  }
+}

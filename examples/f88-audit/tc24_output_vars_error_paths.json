@@ -1,0 +1,138 @@
+{
+  "id": "f88-audit-tc24",
+  "name": "TC24 - 输出变量传递 + 错误路径（模块G-H, 7条）",
+  "description": "后端API/DB级测试。模块G: 输出变量传递(4条)；模块H: 错误路径(3条)。pytest脚本: test_approve_regression.py。涉及g_workflow_instance.common_variable和workflow_record_log查询。",
+  "businessType": "f88_material",
+  "relatedCases": ["NEW-G1","NEW-G2","NEW-G3","NEW-G4","NEW-H1","NEW-H2","NEW-H3"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心（获取登录态cookie）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "========== 模块G: 输出变量传递（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-G-start')()",
+      "description": "=== 模块G分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-G1: passedImg写入common_variable",
+      "type": "dbQuery",
+      "sql": "SELECT wi.id, JSON_EXTRACT(wi.common_variable, '$.passedImg') as passed_img FROM g_workflow_instance wi WHERE wi.id > 4000000 AND JSON_EXTRACT(wi.common_variable, '$.passedImg') IS NOT NULL ORDER BY wi.id DESC LIMIT 5",
+      "description": "NEW-G1: DB查询common_variable中的passedImg"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img is not null AND all_rows.passed_img != ''",
+      "description": "NEW-G1: g_workflow_instance.common_variable含passedImg字段"
+    },
+
+    {
+      "_comment": "NEW-G2: 套图passedImg1~5单独输出",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.passedImg1') as img1, JSON_EXTRACT(output_json, '$.passedImg2') as img2, JSON_EXTRACT(output_json, '$.passedImg3') as img3, JSON_EXTRACT(output_json, '$.passedImg4') as img4, JSON_EXTRACT(output_json, '$.passedImg5') as img5 FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.passedImg1') IS NOT NULL ORDER BY id DESC LIMIT 3",
+      "description": "NEW-G2: 查询套图审核output_json中的独立URL字段"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.img1 is not null",
+      "description": "NEW-G2: output_json含passedImg1~passedImg5独立URL字段"
+    },
+
+    {
+      "_comment": "NEW-G3: refreshSubTaskMaterialUrls URL刷新 — 高清化后URL正确传递",
+      "type": "dbQuery",
+      "sql": "SELECT r1.id, r1.status, JSON_EXTRACT(r1.output_json, '$.passedImg') as passed_img, JSON_EXTRACT(r1.output_json, '$.materialUrls') as material_urls FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='SUCCESS' AND JSON_EXTRACT(r1.extra_info, '$.hdEnhanced') = 'true' ORDER BY r1.id DESC LIMIT 3",
+      "description": "NEW-G3: 查询高清化后URL是否正确刷新到output"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.passed_img contains 'http'",
+      "description": "NEW-G3: 高清化后passedImg URL已正确刷新传递"
+    },
+
+    {
+      "_comment": "NEW-G4: approvedTaoCate输出",
+      "type": "dbQuery",
+      "sql": "SELECT id, JSON_EXTRACT(output_json, '$.approvedTaoCate') as approved_cate FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='SUCCESS' AND JSON_EXTRACT(output_json, '$.approvedTaoCate') IS NOT NULL ORDER BY id DESC LIMIT 3",
+      "description": "NEW-G4: 查询output_json中的approvedTaoCate"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.approved_cate is not null AND all_rows.approved_cate != ''",
+      "description": "NEW-G4: output_json含approvedTaoCate字段"
+    },
+
+    {
+      "_comment": "========== 模块H: 错误路径（3条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-H-start')()",
+      "description": "=== 模块H分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-H1: 无图片→FAIL+errorMsg",
+      "type": "dbQuery",
+      "sql": "SELECT id, status, JSON_EXTRACT(extra_info, '$.errorMsg') as error_msg FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND status='FAIL' AND JSON_EXTRACT(extra_info, '$.errorMsg') LIKE '%没有要审核的图片%' ORDER BY id DESC LIMIT 5",
+      "description": "NEW-H1: 查询因无图片而FAIL的record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.status == 'FAIL' AND all_rows.error_msg contains '没有要审核的图片'",
+      "description": "NEW-H1: status=FAIL, errorMsg含\"没有要审核的图片\""
+    },
+
+    {
+      "_comment": "NEW-H2: ConcurrencyIssue→重试而非FAIL",
+      "type": "dbQuery",
+      "sql": "SELECT id, status, JSON_EXTRACT(extra_info, '$.retryCount') as retry_count, JSON_EXTRACT(extra_info, '$.errorMsg') as error_msg FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' AND (status='RETRYING' OR (status='FAIL' AND JSON_EXTRACT(extra_info, '$.errorMsg') LIKE '%Concurrency%')) ORDER BY id DESC LIMIT 5",
+      "description": "NEW-H2: 查找并发问题相关的record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all matching rows status == 'RETRYING' OR retry_count > 0",
+      "description": "NEW-H2: ConcurrencyIssue时record进入RETRYING而非直接FAIL"
+    },
+
+    {
+      "_comment": "NEW-H3: bandId/linkId非法→warn不中断 — 其他record继续处理",
+      "type": "dbQuery",
+      "sql": "SELECT id, status, JSON_EXTRACT(extra_info, '$.warnMsg') as warn_msg FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(extra_info, '$.warnMsg') LIKE '%illegal%bandId%' OR JSON_EXTRACT(extra_info, '$.warnMsg') LIKE '%illegal%linkId%' ORDER BY id DESC LIMIT 5",
+      "description": "NEW-H3: 查找bandId/linkId非法的warn记录"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "matching rows exist AND status != 'FAIL'",
+      "description": "NEW-H3: bandId/linkId非法时仅warn，record不进入FAIL，其他record继续处理"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT r1.id, r1.status, JSON_EXTRACT(r1.common_variable, '$.batchId') as batch_id FROM workflow_record_log r1 WHERE r1.id > 4000000 AND JSON_EXTRACT(r1.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(common_variable, '$.batchId') FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(extra_info, '$.warnMsg') LIKE '%illegal%') AND r1.status='SUCCESS' LIMIT 5",
+      "description": "NEW-H3: 同batch其他record是否继续SUCCESS"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count > 0",
+      "description": "NEW-H3: 非法ID仅warn，同batch其他record继续正常处理"
+    }
+  ]
+}

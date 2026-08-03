@@ -1,0 +1,87 @@
+{
+  "id": "contract-f88-query-response",
+  "name": "接口契约：F88 审核列表 API 响应结构验证",
+  "description": "验证 queryMaterialAuditList 接口返回的完整字段结构，确保前端依赖的关键字段始终存在",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "api_contract",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开任务中心"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "queryMaterialAuditList",
+      "timeout": 15000,
+      "description": "等待列表初始加载"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryMaterialAuditList",
+      "contains": "totalCount",
+      "description": "【字段1】验证响应包含 totalCount（总数分页依赖）"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryMaterialAuditList",
+      "contains": "data",
+      "description": "【字段2】验证响应包含 data 数组"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryMaterialAuditList",
+      "contains": "success",
+      "description": "【字段3】验证响应包含 success 标志"
+    },
+    {
+      "type": "screenshot",
+      "label": "contract-verified",
+      "description": "截图 - 接口契约验证通过后页面状态"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard.f88",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，API服务正常",
+    "riskPoints": [
+      "后端返回结构变更",
+      "字段名大小写变化",
+      "分页字段被移除"
+    ],
+    "contractFields": [
+      "totalCount",
+      "data",
+      "success",
+      "pageSize",
+      "currentPage"
+    ],
+    "relatedDocs": [
+      "scenes/f88-test/references/F88-前端组件测试要点.md"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

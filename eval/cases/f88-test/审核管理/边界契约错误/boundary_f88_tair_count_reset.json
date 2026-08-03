@@ -1,0 +1,119 @@
+{
+  "id": "boundary-f88-tair-count-reset",
+  "name": "风险点#17 - Tair 计数重置（全超限时清除后轮转验证）",
+  "description": "验证模板包匹配中 Tair 计数器在全超限被清除后的轮转恢复行为。风险：Tair 计数在全超限时被清除，可能导致轮转逻辑异常，某些模板被重复使用或跳过。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开淘内资源池页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待资源池加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模版资源池",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const hasRecommend = text.includes('推荐曝光') || text.includes('曝光数'); return { hasRecommendExposure: hasRecommend, sampleText: text.substring(0, 500) }; })()",
+      "storeAs": "exposureInfo",
+      "description": "检查推荐曝光数指标展示"
+    },
+    {
+      "type": "screenshot",
+      "label": "resource-pool-loaded",
+      "description": "截图-资源池已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const items = document.querySelectorAll('[class*=item], [class*=card], tr, .ant-list-item'); const exposures = []; for (const item of items) { const text = item.textContent; const match = text.match(/(\\d+)\\s*次?/); if (match) { exposures.push(parseInt(match[1])); } } return { itemCount: items.length, exposureValues: exposures.slice(0, 20) }; })()",
+      "storeAs": "poolItems",
+      "description": "采集各模板的曝光数值"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "导航到模版包管理验证轮转状态"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const activeShops = []; for (const c of cards) { const text = c.textContent; if (text.includes('使用中')) { const nameMatch = text.match(/(.+?)\\s*店铺ID/); const pkgMatch = text.match(/(\\d+)个/); activeShops.push({ name: nameMatch ? nameMatch[1].trim() : 'unknown', packageCount: pkgMatch ? parseInt(pkgMatch[1]) : 0 }); } } return { activeShopCount: activeShops.length, activeShops }; })()",
+      "storeAs": "activeShops",
+      "description": "统计使用中店铺及模板包数量（验证轮转基础数据）"
+    },
+    {
+      "type": "screenshot",
+      "label": "active-shops-status",
+      "description": "截图-使用中店铺状态"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "刷新模版包管理验证一致性"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const results = []; for (const c of cards) { const text = c.textContent; const pkgMatch = text.match(/(\\d+)个/); const hasActive = text.includes('使用中'); results.push({ packageCount: pkgMatch ? parseInt(pkgMatch[1]) : -1, isActive: hasActive }); } const withPkg = results.filter(r => r.packageCount > 0); const activeWithPkg = withPkg.filter(r => r.isActive); return { totalCards: cards.length, cardsWithPackages: withPkg.length, activeWithPackages: activeWithPkg.length, consistencyCheck: withPkg.length > 0 }; })()",
+      "storeAs": "rotationCheck",
+      "description": "验证轮转数据一致性（有模板包的店铺应处于使用中状态）"
+    },
+    {
+      "type": "screenshot",
+      "label": "rotation-consistency",
+      "description": "截图-轮转一致性验证"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "template|tair|workflow",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。存在多个使用中/未使用的店铺。",
+    "realDomNotes": "风险点#17: Tair计数器在全超限时清除后，模板轮转逻辑可能异常。需验证：1)资源池曝光数展示正确 2)使用中店铺的模板包数量一致 3)刷新后数据不丢失。",
+    "riskPoints": [
+      "Tair 计数清除后轮转可能不均匀（某些模板被重复选、某些被跳过）",
+      "全超限清除的触发条件不明确，需抓包确认 API",
+      "预发环境可能无法真正触发全超限场景，以数据一致性验证替代"
+    ]
+  }
+}

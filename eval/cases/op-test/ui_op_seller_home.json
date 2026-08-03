@@ -1,0 +1,82 @@
+{
+  "id": "ui-op-seller-home",
+  "name": "UI：原创保护商家端首页结构验证",
+  "description": "打开原创保护商家端首页，全量验证：平台标题、顶部4项统计、两大保护模式Tab、专利保护4步引导、筛选区4字段+按钮（搜 索含空格）、8项状态筛选、7列表格（含tooltip文案）、行级操作入口区分、功能按钮。基于预发真实DOM（isv测试账号已登录）。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 5000,
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开原创保护商家端首页"
+    },
+    { "type": "wait", "ms": 5000, "description": "等待商家端首页数据加载" },
+
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护", "description": "【标题】验证平台标题（非「原创保护平台」）" },
+
+    { "type": "assert", "target": "page", "contains": "专利认证数量", "description": "【顶部统计】验证含专利认证数量" },
+    { "type": "assert", "target": "page", "contains": "疑似侵权商家数量", "description": "【顶部统计】验证含疑似侵权商家数量" },
+    { "type": "assert", "target": "page", "contains": "疑似侵权商品数量", "description": "【顶部统计】验证含疑似侵权商品数量" },
+    { "type": "assert", "target": "page", "contains": "剩余服务次数", "description": "【顶部统计】验证含剩余服务次数" },
+
+    { "type": "assert", "target": "page", "contains": "全网专利保护", "description": "【模式Tab】验证含全网专利保护模式" },
+    { "type": "assert", "target": "page", "contains": "淘内首发保护", "description": "【模式Tab】验证含淘内首发保护模式" },
+
+    { "type": "assert", "target": "page", "contains": "申请专利", "description": "【保护步骤STEP1】验证含申请专利" },
+    { "type": "assert", "target": "page", "contains": "等待专利受理", "description": "【保护步骤STEP2】验证含等待专利受理" },
+    { "type": "assert", "target": "page", "contains": "发布商品", "description": "【保护步骤STEP3】验证含发布商品" },
+    { "type": "assert", "target": "page", "contains": "发起维权", "description": "【保护步骤STEP4】验证含发起维权" },
+
+    { "type": "assert", "target": "page", "contains": "商品名", "description": "【筛选区】验证含商品名输入框" },
+    { "type": "assert", "target": "page", "contains": "商品ID", "description": "【筛选区】验证含商品ID输入框" },
+    { "type": "assert", "target": "page", "contains": "申请编号", "description": "【筛选区】验证含申请编号输入框" },
+    { "type": "assert", "target": "page", "contains": "专利号", "description": "【筛选区】验证含专利号输入框" },
+    { "type": "assert", "target": "page", "contains": "重置筛选", "description": "【筛选区】验证含重置筛选按钮" },
+
+    { "type": "assert", "target": "page", "contains": "全部", "description": "【状态筛选】验证含全部" },
+    { "type": "assert", "target": "page", "contains": "草稿中", "description": "【状态筛选】验证含草稿中" },
+    { "type": "assert", "target": "page", "contains": "专利申请中", "description": "【状态筛选】验证含专利申请中" },
+    { "type": "assert", "target": "page", "contains": "专利保护中", "description": "【状态筛选】验证含专利保护中" },
+    { "type": "assert", "target": "page", "contains": "专利已回转", "description": "【状态筛选】验证含专利已回转" },
+    { "type": "assert", "target": "page", "contains": "专利保护已失效", "description": "【状态筛选】验证含专利保护已失效" },
+    { "type": "assert", "target": "page", "contains": "专利申请已驳回", "description": "【状态筛选】验证含专利申请已驳回" },
+    { "type": "assert", "target": "page", "contains": "专利申请已终止", "description": "【状态筛选】验证含专利申请已终止" },
+
+    { "type": "assert", "target": "page", "contains": "商品信息", "description": "【表格列】验证含商品信息列" },
+    { "type": "assert", "target": "page", "contains": "专利状态", "description": "【表格列】验证含专利状态列" },
+    { "type": "assert", "target": "page", "contains": "累计巡检疑似侵权", "description": "【表格列】验证含累计巡检疑似侵权列" },
+    { "type": "assert", "target": "page", "contains": "由第三方服务机构提供", "description": "【表格列tooltip】验证第三方服务机构说明文案" },
+    { "type": "assert", "target": "page", "contains": "疑似侵权情况", "description": "【表格列】验证含疑似侵权情况列" },
+    { "type": "assert", "target": "page", "contains": "累计维权次数", "description": "【表格列】验证含累计维权次数列" },
+
+    { "type": "assert", "target": "page", "contains": "查看详情", "description": "【行级操作】验证含查看详情入口" },
+    { "type": "assert", "target": "page", "contains": "新增专利申请", "description": "【功能按钮】验证含新增专利申请入口" },
+    { "type": "assert", "target": "page", "contains": "管理白名单店铺", "description": "【功能按钮】验证含管理白名单店铺入口" },
+
+    { "type": "screenshot", "label": "op-seller-home", "description": "截图-商家端首页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "商家端预发已登录（isv项目测试专用 2213249110271）。",
+    "realDomNotes": "标题「淘天服饰原创保护」;顶部统计:专利认证数量/疑似侵权商家数量/疑似侵权商品数量/剩余服务次数;模式Tab:全网专利保护/淘内首发保护;专利保护步骤STEP1-4:申请专利/等待专利受理/发布商品/发起维权;筛选:商品名/商品ID/申请编号/专利号,按钮搜 索(含空格)/重置筛选;状态筛选8项;表格列7个;功能按钮:去充值/管理白名单店铺/新增专利申请;行级操作:查看详情/发起维权/查看维权详情/申请原创保护/查看申请详情。",
+    "riskPoints": [
+      "商家端依赖淘宝SSO登录态,登录过期则页面空白",
+      "搜索按钮含空格不可clickText精确匹配",
+      "统计数字随环境数据变化",
+      "行级操作3个入口区分:查看详情→专利详情 / 发起维权→侵权巡检 / 查看维权详情→维权记录"
+    ],
+    "relatedDocs": ["scenes/op-test/references/前端组件测试要点.md"]
+  }
+}

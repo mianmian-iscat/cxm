@@ -1,0 +1,72 @@
+{
+  "id": "atom-cd-02-edit-desc",
+  "name": "原子：链路说明编辑",
+  "description": "编辑链路说明textarea，修改内容，验证保存按钮变为可用",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelector('textarea[placeholder=\"请输入链路说明\"]'); return { originalValue: ta?.value }; })()",
+      "storeAs": "originalDesc"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelector('textarea[placeholder=\"请输入链路说明\"]'); if (!ta) return { ok: false }; ta.focus(); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(ta, ta.value + ' 自动化验证'); ta.dispatchEvent(new Event('input', {bubbles:true})); ta.dispatchEvent(new Event('change', {bubbles:true})); return { ok: true, newValue: ta.value }; })()",
+      "storeAs": "modifiedDesc"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const saveBtn = [...btns].find(b => b.textContent.includes('保 存')); return { found: !!saveBtn, disabled: saveBtn?.disabled, visible: saveBtn ? saveBtn.offsetHeight > 0 : false }; })()",
+      "storeAs": "saveBtnState"
+    },
+    {
+      "type": "screenshot",
+      "label": "desc-modified"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelector('textarea[placeholder=\"请输入链路说明\"]'); if (!ta) return { ok: false }; ta.focus(); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(ta, ''); ta.dispatchEvent(new Event('input', {bubbles:true})); ta.dispatchEvent(new Event('change', {bubbles:true})); return { ok: true, restored: ta.value }; })()",
+      "storeAs": "restoredDesc"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    }
+  ]
+}

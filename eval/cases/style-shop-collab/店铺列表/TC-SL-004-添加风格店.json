@@ -1,0 +1,86 @@
+{
+  "id": "TC-SL-004",
+  "name": "TC-SL-004 — 添加风格店弹窗与校验 [P0]",
+  "description": "验证添加风格店弹窗：Seller ID必填且纯数字且不可重复，负责买手必选且可搜索下拉",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "店铺列表",
+  "page": "店铺列表",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('添加风格店')); if (btn) { btn.click(); return { clicked: true, disabled: btn.disabled }; } return { clicked: false }; })()",
+      "description": "点击添加风格店按钮",
+      "storeAs": "openModal"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer, [class*=modal]'); if (!modal) return { found: false }; const title = modal.querySelector('.ant-modal-title, h3, h4')?.textContent.trim(); const sellerInput = modal.querySelector('input[placeholder*=Seller], input[id*=seller], input'); const buyerSelect = modal.querySelector('.ant-select'); const cancelBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.includes('取消')); const saveBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.includes('保存')); return { found: true, title, sellerInput: !!sellerInput, buyerSelect: !!buyerSelect, cancelBtn: !!cancelBtn, saveBtn: !!saveBtn }; })()",
+      "description": "验证弹窗元素",
+      "storeAs": "modalElements"
+    },
+    {
+      "type": "assertStore",
+      "key": "modalElements",
+      "path": "found",
+      "equals": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer, [class*=modal]'); if (!modal) return { clicked: false, reason: 'modal not found' }; const saveBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.includes('保存') || b.textContent.includes('确定') || b.textContent.includes('提交')); if (saveBtn) { saveBtn.click(); return { clicked: true }; } return { clicked: false, reason: 'save button not found' }; })()",
+      "description": "空表单直接点保存，触发校验",
+      "storeAs": "emptySubmit"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer, [class*=modal]'); if (!modal) return { stillOpen: false, errors: [], reason: 'modal not found' }; const errors = Array.from(modal.querySelectorAll('.ant-form-item-explain-error, .ant-form-item-explain, [class*=error]')).map(e => e.textContent.trim()); const stillOpen = !!modal; return { stillOpen, errors }; })()",
+      "description": "验证空表单校验错误提示",
+      "storeAs": "validationErrors"
+    },
+    {
+      "type": "assertStore",
+      "key": "validationErrors",
+      "path": "stillOpen",
+      "equals": true,
+      "description": "校验失败时弹窗不关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "add-shop-validation"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "用户有添加风格店权限（管理员/产运/Leader）",
+    "stepsText": "1. 点击添加风格店按钮\n2. 验证弹窗包含Seller ID输入框和负责买手选择器\n3. 空表单直接点保存\n4. 验证校验错误提示",
+    "expectedResult": "1. 弹窗展示Seller ID输入框（必填、纯数字、不可重复）和负责买手可搜索下拉（必选）\n2. 空表单保存时校验失败，展示错误提示\n3. 弹窗保持打开不关闭\n4. 取消/关闭弹窗/点击蒙层不保存",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/店铺列表"
+  }
+}

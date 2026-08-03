@@ -1,0 +1,75 @@
+{
+  "id": "regression-op-first-publish-label",
+  "name": "回归：原创保护首发标签管理（运营端列表页）",
+  "description": "验证运营端原创保护列表页含「是否首发」列并正确渲染（首发标签由第三方/小二维护，展示于申请列表行级）",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/yc-child-shoes-testcases/test_02_xiaoer_first_publish.py",
+  "sourceIds": [
+    "TC_XIAOER_001",
+    "TC_XIAOER_002"
+  ],
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+      "description": "打开原创保护运营端申请列表页（含是否首发列）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "是否首发",
+      "description": "【TC_XIAOER_001】验证列表含「是否首发」列"
+    },
+    {
+      "type": "screenshot",
+      "label": "first-publish-column",
+      "description": "截图-含是否首发列的申请列表"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "累计维权次数",
+      "description": "佐证为运营端申请列表页（含累计维权次数列）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "taotian-apparel|yc.right",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "预发环境可访问，运营端原创保护列表页含「是否首发」列",
+    "riskPoints": [
+      "非9类商家首发列显示为空/未填写",
+      "是否首发列由小二/第三方维护"
+    ],
+    "erratum": "原用例假设首发标签在 quality-pulse/product-management 页；实际「是否首发」列聚合于运营端 taotian-apparel-original-protection-xiaoer/list 行级，据真实页面重新定位",
+    "qoderworkRef": "yc-child-shoes-testcases/test_02_xiaoer_first_publish.py TC_XIAOER_001/002"
+  }
+}

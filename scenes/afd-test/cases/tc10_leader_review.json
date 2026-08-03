@@ -1,0 +1,67 @@
+{
+  "id": "tc10-leader-review",
+  "name": "Leader 复核",
+  "description": "Leader三选一决策：确认通过/确认驳回/打回买手",
+  "priority": "P0",
+  "category": "functional",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "PENDING_LEADER"
+    },
+    {
+      "type": "click",
+      "selector": "[data-tab*='试拍']",
+      "description": "切换到试拍Tab"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图结果视图"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('确认通过')",
+      "description": "Leader确认通过"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "ARCHIVED"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "state_is",
+      "value": "ARCHIVED"
+    }
+  ],
+  "tags": [
+    "afd",
+    "functional",
+    "leader",
+    "review"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

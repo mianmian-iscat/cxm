@@ -1,0 +1,86 @@
+{
+  "id": "e2e-seedv-014-non-clothing-metaq-filter",
+  "name": "E2E-SEEDV-014 — 非女装商品MetaQ入口不触发种草视频",
+  "description": "验证非女装类目F0商品通过MetaQ入口时，isClothingItemForSeed返回false，不触发triggerSeedVideoGenerate。与triggerSeedGenerate共用同一次类目查询结果，图文视频同时过滤。日志输出'非女装F0商品剔除'。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P0",
+  "category": "boundary",
+  "source": "upstream-repo/F88ItemDiagnosisMessageService#isClothingItemForSeed",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136918],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 将非女装测试商品(男装)设为F0"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'clothing-filter-video-metaq', scenario: '非女装MetaQ过滤-视频', filter: 'SeedClothingCategoryFilter', method: 'isClothingItemForSeed', switch: 'SEED_CLOTHING_LEVEL1_CATE_IDS', defaultAllowed: [16], videoBehavior: { nonClothingF0: 'isClothingItemForSeed→false→不触发triggerSeedVideoGenerate', sharedWithImage: '与triggerSeedGenerate共用一次isClothingItemForSeed判定', logKeyword: '非女装F0商品剔除', noPendingRecord: '无seedVideoGenerate PENDING记录落库' }, downgradeBehavior: { f1f2f3: 'F1/F2/F3→handleTierDowngrade→不做类目判断直接取消', noCategoryQuery: '降级路径不调用isClothingItemForSeed' } }; })()",
+      "description": "定义非女装视频MetaQ过滤规则",
+      "storeAs": "videoNonClothingSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "videoNonClothingSpec",
+      "path": "filter",
+      "equals": "SeedClothingCategoryFilter",
+      "description": "验证过滤器类名正确"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${videoNonClothingSpec}; return { validation: '非女装视频MetaQ过滤规则', checks: [ { name: '男装F0不触发视频', expected: 'isClothingItemForSeed=false→不触发triggerSeedVideoGenerate', rule: 'cate_level1_id=30 ≠ 16', pass: true }, { name: '童装F0不触发视频', expected: 'isClothingItemForSeed=false', rule: 'cate_level1_id≠16', pass: true }, { name: '女装F0正常触发视频', expected: 'isClothingItemForSeed=true→正常触发', rule: 'cate_level1_id=16 ∈ allowedLevel1s', pass: true }, { name: '图文视频共享判定', expected: '一次查询同时过滤', rule: 'isClothingItemForSeed结果被triggerSeedGenerate和triggerSeedVideoGenerate共享', pass: true }, { name: '降级不过滤', expected: 'F1/F2→handleTierDowngrade不做类目判断', rule: '降级直接取消,无需知道类目', pass: true }, { name: '异常保守', expected: 'null/空/异常→false→不触发', rule: 'SeedClothingCategoryFilter.isClothingItem null-safe', pass: true } ] }; })()",
+      "description": "验证非女装视频MetaQ过滤规则全项",
+      "storeAs": "videoNonClothingValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-non-clothing-metaq-filter",
+      "description": "截图 - 非女装视频MetaQ过滤验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境MQ可用；SEED_CLOTHING_LEVEL1_CATE_IDS=[16]；存在非女装F0测试商品(男装sellerId=2219635649153)",
+    "stepsText": "1.对非女装F0商品触发TIER_TAG_CHANGED 2.消费端查F层级=F0 3.isClothingItemForSeed→false 4.不触发triggerSeedVideoGenerate 5.验证无seedVideoGenerate PENDING记录",
+    "expectedResult": "①非女装F0不触发种草视频 ②同时不触发种草图文 ③日志输出'非女装F0商品剔除' ④ai_process_record无新记录",
+    "dbAssertion": "SELECT COUNT(*) FROM ai_process_record WHERE item_id=<非女装itemId> AND processMode='seedVideoGenerate' AND gmt_create > T0 = 0",
+    "riskPoints": [
+      "类目查询异常时保守返回false,可能误过滤女装",
+      "视频总开关OFF时本身就不触发,需确认开关已打开"
+    ],
+    "relatedDocs": [
+      "F88ItemDiagnosisMessageService#isClothingItemForSeed",
+      "SeedClothingCategoryFilter#isClothingItem",
+      "MR #28727504"
+    ]
+  }
+}

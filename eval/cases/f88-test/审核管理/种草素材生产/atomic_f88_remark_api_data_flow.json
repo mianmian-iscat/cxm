@@ -1,0 +1,113 @@
+{
+  "id": "atomic-f88-remark-api-data-flow",
+  "name": "原子：种草链路 - 任务类型备注字段API数据流验证",
+  "description": "技术方案：taobao-cloth-ai-op-serverless在向AFD同步的入参中加入备注信息（新增F0/F0爆款&潜爆/其他），通过 /api/afd/review/inspection/data 查询接口验证备注字段正确传递。使用网络请求拦截验证API入参和出参中remark字段。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 4000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "_comment": "===== 注册网络请求拦截器（覆盖fetch和XHR） =====",
+      "type": "evaluate",
+      "expression": "(() => { if (!window.__apiCapture) { window.__apiCapture = { requests: [], responses: [] }; const origFetch = window.fetch; window.fetch = async function(...args) { const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || ''; const method = args[1]?.method || 'GET'; const body = args[1]?.body || null; const req = { url, method, body: typeof body === 'string' ? body : (body ? JSON.stringify(body) : ''), timestamp: Date.now() }; window.__apiCapture.requests.push(req); const resp = await origFetch.apply(this, args); if (url.includes('inspection/data') || url.includes('inspection/list') || url.includes('task/schedule')) { try { const clone = resp.clone(); const json = await clone.json(); window.__apiCapture.responses.push({ url, method, body: JSON.stringify(json).slice(0, 500), timestamp: Date.now() }); } catch(e) {} } return resp; }; } return { interceptorReady: true }; })()",
+      "description": "注册API拦截器（fetch + 响应克隆）",
+      "storeAs": "interceptor"
+    },
+    {
+      "_comment": "===== 进入种草审核任务 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { const t = row.textContent || ''; if ((t.includes('种草') || t.includes('套图')) && (t.includes('待开始') || t.includes('进行中'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情'); if (btn) { btn.click(); return { clicked: true }; } } } return { clicked: false }; })()",
+      "description": "进入种草审核任务",
+      "storeAs": "taskEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务详情页加载"
+    },
+    {
+      "_comment": "===== 等待inspection/data或inspection/list API调用 =====",
+      "type": "evaluate",
+      "expression": "(() => { const capture = window.__apiCapture || { requests: [], responses: [] }; const dataReqs = capture.requests.filter(r => r.url.includes('inspection/data') || r.url.includes('inspection/list')); const dataResps = capture.responses.filter(r => r.url.includes('inspection/data') || r.url.includes('inspection/list')); return { requestCount: dataReqs.length, responseCount: dataResps.length, requests: dataReqs.map(r => ({ url: r.url, method: r.method, bodyPreview: r.body.slice(0, 200) })), responses: dataResps.map(r => ({ url: r.url, bodyPreview: r.body.slice(0, 300) })) }; })()",
+      "description": "检查inspection API请求和响应",
+      "storeAs": "apiCheck1"
+    },
+    {
+      "_comment": "===== 进入审核详情触发更多API调用 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { if (row.textContent?.includes('待审核')) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { clicked: true }; } } } return { alreadyInDetail: true }; })()",
+      "description": "进入审核详情",
+      "storeAs": "auditEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待审核详情加载和API调用"
+    },
+    {
+      "_comment": "===== 技术方案验证：inspection/data接口返回remark字段 =====",
+      "type": "evaluate",
+      "expression": "(() => { const capture = window.__apiCapture || { requests: [], responses: [] }; const allReqs = capture.requests; const allResps = capture.responses; const inspectionReqs = allReqs.filter(r => r.url.includes('inspection')); const inspectionResps = allResps.filter(r => r.url.includes('inspection')); const hasRemarkInResponse = inspectionResps.some(r => r.bodyPreview.includes('remark') || r.bodyPreview.includes('备注')); const remarkValues = []; for (const resp of inspectionResps) { const match = resp.bodyPreview.match(/remark[\"':\\s]+([^\"',}\\s]+)/); if (match) remarkValues.push(match[1]); } return { totalRequests: allReqs.length, inspectionRequests: inspectionReqs.length, inspectionResponses: inspectionResps.length, hasRemarkInResponse, remarkValues, allInspectionUrls: inspectionReqs.map(r => r.url.split('?')[0]).filter((v, i, a) => a.indexOf(v) === i), note: '技术方案：taobao-cloth-ai-op-serverless在向AFD同步入参加备注' }; })()",
+      "description": "验证inspection API返回remark字段",
+      "storeAs": "remarkApiVerify"
+    },
+    {
+      "_comment": "===== 验证API返回的remark值在合法枚举域内 =====",
+      "type": "evaluate",
+      "expression": "(() => { const verify = ${remarkApiVerify}; const validEnums = ['新增F0', 'F0爆款', 'F0 爆款', '潜爆', '其他']; const allValid = verify.remarkValues.every(v => validEnums.some(e => v.includes(e))); return { remarkValuesFromApi: verify.remarkValues, allValidEnum: allValid, apiUrls: verify.allInspectionUrls, hasInspectionApi: verify.inspectionRequests.length > 0 }; })()",
+      "description": "验证API返回的remark值合法性",
+      "storeAs": "remarkEnumVerify"
+    },
+    {
+      "type": "screenshot",
+      "label": "remark-api-data-flow",
+      "description": "截图-备注字段API数据流验证"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在种草审核任务（含备注值数据）",
+    "realDomNotes": "技术方案：taobao-cloth-ai-op-serverless在向AFD同步入参中加入备注信息；inspection/data和inspection/list接口应返回remark字段",
+    "riskPoints": [
+      "fetch响应克隆可能影响后续页面渲染",
+      "API返回的remark字段名可能不是'remark'（可能是'remarkInfo'或其他）",
+      "响应拦截仅能捕获页面加载期间的API调用，后续分页加载可能遗漏",
+      "XHR请求未被拦截（需额外拦截XMLHttpRequest）"
+    ],
+    "prdMapping": {
+      "AFD同步入参": "taobao-cloth-ai-op-serverless在启动任务时向AFD传递备注",
+      "查询接口": "/api/afd/review/inspection/data 返回含remark的数据",
+      "枚举值": "新增F0/F0爆款&潜爆/其他"
+    }
+  }
+}

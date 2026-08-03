@@ -1,0 +1,50 @@
+{
+  "id": "smoke-tpp-page-load",
+  "name": "冒烟：TPP 分桶页面可访问",
+  "status": "pass",
+  "startTime": "2026-06-22T11:35:50.849055Z",
+  "duration": 21486,
+  "steps": [
+    {
+      "index": 0,
+      "type": "wait",
+      "description": "",
+      "status": "pass",
+      "duration": 3001
+    },
+    {
+      "index": 1,
+      "type": "assert",
+      "description": "验证页面包含 bucket 字样（桶列表已渲染）",
+      "status": "pass",
+      "duration": 2,
+      "assertResult": {
+        "expected": "bucket",
+        "actual": "(包含)",
+        "pass": true
+      }
+    },
+    {
+      "index": 2,
+      "type": "screenshot",
+      "description": "页面加载截图",
+      "status": "pass",
+      "duration": 241,
+      "screenshotPath": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/smoke-tpp-page-load-20260622113550/screenshots/step2-tpp-layer-loaded.png"
+    }
+  ],
+  "screenshots": [
+    {
+      "stepIndex": 2,
+      "label": "tpp-layer-loaded",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/smoke-tpp-page-load-20260622113550/screenshots/step2-tpp-layer-loaded.png"
+    }
+  ],
+  "capture": {
+    "requests": []
+  },
+  "artifacts": {
+    "runId": "smoke-tpp-page-load-20260622113550"
+  },
+  "authType": "none"
+}

@@ -1,0 +1,63 @@
+{
+  "id": "tc12-archive",
+  "name": "视觉归档与基准包",
+  "description": "Leader确认通过后自动归档，生成视觉基准包",
+  "priority": "P1",
+  "category": "smoke",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "ARCHIVED"
+    },
+    {
+      "type": "click",
+      "selector": "[data-tab*='归档']",
+      "description": "切换到归档Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "screenshot",
+      "description": "截图归档基准包"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": "[class*='visual-package']",
+      "exists": true,
+      "description": "验证视觉基准包存在"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "element_exists",
+      "selector": "[class*='visual-package']"
+    }
+  ],
+  "tags": [
+    "afd",
+    "smoke",
+    "archive"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

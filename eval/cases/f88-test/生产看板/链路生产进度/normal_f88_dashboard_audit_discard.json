@@ -1,0 +1,73 @@
+{
+  "id": "normal-f88-dashboard-audit-discard",
+  "name": "正常流程：生产看板 - 审核丢弃任务数展示验证",
+  "description": "验证生产看板正确展示审核丢弃任务数，数据口径与审核中心一致",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核丢弃",
+      "description": "验证审核丢弃标签存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const cards = Array.from(document.querySelectorAll('.ant-statistic, .ant-card, [class*=statistic], [class*=metric], [class*=card]')); return { cardCount: cards.length, values: cards.slice(0, 8).map(c => (c.textContent || '').trim().substring(0, 50)) }; })()",
+      "description": "检查指标卡数值",
+      "storeAs": "metricValues"
+    },
+    {
+      "type": "screenshot",
+      "label": "dashboard-audit-discard",
+      "description": "截图 - 审核丢弃数"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录，存在审核丢弃任务",
+    "riskPoints": [
+      "审核丢弃数据口径需与审核中心一致"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

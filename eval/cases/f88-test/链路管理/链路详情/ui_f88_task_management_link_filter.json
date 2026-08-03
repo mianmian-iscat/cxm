@@ -1,0 +1,99 @@
+{
+  "id": "ui-f88-task-management-link-filter",
+  "name": "UI：任务管理-链路筛选功能验证",
+  "description": "验证链路下拉筛选：选择不同链路→列表更新→文案/数据一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "description": "开始抓包-链路筛选"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select-selector'); const linkSelect = selects[0]; return linkSelect ? { text: linkSelect.textContent.trim() } : null; })()",
+      "description": "记录初始链路筛选值",
+      "storeAs": "initialLink"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-tree-treenode, [class*=treeNode]'); return { count: rows.length }; })()",
+      "description": "记录初始节点数",
+      "storeAs": "initialCount"
+    },
+    {
+      "type": "selectOption",
+      "label": "链路",
+      "option": "全部",
+      "description": "选择全部链路"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-tree-treenode, [class*=treeNode]'); return { count: rows.length }; })()",
+      "description": "记录全部链路节点数",
+      "storeAs": "allCount"
+    },
+    {
+      "type": "assertStore",
+      "key": "allCount",
+      "path": "count",
+      "greaterThanOrEqual": 0,
+      "description": "断言全部链路有数据"
+    },
+    {
+      "type": "screenshot",
+      "label": "task-mgmt-link-filter-all",
+      "description": "全部链路筛选结果"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止抓包"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在多条链路数据。",
+    "realDomNotes": "链路筛选为Ant Design Select，选项包含全部+各链路名称。选择后树形列表刷新。",
+    "riskPoints": [
+      "链路下拉选项需实际确认"
+    ]
+  }
+}

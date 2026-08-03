@@ -1,0 +1,153 @@
+{
+  "id": "settlement-expiry-refund",
+  "name": "结算资金流：合作到期退款（下架率<70%退商家服务费）",
+  "description": "验证6个到期退款场景，下架率均<70%。分2组到期维度：①商品确认一致性180天到期(3)：无补贴退0.08(10-2官费)、有补贴首发退0.02(自动确收4-官费2)、有补贴非首发退0.04(自动确收6-官费2)；②申请日+1年-30天到期(3)：同规则。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P2",
+  "category": "regression",
+  "source": "dingtalk-spreadsheet/6LeBq413JA9BOdm2iBjQdjE7JDOnGvpb Sheet1 Row34,40,45,50",
+  "sourceIds": [
+    "TC_SETTLE_REF_001",
+    "TC_SETTLE_REF_002",
+    "TC_SETTLE_REF_003",
+    "TC_SETTLE_REF_004",
+    "TC_SETTLE_REF_005",
+    "TC_SETTLE_REF_006"
+  ],
+  "context": {
+    "type": "db",
+    "dbGroup": "scenario",
+    "dbEnv": "prod",
+    "script": "scripts/verify_settlement.py"
+  },
+  "scenarios": {
+    "商品确认一致性180天到期-退款": [
+      {
+        "id": "TC_SETTLE_REF_001",
+        "name": "无补贴+下架率<70%→退商家0.08(10-2官费)",
+        "applyId": "200000346",
+        "orderId": "322056500300271",
+        "patentNo": "202638111111.1",
+        "expireRule": "商品确认一致性后180天",
+        "expected": {
+          "has_subsidy": false,
+          "takedown_rate_lt_70": true,
+          "settle_status": "FINISH",
+          "serv_finish_refund_amount": 8,
+          "note": "退款 total-官费 = 10-2 = 8分（0.08元），服饰确收官费0.02"
+        }
+      },
+      {
+        "id": "TC_SETTLE_REF_002",
+        "name": "有补贴首发+下架率<70%→退0.02(自动确收4-官费2)",
+        "applyId": "200000352",
+        "orderId": "322055800470271",
+        "patentNo": "202638111111.3",
+        "expireRule": "商品确认一致性后180天",
+        "expected": {
+          "has_subsidy": true,
+          "first_publish": true,
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 2,
+          "note": "退商家 自动确收-官费 = 4-2 = 2分（生产:198-165=33元）"
+        }
+      },
+      {
+        "id": "TC_SETTLE_REF_003",
+        "name": "有补贴非首发+下架率<70%→退0.04(自动确收6-官费2)",
+        "applyId": "200001005",
+        "orderId": "339823801820271",
+        "expireRule": "商品确认一致性后180天",
+        "expected": {
+          "has_subsidy": true,
+          "first_publish": true,
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 2,
+          "note": "实际样本验证通过：首发补贴6分+到期退官费2分"
+        }
+      }
+    ],
+    "申请日+1自然年-30天到期-退款": [
+      {
+        "id": "TC_SETTLE_REF_004",
+        "name": "无补贴+下架率<70%→退0.08",
+        "applyId": "200000388",
+        "orderId": "322056100550271",
+        "patentNo": "202634041510.2",
+        "expireRule": "专利申请日+1自然年-30天",
+        "expected": {
+          "has_subsidy": false,
+          "takedown_rate_lt_70": true,
+          "serv_finish_refund_amount": 8,
+          "note": "给商家0.08元，确收0.02元"
+        }
+      },
+      {
+        "id": "TC_SETTLE_REF_005",
+        "name": "有补贴首发+下架率<70%→退0.02",
+        "applyId": "200000385",
+        "orderId": "322056100540271",
+        "patentNo": "202634041510.5",
+        "expireRule": "专利申请日+1自然年-30天",
+        "expected": {
+          "has_subsidy": true,
+          "first_publish": true,
+          "init_allowance_amount": 6,
+          "serv_finish_refund_amount": 2,
+          "note": "退商家500-302-165=33（测试:4-2=2分），补贴0.06已发"
+        }
+      },
+      {
+        "id": "TC_SETTLE_REF_006",
+        "name": "无补贴(已验证样本)+下架率<70%→退0.08",
+        "applyId": "200000885",
+        "orderId": "339834101560271",
+        "expireRule": "专利申请日+1自然年-30天",
+        "expected": {
+          "has_subsidy": false,
+          "first_publish": false,
+          "takedown_rate": "50%",
+          "serv_finish_refund_amount": 8,
+          "note": "已通过verify_settlement.py验证: 下架率50%<70%, 退款=8分 ✅"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && for id in 200000346 200000352 200001005 200000388 200000385 200000885; do python3 scripts/verify_settlement.py $id; done",
+      "description": "逐条执行6个到期退款场景的DB结算校验"
+    }
+  ],
+  "post_asserts": [
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, settle_status, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000346,200000388,200000885) AND is_deleted=0 AND settle_status='FINISH' AND serv_finish_refund_amount=8",
+      "expectCount": 3,
+      "description": "无补贴退款场景: refund=8分(total-官费)"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT right_apply_id, init_allowance_amount, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id IN (200000352,200000385,200001005) AND is_deleted=0 AND settle_status='FINISH' AND init_allowance_amount=6 AND serv_finish_refund_amount=2",
+      "expectCount": 3,
+      "description": "有补贴首发退款场景: 补贴=6, refund=2(官费)"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "6个专利申请保护期已到期且下架率<70%，结算Job已执行",
+    "riskPoints": [
+      "无补贴退款=total-官费=8分（非全额退10分）",
+      "有补贴首发退款=自动确收-官费=4-2=2分（生产:198-165=33元）",
+      "有补贴非首发退款=自动确收-官费=6-2=4分（生产:298-165=133元）",
+      "退款方向: 服饰主体 → 服务市场垫资 → 商家（售后退款路径）",
+      "退款原因: '服务履约不满足承诺条件，除官费外服务费全额退款'",
+      "资损风险: 退款金额计算错误（多退或少退）"
+    ],
+    "prdRef": "PRD: 下架率<70% → 系统结算，供应商0，商家退335(无补贴)/33(首发)/133(非首发)"
+  }
+}

@@ -1,0 +1,248 @@
+{
+  "id": "f88-audit-tc21",
+  "name": "TC21 - 局部修改操作场景：CopyURL / 下载 / Excel导出 / API验证",
+  "description": "局部修改（布局修改）后需「编辑后 + ✅ 确认」流程，验证CopyURL/下载/导出URL正确性。对应知识库模块I-D（NEW-I22~I28）。localAdjustStatus确认后重置为0。",
+  "businessType": "f88_material",
+  "relatedCases": ["NEW-I22", "NEW-I23", "NEW-I24", "NEW-I25", "NEW-I26", "NEW-I27", "NEW-I28"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== NEW-I22: 单图审核(qt=1) 局部修改 + CopyURL ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_lm_i22",
+      "description": "NEW-I22: 记录修改前原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "局部修改",
+      "selector": "button, [class*='action'], [class*='toolbar']",
+      "description": "NEW-I22: 点击局部修改按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待局部修改工具加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "修改",
+      "description": "验证局部修改工具已加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "local-modify-tool-loaded",
+      "description": "截图 - 局部修改工具界面"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "[class*='tab'], [role='tab']",
+      "description": "NEW-I22: 切换到编辑后Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "NEW-I22: 点击确认按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "Copy URL",
+      "selector": "button, [data-testid='copy-url']",
+      "description": "NEW-I22: 点击Copy URL"
+    },
+    {
+      "type": "assert",
+      "target": "clipboard",
+      "notEquals": "${originalUrl_lm_i22}",
+      "description": "NEW-I22: 剪贴板为修改后新图URL，非原始URL"
+    },
+
+    {
+      "_comment": "=== NEW-I23: 套图审核(qt=2) 局部修改一张 + CopyURL ===",
+      "type": "clickText",
+      "text": "局部修改",
+      "selector": "button, [class*='action']",
+      "description": "NEW-I23: 对套图中一张图局部修改"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "[class*='tab'], [role='tab']",
+      "description": "NEW-I23: 编辑后Tab"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "NEW-I23: 确认"
+    },
+    {
+      "type": "clickText",
+      "text": "Copy URL",
+      "selector": "button, [data-testid='copy-url']",
+      "description": "NEW-I23: CopyURL"
+    },
+    {
+      "type": "assert",
+      "target": "clipboard",
+      "contains": "http",
+      "description": "NEW-I23: 被修改图为新图URL"
+    },
+
+    {
+      "_comment": "=== NEW-I24: 封面图审核(qt=4) 局部修改封面图 + CopyURL ===",
+      "type": "clickText",
+      "text": "局部修改",
+      "selector": "button, [class*='action']",
+      "description": "NEW-I24: 封面图局部修改"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "[class*='tab'], [role='tab']",
+      "description": "NEW-I24: 编辑后Tab"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "NEW-I24: 确认"
+    },
+    {
+      "type": "clickText",
+      "text": "Copy URL",
+      "selector": "button, [data-testid='copy-url']",
+      "description": "NEW-I24: CopyURL"
+    },
+    {
+      "type": "assert",
+      "target": "clipboard",
+      "contains": "http",
+      "description": "NEW-I24: 剪贴板为修改后新图URL"
+    },
+
+    {
+      "_comment": "=== NEW-I25: 局部修改→确认→下载 (qt=1/2/4) ===",
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='toolbar'], [class*='download']",
+      "description": "NEW-I25: 点击下载"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "download",
+      "description": "NEW-I25: 下载图片为修改后新图"
+    },
+
+    {
+      "_comment": "=== NEW-I26: 局部修改→确认→导出Excel ===",
+      "type": "clickText",
+      "text": "导出",
+      "selector": "button, [class*='export']",
+      "description": "NEW-I26: 导出Excel"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "download",
+      "fileType": "xlsx",
+      "description": "NEW-I26: Excel中URL列为修改后新图URL"
+    },
+
+    {
+      "_comment": "=== NEW-I27: 局部修改→确认→API查询material实体 ===",
+      "type": "eval",
+      "expression": "(() => { return document.querySelector('[class*=task-id]')?.textContent || ''; })()",
+      "storeAs": "taskId_lm_i27",
+      "description": "NEW-I27: 获取当前任务ID"
+    },
+    {
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/material?taskId=${taskId_lm_i27}",
+      "description": "NEW-I27: API查询material实体"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.material.url",
+      "contains": "http",
+      "description": "NEW-I27: material.url=修改后URL"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.material.localAdjustStatus",
+      "equals": 0,
+      "description": "NEW-I27: localAdjustStatus=0（确认后重置）"
+    },
+
+    {
+      "_comment": "=== NEW-I28: 局部修改→确认→刷新页面→API查询 ===",
+      "type": "navigate",
+      "url": "reload",
+      "description": "NEW-I28: 刷新页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/material?taskId=${taskId_lm_i27}",
+      "description": "NEW-I28: 刷新后API查询"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.material.url",
+      "contains": "http",
+      "description": "NEW-I28: url仍为修改后URL（数据已持久化）"
+    }
+  ]
+}

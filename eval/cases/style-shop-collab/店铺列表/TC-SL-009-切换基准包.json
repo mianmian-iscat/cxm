@@ -1,0 +1,57 @@
+{
+  "id": "TC-SL-009",
+  "name": "TC-SL-009 — 切换当前应用基准包 [P1]",
+  "description": "验证历史迭代展开区的切换基准包功能：仅已归档可切换、二次确认、切换后刷新",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "店铺列表",
+  "page": "店铺列表",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const expandIcon = document.querySelector('.ant-table-row-expand-icon'); if (expandIcon) expandIcon.click(); return { expanded: true }; })()",
+      "description": "展开历史迭代",
+      "storeAs": "expand"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const expanded = document.querySelector('.ant-table-expanded-row, [class*=expanded]'); if (!expanded) return { found: false }; const switchBtn = Array.from(expanded.querySelectorAll('button, a')).find(b => b.textContent.includes('切换应用')); const appTag = expanded.textContent.includes('应用中'); return { found: true, switchBtn: !!switchBtn, appTag }; })()",
+      "description": "检查切换应用入口和应用中标签",
+      "storeAs": "switchCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "switch-package"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "店铺存在至少一个已归档基准包",
+    "stepsText": "1. 展开历史迭代\n2. 验证已归档迭代行展示切换应用按钮\n3. 当前应用基准包展示应用中标签\n4. 点击切换应用后弹出确认",
+    "expectedResult": "1. 已归档且有基准包的迭代展示切换应用\n2. 当前应用中基准包不允许重复切换\n3. 确认后更新当前视觉列\n4. 原基准包保留为历史版本",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/店铺列表"
+  }
+}

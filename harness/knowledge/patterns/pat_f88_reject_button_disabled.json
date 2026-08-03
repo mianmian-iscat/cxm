@@ -1,0 +1,15 @@
+{
+  "id": "pat_f88_reject_button_disabled",
+  "category": "patterns",
+  "title": "F88驳回原因未填时按钮disabled",
+  "content": "{\"error\": \"点击驳回确认按钮无反应\", \"root_cause\": \"驳回原因为必填项, 未填时按钮disabled\", \"fix\": \"先填写驳回原因再点确认\"}",
+  "tags": [
+    "F88",
+    "驳回",
+    "必填校验"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.0135648
+}

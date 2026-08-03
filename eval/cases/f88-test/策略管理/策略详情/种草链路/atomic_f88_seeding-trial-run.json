@@ -1,0 +1,123 @@
+{
+  "id": "atomic-f88-seeding-trial-run",
+  "name": "UI：种草链路-试运行弹窗与运行结果入口验证",
+  "description": "点击试运行验证弹窗字段，点击查看运行结果验证入口可用",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+      "waitUntil": "networkidle",
+      "description": "打开种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!m) return { hasModal: false }; const title = m.querySelector('.ant-modal-title')?.textContent?.trim() || ''; const btns = Array.from(m.querySelectorAll('button, .ant-btn')).map(b => b.innerText?.trim()).filter(Boolean); return { hasModal: true, title, buttons: btns }; })()",
+      "description": "验证试运行弹窗",
+      "storeAs": "trialModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "trialModal",
+      "path": "hasModal",
+      "equals": true,
+      "description": "验证弹窗已出现"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "下载模板",
+      "description": "弹窗含下载模板按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "任务名称",
+      "description": "弹窗含任务名称字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-trial-run",
+      "description": "试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const c = document.querySelector('.ant-modal-close'); if (c) c.click(); return 'closed'; })()",
+      "description": "关闭试运行弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭动画"
+    },
+    {
+      "type": "clickText",
+      "text": "查看运行结果",
+      "description": "点击查看运行结果"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待运行结果页加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; return { url, hasResult: url.includes('runResult') || url.includes('result') || document.body.innerText.includes('运行结果') }; })()",
+      "description": "验证跳转到运行结果",
+      "storeAs": "resultPage"
+    },
+    {
+      "type": "assertStore",
+      "key": "resultPage",
+      "path": "hasResult",
+      "equals": true,
+      "description": "验证运行结果页可访问"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-run-results",
+      "description": "种草链路运行结果"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；种草链路id=20205存在",
+    "realDomNotes": "试运行弹窗: 下载模板/上传Excel/任务名称/运行类型; 查看运行结果跳转到结果列表页",
+    "riskPoints": ["试运行弹窗可能因链路状态变化出现不同字段"]
+  }
+}

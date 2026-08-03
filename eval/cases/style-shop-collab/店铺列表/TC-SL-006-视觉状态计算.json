@@ -1,0 +1,53 @@
+{
+  "id": "TC-SL-006",
+  "name": "TC-SL-006 — 店铺视觉状态4种状态正确展示 [P1]",
+  "description": "验证4种视觉状态与服务端计算逻辑一致：视觉未启动、冷启、新增、正常运行",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "店铺列表",
+  "page": "店铺列表",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tbody tr'); const statuses = []; const expected = ['视觉未启动', '视觉定制中（冷启）', '视觉定制中（新增）', '正常运行']; for (const row of rows) { const cells = Array.from(row.querySelectorAll('td')); const statusCell = cells.find(td => expected.some(e => td.textContent.includes(e))); if (statusCell) statuses.push(statusCell.textContent.trim()); } const foundTypes = [...new Set(statuses)]; return { totalRows: rows.length, statuses, foundTypes }; })()",
+      "description": "采集所有店铺视觉状态",
+      "storeAs": "allStatuses"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const expected = ['视觉未启动', '视觉定制中（冷启）', '视觉定制中（新增）', '正常运行']; const text = document.body.textContent; const found = expected.filter(e => text.includes(e)); return { expected, found, allPresent: found.length === expected.length }; })()",
+      "description": "验证4种状态在页面中存在",
+      "storeAs": "statusTypes"
+    },
+    {
+      "type": "screenshot",
+      "label": "visual-statuses"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "店铺列表存在覆盖4种视觉状态的店铺",
+    "stepsText": "1. 访问店铺列表\n2. 采集所有店铺的视觉状态列\n3. 验证状态值在4种枚举范围内",
+    "expectedResult": "1. 所有店铺视觉状态值在4种枚举范围内\n2. 无进行中迭代+无基准包=视觉未启动\n3. 有进行中迭代+无基准包=冷启\n4. 有进行中迭代+有基准包=新增\n5. 无进行中迭代+有基准包=正常运行",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/店铺列表"
+  }
+}

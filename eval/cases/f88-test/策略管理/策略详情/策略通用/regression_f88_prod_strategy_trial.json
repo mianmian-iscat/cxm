@@ -1,0 +1,135 @@
+{
+  "id": "regression-f88-prod-strategy-trial",
+  "name": "回归：F88 策略节点配置验证（生图节点+试运行入口）",
+  "description": "打开含节点的真实策略详情，验证策略详情API成功、生图节点支持wan2.7-image模型及配置项，软触发试运行入口。基于当前预发UI真实结构重设计（UI+API混合断言）。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/f88-test/testcases_material_production.json",
+  "sourceIds": ["MP-001", "MP-005"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "新建策略",
+      "description": "验证列表页存在新建策略入口"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+      "waitUntil": "networkidle",
+      "description": "进入含节点的策略详情（依赖含生图节点的策略）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情与节点编排渲染（触发 strategy/get）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证策略详情含节点编排区"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "试运行",
+      "description": "【MP-005】验证策略详情含试运行入口"
+    },
+    {
+      "type": "clickText",
+      "text": "生图",
+      "description": "【MP-001】点击生图节点打开配置面板"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待生图节点配置面板打开"
+    },
+    {
+      "type": "screenshot",
+      "label": "gen-img-config",
+      "description": "截图-生图节点配置面板"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "wan2.7-image",
+      "description": "【MP-001】验证生图节点支持wan2.7-image模型"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生成图比例",
+      "description": "【MP-001】验证生图节点含生成图比例配置项"
+    },
+    {
+      "type": "clickText",
+      "text": "运行测试",
+      "description": "【MP-005】软触发节点运行测试入口"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待运行测试响应"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-run-test",
+      "description": "截图-运行测试后状态"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "post_asserts": [
+    {
+      "type": "apiResponse",
+      "urlPattern": "workflow2/strategy/get",
+      "path": "success",
+      "equals": true,
+      "description": "【MP-005】验证策略详情接口 strategy/get 返回成功"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发环境已登录；存在含生图(gen_img)节点的策略。当前硬编码 strategy/detail/10602（新模板匹配_2，含模板匹配+生图节点）。若该测试策略被清理，需替换为任一含生图节点的策略id。",
+    "realDomNotes": "预发UI真实结构：操作列按钮为'打开'非'编辑'；策略详情路由 strategy/detail/{id}；节点为CSS module类 [class*=nodeItem] 无data-node-type，点击节点弹'节点编辑'抽屉；生图节点模型=wan2.7-image-pro；真实试运行需素材/prompt输入，无法无人化断言，故改为软触发+截图；策略详情API=/api/workflow2/strategy/get，响应顶层 success:true。",
+    "riskPoints": ["策略数据依赖(10602可能被清理)", "真实试运行需素材输入(未强制断言)", "节点中文标签定位"],
+    "qoderworkRef": "testcases_material_production.json MP-001/MP-005"
+  }
+}

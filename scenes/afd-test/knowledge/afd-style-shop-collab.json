@@ -1,0 +1,162 @@
+{
+  "id": "afd-style-shop-collab",
+  "description": "AFD 风格店铺协作平台 - 页面级测试知识（店铺列表+迭代详情）",
+  "lastUpdated": "2026-07-10",
+  "initStatus": "active",
+  "lastVerified": null,
+  "verifiedByRun": null,
+
+  "tenantCheck": {
+    "headerName": "X-AFD-Emp-Identity",
+    "expectedBrand": "AFD",
+    "brandSelector": "页面左上角品牌标识",
+    "switchMethod": "通过租户头切换 AFD/F88 身份"
+  },
+
+  "pages": {
+    "shopList": {
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/shopList",
+      "route": "/styleShopCollab/shopList",
+      "description": "店铺列表工作台",
+      "components": {
+        "filterBar": {
+          "filters": [
+            {"name": "店铺名称", "type": "input", "placeholder": "请输入店铺名称", "react": true},
+            {"name": "Seller ID", "type": "input", "placeholder": "请输入 Seller ID", "react": true},
+            {"name": "买手", "type": "select_search", "searchable": true},
+            {"name": "产运", "type": "select_search", "searchable": true, "note": "推导字段"},
+            {"name": "视觉状态", "type": "select", "options": ["视觉未启动", "视觉定制中(冷启)", "视觉定制中(新增)", "正常运行"]}
+          ]
+        },
+        "table": {
+          "type": "ant-table",
+          "columns": ["店铺名称", "Seller ID", "买手", "产运", "视觉状态", "当前迭代", "操作"],
+          "expandable": true,
+          "expandContent": "历史迭代列表（倒序，含基准包标识）"
+        },
+        "actions": {
+          "addShop": {"role": "admin", "type": "modal", "fields": ["Seller ID(纯数字)", "负责买手(可搜索下拉)"]},
+          "newIteration": {"role": "buyer/admin", "precondition": "无进行中迭代", "type": "modal", "fields": ["迭代名称(≤40字)"]},
+          "changeBuyer": {"role": "buyer/leader/admin", "type": "select_search"},
+          "switchPackage": {"role": "buyer/admin", "precondition": "有已归档迭代"},
+          "sortMode": {"role": "leader/admin", "type": "drag_sort"},
+          "terminate": {"role": "buyer/leader/admin", "type": "danger_modal", "fields": ["终止原因(必填)", "详细说明(必填)"]}
+        }
+      }
+    },
+    "iterationDetail": {
+      "urlPattern": "/styleShopCollab/iteration/:iterationId",
+      "description": "迭代详情工作台",
+      "stepBar": ["买手下Brief", "产运确认", "试拍", "试拍审核", "买手Leader复核", "视觉归档"],
+      "tabs": {
+        "brief": {
+          "defaultFor": ["DRAFT_BRIEF", "PENDING_BRIEF", "REJECTED_BRIEF"],
+          "formSections": {
+            "基础与风格": ["迭代名称(必填≤40字)", "风格定位(必填20-200字)"],
+            "目标人群": ["年龄(多选)", "职业(多选)", "其他职业说明(条件必填≤50字)"],
+            "货盘与上新计划": ["品类占比(合计100%)", "上新节奏(单选)", "单次上新量(数字)"],
+            "视觉参考": ["对标店铺(≥1家,名称+链接)", "参考视觉图(1-5张)"],
+            "试拍准备": ["首次试拍商品(10条item_id)"]
+          },
+          "buyerActions": ["保存草稿", "提交产运确认", "重新编辑Brief(fork新版本)", "重新提交"],
+          "operatorActions": ["确认Brief", "驳回Brief(弹窗：驳回原因单选+详细说明必填)"],
+          "versioning": "首版不展示版本区分，驳回后fork新草稿才出现v1/v2侧栏"
+        },
+        "sampleReview": {
+          "defaultFor": ["IN_PRODUCTION", "IN_REVIEW", "PENDING_LEADER", "RETURNED_TO_BUYER", "RETURNED"],
+          "uploadPage": {
+            "role": "operator",
+            "features": ["默认5坑位", "最多10组", "Excel批量导入", "保存草稿", "发起评审"],
+            "submitValidation": "≥5组达标, 每组: 原款图1张+视觉模板图≥1张+首图1张+套图≥5张+构图/姿势/角度各≥3种",
+            "excelColumns": ["组编号(必填)", "Item ID(必填)", "图片类型(必填)", "图片URL(必填)", "构图(选填)", "姿势(选填)", "角度(选填)"]
+          },
+          "reviewView": {
+            "role": "buyer",
+            "features": ["左侧图组导航", "参考图(原款+模板)", "试拍图横向大图", "单图/整组弃用", "撤销弃用", "键盘切换"],
+            "discardReasons": ["穿搭穿法", "模特长相", "AI感强", "其他"],
+            "verdict": "单组可用≥5张=组通过, 迭代通过≥3组=买手通过"
+          },
+          "resultView": {
+            "role": "leader/operator/viewer",
+            "features": ["铺开中小图", "通过图片/弃用清单分区", "批次标识", "只读"],
+            "batchOrder": "新批次在上，历史批次在下"
+          },
+          "leaderActions": {
+            "买手结论=通过": ["确认通过(归档)", "打回买手(调整意见10-500字)"],
+            "买手结论=驳回": ["确认驳回(重拍)", "打回买手"]
+          }
+        },
+        "archive": {
+          "defaultFor": ["ARCHIVED"],
+          "content": "最终通过图组+弃用清单+弃用原因+基准包ID+版本+来源迭代+归档时间",
+          "readOnly": true
+        }
+      },
+      "timeline": "常驻入口，抽屉形式，记录所有状态变化事件"
+    }
+  },
+
+  "stateMachine": {
+    "states": ["DRAFT_BRIEF", "PENDING_BRIEF", "REJECTED_BRIEF", "IN_PRODUCTION", "IN_REVIEW", "PENDING_LEADER", "RETURNED_TO_BUYER", "RETURNED", "ARCHIVED", "CANCELLED"],
+    "transitions": {
+      "DRAFT_BRIEF → PENDING_BRIEF": {"actor": "buyer", "action": "提交Brief"},
+      "PENDING_BRIEF → IN_PRODUCTION": {"actor": "operator", "action": "确认Brief"},
+      "PENDING_BRIEF → REJECTED_BRIEF": {"actor": "operator", "action": "驳回Brief"},
+      "REJECTED_BRIEF → PENDING_BRIEF": {"actor": "buyer", "action": "重新编辑并提交"},
+      "IN_PRODUCTION → IN_REVIEW": {"actor": "operator", "action": "发起评审"},
+      "IN_REVIEW → PENDING_LEADER": {"actor": "buyer", "action": "完成审核"},
+      "PENDING_LEADER → ARCHIVED": {"actor": "leader", "action": "确认通过"},
+      "PENDING_LEADER → RETURNED_TO_BUYER": {"actor": "leader", "action": "打回买手"},
+      "PENDING_LEADER → RETURNED": {"actor": "leader", "action": "确认驳回"},
+      "RETURNED_TO_BUYER → PENDING_LEADER": {"actor": "buyer", "action": "重新提交"},
+      "RETURNED → IN_REVIEW": {"actor": "operator", "action": "补充上传后重新审核"}
+    },
+    "terminationRules": [
+      "ARCHIVED/CANCELLED为终态，不允许终止",
+      "其他状态均视为进行中，允许按权限终止",
+      "终止后迭代状态变为CANCELLED，只读查看",
+      "终止后店铺可重新创建新迭代"
+    ]
+  },
+
+  "commonPitfalls": [
+    {"id": "react_input", "desc": "React受控Input fill必须react:true", "fix": "fill步骤加react:true"},
+    {"id": "drawer_anim", "desc": "AntD Drawer动画未完成就操作", "fix": "打开后等待500ms"},
+    {"id": "tenant_header", "desc": "租户头不对导致身份错误", "fix": "检查X-AFD-Emp-Identity并验证左上角标识"},
+    {"id": "brief_word_count", "desc": "Brief字数校验失败", "fix": "风格定位20-200字，迭代名称≤40字"},
+    {"id": "minimum_set", "desc": "最小集校验规则复杂", "fix": "≥5组达标，每组套图≥5张，标签≥3种"},
+    {"id": "buyer_verdict", "desc": "买手判定规则计算", "fix": "单组可用≥5张=组通过，迭代通过≥3组=买手通过"},
+    {"id": "version_mgmt", "desc": "Brief版本管理显示", "fix": "首版无版本号，驳回后fork新版本"}
+  ],
+
+  "apis": {
+    "shopList": {
+      "list": "GET /api/styleShopCollab/shopList",
+      "addShop": "POST /api/styleShopCollab/shop/add",
+      "changeBuyer": "POST /api/styleShopCollab/shop/changeBuyer"
+    },
+    "iteration": {
+      "create": "POST /api/styleShopCollab/iteration/create",
+      "detail": "GET /api/styleShopCollab/iteration/:id",
+      "terminate": "POST /api/styleShopCollab/iteration/:id/terminate"
+    },
+    "brief": {
+      "save": "POST /api/styleShopCollab/brief/save",
+      "submit": "POST /api/styleShopCollab/brief/submit",
+      "confirm": "POST /api/styleShopCollab/brief/confirm",
+      "reject": "POST /api/styleShopCollab/brief/reject"
+    },
+    "sample": {
+      "upload": "POST /api/styleShopCollab/sample/upload",
+      "importExcel": "POST /api/styleShopCollab/sample/importExcel",
+      "submitReview": "POST /api/styleShopCollab/sample/submitReview"
+    },
+    "review": {
+      "buyerReview": "POST /api/styleShopCollab/review/buyer",
+      "leaderDecision": "POST /api/styleShopCollab/review/leader"
+    },
+    "archive": {
+      "getPackage": "GET /api/styleShopCollab/archive/:iterationId"
+    }
+  }
+}

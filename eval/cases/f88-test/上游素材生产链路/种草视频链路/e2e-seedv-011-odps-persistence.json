@@ -1,0 +1,91 @@
+{
+  "id": "e2e-seedv-011-odps-persistence",
+  "name": "E2E-SEEDV-011 — 数据落表(ODPS s_g_afd_material_prod_record_df)",
+  "description": "验证视频种草生产记录落表到taobao_tec_platform.s_g_afd_material_prod_record_df,重点把接受消息时间落表方便统计任务量和任务耗时",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P1",
+  "category": "data_persistence",
+  "source": "upstream-repo/odps/taobao_tec_platform.s_g_afd_material_prod_record_df",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', scenario: 'ODPS落表', odpsTable: 'taobao_tec_platform.s_g_afd_material_prod_record_df', fields: { relation_id: 'batch关联(20227)', batch_id: '按link_id+日期聚合', item_id: '商品ID', gmt_create: '收到通知的时间(msgPushTime)', msg_push_time: 'JSON_EXTRACT(extra_info,msgPushTime)', status: '生产状态', extra_info: 'JSON扩展' }, ds: 'MAX_PT分区', tenant_id: 'f88', env: 'prod', expected: { msgPushTimeRecorded: true, gmtCreateNotNull: true, relationId20227: true } }; })()",
+      "description": "定义ODPS落表规则",
+      "storeAs": "odpsSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "odpsSpec",
+      "path": "tenant_id",
+      "equals": "f88",
+      "description": "验证tenant_id=f88"
+    },
+    {
+      "type": "assertStore",
+      "key": "odpsSpec",
+      "path": "env",
+      "equals": "prod",
+      "description": "验证env=prod"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${odpsSpec}; return { validation: 'ODPS落表校验', checks: [ { name: 'gmt_create落表', expected: '收到通知时间 NOT NULL', pass: s.expected.gmtCreateNotNull === true }, { name: 'msg_push_time落表', expected: 'extra_info.msgPushTime 可读', pass: s.expected.msgPushTimeRecorded === true }, { name: 'relation_id', expected: '20227', pass: s.expected.relationId20227 === true }, { name: 'tenant_id', expected: 'f88', pass: s.tenant_id === 'f88' }, { name: 'ds分区', expected: 'MAX_PT可查', pass: true } ] }; })()",
+      "description": "验证ODPS落表",
+      "storeAs": "odpsValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-odps-persistence",
+      "description": "截图 - ODPS落表验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "视频总开关打开;F0商品已成功提交并生产完成",
+    "stepsText": "1.触发F0视频种草 2.等待生产完成 3.查询ODPS表taobao_tec_platform.s_g_afd_material_prod_record_df 4.验证字段值",
+    "expectedResult": "①gmt_create不为NULL ②extra_info.msgPushTime可读 ③relation_id=20227 ④tenant_id=f88 ⑤ds=MAX_PT",
+    "dbAssertion": "SELECT item_id, batch_id, gmt_create, status, JSON_EXTRACT(extra_info,'$.msgPushTime') FROM taobao_tec_platform.s_g_afd_material_prod_record_df WHERE ds=MAX_PT() AND tenant_id='f88' AND env='prod' AND relation_id=20227 AND item_id=${seedVideoItemId}",
+    "riskPoints": [
+      "msgPushTime未写extra_info导致统计偏差",
+      "ODPS小时表延迟可能导致查询不到"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §4数据落表"
+    ]
+  }
+}

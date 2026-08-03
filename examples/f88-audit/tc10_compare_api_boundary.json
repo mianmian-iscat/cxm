@@ -1,0 +1,298 @@
+{
+  "id": "f88-audit-tc10",
+  "name": "TC10 - 编辑操作对比 + API状态验证 + 边界异常场景",
+  "description": "覆盖替换与局部修改/高清化的对比验证(RP-14~17)、API数据状态(RP-18~21)、边界异常(RP-22~26)。",
+  "businessType": "f88_material",
+  "relatedCases": ["RP-14", "RP-15", "RP-16", "RP-17", "RP-18", "RP-19", "RP-20", "RP-21", "RP-22", "RP-23", "RP-24", "RP-25", "RP-26"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== RP-14: 局部修改(布局修改) → CopyURL（已知PASS基线）===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_rp14",
+      "description": "RP-14: 记录原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "布局修改",
+      "selector": "button, [class*='action']",
+      "description": "RP-14: 执行局部修改（布局修改）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_rp14"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_rp14",
+      "notEquals": "${originalUrl_rp14}",
+      "description": "RP-14: 【P1】局部修改后 CopyURL 返回新图URL（已知PASS基线）"
+    },
+
+    {
+      "_comment": "=== RP-15: 高清化 → CopyURL（已知PASS基线）===",
+      "type": "clickText",
+      "text": "高清化",
+      "selector": "button, [class*='action']",
+      "description": "RP-15: 执行高清化"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待高清化处理完成"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_rp15"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_rp15",
+      "notEquals": "${originalUrl_rp14}",
+      "description": "RP-15: 【P1】高清化后 CopyURL 返回新图URL（已知PASS基线）"
+    },
+
+    {
+      "_comment": "=== RP-16: 替换 → CopyURL（当前Bug场景）===",
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']",
+      "description": "RP-16: 执行替换操作"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_rp16"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_rp16",
+      "notEquals": "${originalUrl_rp14}",
+      "description": "RP-16: 【P0】替换后 CopyURL 应返回新图URL（当前FAIL，此为Bug复现）"
+    },
+
+    {
+      "_comment": "=== RP-17: 先局部修改 → 再替换 → CopyURL ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-17: 同一张图先局部修改确认，再替换确认，CopyURL应返回最终替换后的URL - P2'; })()",
+      "description": "RP-17: 【P2】组合操作验证"
+    },
+
+    {
+      "_comment": "=== RP-18: 确认前API数据状态 ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? JSON.stringify({url: img.src, localAdjustUrl: img.dataset.localAdjustUrl || 'N/A', localAdjustStatus: img.dataset.localAdjustStatus || 'N/A'}) : 'NO_DATA'; })()",
+      "storeAs": "apiData_beforeConfirm",
+      "description": "RP-18: 【P1】确认前：url=原始URL, localAdjustUrl=替换后URL, localAdjustStatus≠0"
+    },
+
+    {
+      "_comment": "=== RP-19: 确认后API数据状态 ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? JSON.stringify({url: img.src, localAdjustStatus: img.dataset.localAdjustStatus || 'N/A'}) : 'NO_DATA'; })()",
+      "storeAs": "apiData_afterConfirm",
+      "description": "RP-19: 【P0】确认后：url=替换后URL, localAdjustStatus=0"
+    },
+
+    {
+      "_comment": "=== RP-20: url与localAdjustUrl对比 ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? JSON.stringify({url: img.src, localAdjustUrl: img.dataset.localAdjustUrl || 'N/A'}) : 'NO_DATA'; })()",
+      "storeAs": "urlComparison_rp20",
+      "description": "RP-20: 【P0】确认后 url 与 localAdjustUrl 应一致"
+    },
+
+    {
+      "_comment": "=== RP-21: 刷新页面数据持久化 ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "urlBeforeRefresh",
+      "description": "RP-21: 刷新前记录URL"
+    },
+    {
+      "type": "eval",
+      "expression": "location.reload()",
+      "description": "RP-21: 刷新页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "urlAfterRefresh",
+      "description": "RP-21: 刷新后记录URL"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "urlAfterRefresh",
+      "equals": "${urlBeforeRefresh}",
+      "description": "RP-21: 【P0】刷新后URL仍为替换后URL（数据已持久化，非前端临时状态）"
+    },
+
+    {
+      "_comment": "=== RP-22: 替换不确认直接刷新 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-22: 【P2】替换后不确认直接刷新，替换操作丢失，回到原始图片 - 需手动操作'; })()",
+      "description": "RP-22: 边界场景-需手动验证"
+    },
+
+    {
+      "_comment": "=== RP-23: 二次替换 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-23: 【P2】替换→确认→再次替换→确认→CopyURL，应返回第二次替换的URL'; })()",
+      "description": "RP-23: 边界场景-需手动操作"
+    },
+
+    {
+      "_comment": "=== RP-24: 替换后确认再丢弃 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-24: 【P2】替换→确认→丢弃该记录→toolbar应不可操作'; })()",
+      "description": "RP-24: 边界场景-需手动操作"
+    },
+
+    {
+      "_comment": "=== RP-25: 套图多张替换 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-25: 【P1】套图中替换多张图→确认→分别CopyURL，每张图URL均为各自替换后的新URL'; })()",
+      "description": "RP-25: 需套图场景手动操作"
+    },
+
+    {
+      "_comment": "=== RP-26: 埋雷任务中查看替换记录 ===",
+      "type": "clickText",
+      "text": "埋雷任务",
+      "selector": "[class*='tab'], span, a",
+      "description": "RP-26: 切换到埋雷任务Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "label": "rp26-landmine-tab",
+      "description": "截图 - 埋雷任务"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { return 'RP-26: 【P2】埋雷记录中URL应为替换后的新图URL - 需确认埋雷任务中有替换过的记录'; })()",
+      "description": "RP-26: 埋雷任务验证"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp-final",
+      "description": "截图 - 对比/API/边界测试完成"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "material|localAdjust|copyUrl",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

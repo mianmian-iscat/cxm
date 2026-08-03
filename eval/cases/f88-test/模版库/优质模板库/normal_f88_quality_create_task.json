@@ -1,0 +1,280 @@
+{
+  "id": "normal_f88_quality_create_task",
+  "name": "优质模板库 - 筛选/创建任务/查看进度全功能",
+  "description": "覆盖优质模板库全部功能点：4个筛选条件(模板来源/Seller ID/店铺名称/模板组ID)+洗图状态筛选+应用场景筛选+标签维度+创建任务4步流程+查看任务进度。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "quality-template",
+    "create-task",
+    "filter",
+    "full"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 4000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "description": "打开优质模板库页面"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "验证租户身份"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder], input.ant-input'); const selects = document.querySelectorAll('.ant-select'); const labels = document.querySelectorAll('label, .ant-form-item-label, [class*=label], [class*=filter-title]'); return { inputCount: inputs.length, inputs: Array.from(inputs).map(i=>({placeholder:i.placeholder,type:i.type})), selectCount: selects.length, selectTexts: Array.from(selects).map(s=>s.querySelector('.ant-select-selection-item,.ant-select-selection-placeholder')?.textContent?.trim()||''), labels: Array.from(labels).map(l=>l.textContent.trim()).filter(Boolean).slice(0,15) }; })()",
+      "description": "探查全部筛选组件: 模板来源/Seller ID/店铺名称/模板组ID"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const filters = document.querySelectorAll('[class*=filter], [class*=status], [class*=wash], .ant-radio-group, .ant-tabs'); const tabs = document.querySelectorAll('.ant-radio-button-wrapper, .ant-tabs-tab'); return { filterCount: filters.length, tabTexts: Array.from(tabs).map(t=>t.textContent.trim()).filter(Boolean).slice(0,10), hasWashStatus: Array.from(document.body.querySelectorAll('*')).some(el => /洗图状态/.test(el.textContent)) }; })()",
+      "description": "探查洗图状态筛选(可能为Radio/Tab形式)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const hasAppScene = Array.from(document.body.querySelectorAll('*')).some(el => /应用场景/.test(el.textContent)); const selects = document.querySelectorAll('.ant-select-selection-item'); return { hasAppSceneFilter: hasAppScene, selectValues: Array.from(selects).map(s=>s.textContent.trim()) }; })()",
+      "description": "探查应用场景筛选"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dims = ['设计','搭配','拍摄','场景','光影','构图','视觉']; const tags = document.querySelectorAll('[class*=tag], .ant-tag, [class*=dimension]'); return { tagCount: tags.length, tagTexts: Array.from(tags).map(t=>t.textContent.trim()).filter(Boolean).slice(0,15), dimFound: dims.map(d => ({dim:d, found: Array.from(tags).some(t=>t.textContent.includes(d))})) }; })()",
+      "description": "探查7维度标签是否渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-filters-full",
+      "description": "截图-全部筛选区域"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button, .ant-btn, a')); const found = btns.filter(b => /任务进度|查看任务|进度/.test(b.textContent)); return { found: found.length > 0, buttons: found.map(b => ({text:b.textContent.trim(), class:b.className?.substring(0,50), tag:b.tagName})), url: window.location.href }; })()",
+      "description": "查找'查看任务进度'按钮并记录当前URL"
+    },
+    {
+      "type": "clickText",
+      "text": "/(任务进度|查看任务|查看进度)/",
+      "data-test-target": "task-progress-btn",
+      "description": "点击查看任务进度",
+      "optional": true,
+      "fallback": {
+        "type": "evaluate",
+        "expression": "(() => { const b = Array.from(document.querySelectorAll('button,.ant-btn,a')).find(x => /任务进度|查看任务/.test(x.textContent)); if(b){b.click();return 'clicked';} return 'not found'; })()"
+      }
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务进度弹窗/页面加载",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-task-progress",
+      "description": "截图-任务进度",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); const container = modal || drawer || document.querySelector('main, .ant-layout-content'); if(!container) return {type:'unknown', url}; const isModal = !!modal; const isDrawer = !!drawer; const tables = container.querySelectorAll('.ant-table, table'); const columns = Array.from(container.querySelectorAll('.ant-table-thead th')).map(th=>th.textContent.trim()).filter(Boolean); const rows = container.querySelectorAll('.ant-table-row, tr[data-row-key]'); const progressBars = container.querySelectorAll('.ant-progress, [class*=progress]'); const statusTags = container.querySelectorAll('.ant-tag, [class*=tag]'); return { type: isModal?'modal':isDrawer?'drawer':'page', url, hasTable: tables.length>0, columns, rowCount: rows.length, hasProgressBar: progressBars.length>0, progressTexts: Array.from(progressBars).map(p=>p.textContent.trim()).filter(Boolean).slice(0,5), statusTags: Array.from(statusTags).map(t=>t.textContent.trim()).filter(Boolean).slice(0,10), firstRowData: rows.length ? rows[0].innerText.substring(0,200) : '', textSnippet: container.textContent.substring(0,500) }; })()",
+      "description": "深度探查任务进度结构: Modal/Drawer/页面+表格列名+进度条+状态标签+首行数据",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const container = document.querySelector('.ant-modal:not(.ant-modal-hidden), .ant-drawer:not(.ant-drawer-hidden), main'); if(!container) return {}; const rows = container.querySelectorAll('.ant-table-row, tr[data-row-key]'); return { taskCount: rows.length, tasks: Array.from(rows).slice(0,3).map(r => { const cells = r.querySelectorAll('td'); return { name: cells[0]?.innerText?.trim()?.substring(0,40) || '', status: Array.from(cells).find(c => /进行中|已完成|待开始|失败/.test(c.innerText))?.innerText?.trim() || '', progress: Array.from(cells).find(c => /\\d+%|\\d+\\/\\d+/.test(c.innerText))?.innerText?.trim() || '', time: Array.from(cells).find(c => /\\d{4}-\\d{2}/.test(c.innerText))?.innerText?.trim() || '' }; }) }; })()",
+      "description": "提取前3个任务数据: 任务名/状态/进度/时间",
+      "optional": true
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(任务|进度|进行中|已完成|待开始|任务名称)/",
+      "description": "验证任务进度页含任务相关字段",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-pagination, [class*=pagination]')?.textContent?.substring(0,80) || 'no pagination'",
+      "description": "检查任务列表是否有分页",
+      "optional": true
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭任务进度弹窗",
+      "optional": true,
+      "fallback": {
+        "type": "clickText",
+        "text": "/(关闭|取消|×)/",
+        "within": ".ant-modal, .ant-drawer"
+      }
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); return { modalClosed: !modal, drawerClosed: !drawer }; })()",
+      "description": "验证弹窗已关闭",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=card],[class*=template],[class*=thumb]'); const checkboxes = document.querySelectorAll('input[type=checkbox]'); return { cardCount: cards.length, checkboxCount: checkboxes.length, hasCreateBtn: Array.from(document.querySelectorAll('button,.ant-btn')).some(b=>/创建任务/.test(b.textContent)) }; })()",
+      "description": "探查模板数量和创建入口"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "task|create|template|submit",
+      "description": "开始网络抓包-监控创建任务API"
+    },
+    {
+      "type": "clickText",
+      "text": "创建任务",
+      "data-test-target": "create-task-btn",
+      "description": "点击创建任务按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待创建弹窗加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-create-step1",
+      "description": "截图-Step1选择模板"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(选择模板|模板|Step|步骤|任务|创建)/",
+      "description": "验证Step1标题"
+    },
+    {
+      "type": "capture",
+      "selector": ".ant-modal, .ant-drawer, main",
+      "description": "捕获Step1 DOM"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m=document.querySelector('.ant-modal,.ant-drawer,main'); if(!m) return {found:false}; const cards=m.querySelectorAll('.ant-card,[class*=template],[class*=thumb]'); const inputs=m.querySelectorAll('input,textarea'); const selects=m.querySelectorAll('.ant-select,select'); return {found:true, templateCards:cards.length, inputs:Array.from(inputs).map(i=>i.placeholder).filter(Boolean), selectCount:selects.length, buttons:Array.from(m.querySelectorAll('button,.ant-btn')).map(b=>b.textContent.trim()).filter(Boolean)}; })()",
+      "description": "探查Step1表单结构"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const el=document.querySelector('.ant-card,[class*=template],[class*=thumb]'); if(el){el.click();return {clicked:true};} return {clicked:false}; })()",
+      "data-test-target": "select-template",
+      "description": "选择第一个模板"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待选中"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-create-step1-selected",
+      "description": "截图-选中后"
+    },
+    {
+      "type": "clickText",
+      "text": "/(下一步|Next|继续)/",
+      "data-test-target": "next-step1",
+      "description": "Step1→Step2"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待Step2"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-create-step2",
+      "description": "截图-Step2基础设置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m=document.querySelector('.ant-modal,.ant-drawer,main'); if(!m) return {}; const inputs=m.querySelectorAll('input,textarea'); const selects=m.querySelectorAll('.ant-select,select'); return { step2Inputs: Array.from(inputs).map(i=>({placeholder:i.placeholder,value:i.value,type:i.type})), step2Selects: selects.length }; })()",
+      "description": "探查Step2表单字段"
+    },
+    {
+      "type": "clickText",
+      "text": "/(下一步|Next|继续)/",
+      "data-test-target": "next-step2",
+      "description": "Step2→Step3"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待Step3"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-create-step3",
+      "description": "截图-Step3审核标准"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-modal,.ant-drawer,main')?.textContent.substring(0,500) || ''",
+      "description": "获取Step3文本内容"
+    },
+    {
+      "type": "clickText",
+      "text": "/(提交|完成|创建|确认)/",
+      "data-test-target": "submit-task",
+      "description": "提交创建"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待创建API返回"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-create-done",
+      "description": "截图-完成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(成功|已创建|任务列表|任务管理)/",
+      "description": "验证创建成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-message,.ant-notification,[class*=message],[class*=success]')?.textContent || 'no message'",
+      "description": "获取成功提示"
+    }
+  ],
+  "realDomNotes": "优质模板库全功能: ①筛选(模板来源/Seller ID/店铺名称/模板组ID) ②洗图状态筛选 ③应用场景筛选 ④7维度标签 ⑤创建任务4步(选择模板→基础设置→审核标准→确认提交) ⑥查看任务进度。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88"
+}

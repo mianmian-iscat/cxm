@@ -1,0 +1,106 @@
+{
+  "id": "normal-f88-suite-image-type-label",
+  "name": "正常流程：套图生产图片类型标识验证",
+  "description": "验证套图生产完成后图片带有类型标识：主图、白底平铺图、背面图、skc图、一衣多搭图、模特试穿图，通过固定prompt字段判断",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "api_contract",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待看板加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "主图素材",
+      "description": "验证主图类型标识（prompt字段：【主图素材】）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "白底平铺图",
+      "description": "验证白底平铺图类型标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "背面图素材",
+      "description": "验证背面图类型标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "skc图素材",
+      "description": "验证skc图类型标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "一衣多搭图",
+      "description": "验证一衣多搭图类型标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "模特试穿图",
+      "description": "验证模特试穿图类型标识"
+    },
+    {
+      "type": "screenshot",
+      "label": "image-type-labels",
+      "description": "截图 - 图片类型标识"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，测试账号已登录，存在已完成套图生产的任务",
+    "riskPoints": [
+      "6种图片类型各有固定prompt字段标识",
+      "交付时需根据图片类型流入指定数据槽位"
+    ],
+    "contractFields": [
+      "set_img_url",
+      "white_img_url",
+      "back_img_url",
+      "skc_img_url",
+      "fitting_img_url",
+      "model_img_url"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

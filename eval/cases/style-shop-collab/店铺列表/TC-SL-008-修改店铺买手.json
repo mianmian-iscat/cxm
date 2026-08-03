@@ -1,0 +1,57 @@
+{
+  "id": "TC-SL-008",
+  "name": "TC-SL-008 — 修改店铺买手弹窗 [P1]",
+  "description": "验证修改买手弹窗：可搜索下拉、不能选当前买手、保存后刷新",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "店铺列表",
+  "page": "店铺列表",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tbody tr'); for (const row of rows) { const editBuyer = Array.from(row.querySelectorAll('button, a, [class*=edit]')).find(b => b.textContent.includes('修改') && b.textContent.includes('买手') || b.getAttribute('aria-label')?.includes('买手')); if (editBuyer) { editBuyer.click(); return { clicked: true }; } } return { clicked: false }; })()",
+      "description": "点击修改买手入口",
+      "storeAs": "clickEdit"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); if (!modal) return { found: false }; const currentBuyer = modal.textContent.includes('当前'); const select = modal.querySelector('.ant-select'); const saveBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.includes('保存')); return { found: true, currentBuyer, select: !!select, saveBtn: !!saveBtn }; })()",
+      "description": "验证修改买手弹窗",
+      "storeAs": "modalCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "edit-buyer-modal"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在已分配买手的店铺，用户有修改权限",
+    "stepsText": "1. 点击修改买手入口\n2. 验证弹窗展示当前买手和新买手选择器\n3. 选择与当前相同买手验证提示",
+    "expectedResult": "1. 弹窗展示当前买手和可搜索下拉\n2. 新买手不能与当前买手相同\n3. 保存后刷新列表买手列\n4. 历史迭代原买手不被覆盖",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/店铺列表"
+  }
+}

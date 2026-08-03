@@ -1,0 +1,185 @@
+# daily-regression.yaml — F88 每日回归 CI 定时配置
+#
+# 本地 Mac 阶段: 通过 crontab 触发 scripts/daily-regression.sh
+# 内网 CI 阶段: 迁移到 self-hosted runner + Chrome CDP 环境
+#
+# 定时策略:
+#   - 工作日 08:00  — smoke 冒烟套件
+#   - 每日 02:00    — core 核心回归套件
+#   - 每周日 02:00  — full-weekly 全量回归
+#
+# 前置条件 (runner 环境):
+#   - Node.js >= 18
+#   - Google Chrome 已安装
+#   - puppeteer-core 已安装 (npm install)
+#   - F88 预发环境登录态已注入
+
+name: F88 Daily Regression
+
+on:
+  schedule:
+    # 工作日早 8 点冒烟 (UTC+8 = UTC 00:00)
+    - cron: '0 0 * * 1-5'
+    # 每日凌晨 2 点核心回归 (UTC+8 = UTC 18:00 前一天)
+    - cron: '0 18 * * *'
+    # 每周日凌晨 2 点全量 (UTC+8 = UTC 18:00 周六)
+    - cron: '0 18 * * 6'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: '回归套件名称'
+        required: true
+        default: 'f88-smoke'
+        type: choice
+        options:
+          - f88-smoke
+          - f88-regression-core
+          - f88-regression-ui
+          - f88-regression-atom
+          - f88-regression-normal
+          - f88-full-weekly
+      cdp_url:
+        description: 'Chrome CDP 地址'
+        required: false
+        default: 'http://127.0.0.1:9222'
+
+# 使用 self-hosted runner (需要配置 Chrome CDP 环境)
+jobs:
+  ui-regression:
+    name: F88 UI Regression
+    runs-on: self-hosted
+    timeout-minutes: 60
+
+    env:
+      WEB_AUTO_CDP_URL: ${{ github.event.inputs.cdp_url || 'http://127.0.0.1:9222' }}
+      CASE_TIMEOUT_MS: '60000'
+      NODE_ENV: 'production'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Determine suite
+        id: suite
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "suite=${{ github.event.inputs.suite }}" >> $GITHUB_OUTPUT
+          elif [ "$(date +%u)" = "7" ]; then
+            echo "suite=f88-full-weekly" >> $GITHUB_OUTPUT
+          elif [ "$(date +%H)" -ge 8 ] && [ "$(date +%H)" -lt 9 ]; then
+            echo "suite=f88-smoke" >> $GITHUB_OUTPUT
+          else
+            echo "suite=f88-regression-core" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check Chrome CDP
+        run: |
+          echo "检查 Chrome CDP: $WEB_AUTO_CDP_URL"
+          curl -sf "${WEB_AUTO_CDP_URL}/json/version" || {
+            echo "❌ Chrome CDP 不可用"
+            echo "请确保 runner 上 Chrome 已启动并开启远程调试端口"
+            exit 1
+          }
+          echo "✅ Chrome CDP 可用"
+
+      - name: Run regression suite
+        run: |
+          SUITE="${{ steps.suite.outputs.suite }}"
+          echo "执行套件: $SUITE"
+          chmod +x scripts/daily-regression.sh
+          ./scripts/daily-regression.sh --suite "$SUITE" --cdp-url "$WEB_AUTO_CDP_URL"
+        continue-on-error: true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-results-${{ github.run_id }}
+          path: |
+            artifacts/regression-*.json
+            artifacts/execution-results*.json
+            artifacts/daily-report-*.html
+            artifacts/screenshots/
+          retention-days: 14
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report-${{ github.run_id }}
+          path: artifacts/daily-report-*.html
+          retention-days: 30
+
+      - name: Check results
+        run: |
+          if [ -f artifacts/regression-results.json ]; then
+            FAIL=$(node -e "const d=require('./artifacts/regression-results.json'); console.log(d.summary?.fail||0)")
+            if [ "$FAIL" -gt 0 ]; then
+              echo "❌ 有 $FAIL 个用例失败"
+              exit 1
+            fi
+            echo "✅ 所有用例通过"
+          else
+            echo "⚠️ 未找到结果文件"
+          fi
+
+  # ── 新需求测试 (手动触发) ──
+  requirement-test:
+    name: New Requirement Test
+    runs-on: self-hosted
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' && startsWith(github.event.inputs.suite, 'new-req')
+
+    env:
+      WEB_AUTO_CDP_URL: ${{ github.event.inputs.cdp_url || 'http://127.0.0.1:9222' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run requirement tests
+        run: |
+          PRD_ID="${{ github.event.inputs.suite }}"
+          PRD_ID="${PRD_ID#new-req-}"
+          node scripts/run-requirement-tests.js --prd-id "$PRD_ID"
+
+      - name: Generate report
+        if: always()
+        run: |
+          node scripts/generate-requirement-report.js --dingtalk-markdown
+
+      - name: Promote to regression
+        if: success()
+        run: |
+          PRD_ID="${{ github.event.inputs.suite }}"
+          PRD_ID="${PRD_ID#new-req-}"
+          node scripts/promote_to_regression.js --results artifacts/execution-results.json --prd-id "$PRD_ID"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: requirement-test-${{ github.run_id }}
+          path: |
+            artifacts/execution-results*.json
+            artifacts/requirement-report*
+            artifacts/promotion-*.json
+          retention-days: 14

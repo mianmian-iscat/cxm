@@ -1,0 +1,1025 @@
+{
+  "id": "f88-material-audit",
+  "description": "F88 素材生产 - 审核管理模块（F88运营平台 / 策略平台）",
+  "lastUpdated": "2026-06-30",
+
+  "platform": "F88运营平台",
+  "baseUrl": "https://pre-aifashion-xiaoer.alibaba-inc.com",
+  "envNote": "预发环境。页面左上角显示'F88–运营平台'才表示租户身份正确。",
+
+  "tenantCheck": {
+    "method": "页面左上角品牌标识必须显示'F88–运营平台'，且'当前身份'下拉值为'F88'",
+    "assertContains": "F88–运营平台",
+    "identitySelector": "当前身份：F88"
+  },
+
+  "navigation": {
+    "note": "左侧导航栏结构（从上到下）",
+    "menu": [
+      "策略平台",
+      {
+        "模版库": {
+          "children": ["模版包管理", "淘内资源池", "优质模板库"]
+        }
+      },
+      {
+        "审核管理": {
+          "children": [
+            "审核标准管理",
+            "审核节点管理",
+            "任务管理"
+          ]
+        }
+      },
+      "商家管理"
+    ]
+  },
+
+  "pages": {
+    "personalTaskCenter": {
+      "name": "个人任务中心",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "urlRoute": "/review/personal-task-center",
+      "tabs": ["审核任务", "抽检任务", "埋雷任务"],
+      "note": "审核操作主入口，默认展示'审核任务'Tab"
+    },
+    "auditStandard": {
+      "name": "审核标准管理",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "urlRoute": "/review/standard-management",
+      "buttons": ["重置", "新增标准"],
+      "note": "维护审核规则/标准，配置审核阈值与判定条件。字段：标准名称、创建人、创建时间、使用次数。操作：编辑/启用/禁用"
+    },
+    "auditNode": {
+      "name": "审核节点管理",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "urlRoute": "/review/node-management",
+      "buttons": ["新增节点"],
+      "note": "配置审核流程节点。字段：节点名称、审核标准、人效预估、难度预估、分配方式、审核人、检查设置。操作：编辑/排序/关联标准"
+    },
+    "taskManagement": {
+      "name": "任务管理",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "urlRoute": "/review/task-management",
+      "note": "查看所有审核任务。筛选：链路、批次。默认显示策略平台任务列表"
+    },
+    "linkList": {
+      "name": "链路列表",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "urlRoute": "/strategy/linkList",
+      "note": "策略平台-链路管理。字段：链路名称、生命周期、描述、策略一致性、提交人、更新时间。操作：编辑/复制。筛选：生命周期",
+      "buttons": ["新建链路", "生命周期筛选"],
+      "linkCardActions": ["编辑", "复制"]
+    },
+    "linkDetail": {
+      "name": "链路详情",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "urlRoute": "/strategy/linkDetail",
+      "note": "链路配置详情页。包含链路阶段(实验/灰度)、试运行、查看运行结果、链路起点入参(seller_id/seed_image_url/tao_cate/item_id)、环节列表(刷标签/首图生图/首图审核/套图生图/套图审核)",
+      "buttons": ["返回列表", "试运行", "查看运行结果"],
+      "trialRunModal": {
+        "title": "链路运行",
+        "fields": {
+          "downloadTemplate": "下载模板按钮",
+          "uploadExcel": "上传Excel（input[type=file]）",
+          "taskName": "任务名称（input[placeholder='请输入任务名称']）",
+          "runType": "运行类型（Ant Design Select，选项：正式/测试）"
+        },
+        "submit": "发起任务运行",
+        "note": "运行类型需用 page.mouse.click() 展开下拉，不能用 evaluate().click()",
+        "excelColumns": ["seller_id", "seed_image_url", "tao_cate", "item_id"]
+      }
+    },
+    "strategyList": {
+      "name": "策略列表",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "urlRoute": "/strategy/list",
+      "note": "策略平台-策略管理。字段：策略名称、策略阶段、环节、创建时间、更新时间、提交人。操作：打开/复制。筛选：策略阶段、环节",
+      "buttons": ["新建策略"],
+      "filters": {
+        "策略阶段": { "type": "selectOption", "options": ["全部", "实验", "灰度", "正式"] },
+        "环节": { "type": "selectOption", "options": ["全部", "视觉", "设计", "视频"] }
+      },
+      "strategyCardActions": ["打开", "复制"]
+    },
+    "strategyDetail": {
+      "name": "策略详情",
+      "url": "待确认",
+      "urlRoute": "待确认",
+      "note": "策略配置详情页。包含：策略阶段(实验)、环节(视觉/设计/视频)、试运行、查看运行结果、保存、策略说明、适配场景/商家画像、节点编排(策略入参Start/策略出参End/+新增节点)、落库配置",
+      "buttons": ["返回列表", "试运行", "查看运行结果", "保存", "+ 新增节点"],
+      "sections": ["策略基本信息", "节点编排", "落库配置"],
+      "nodeTypes": [
+        "LLM文本生成", "生图", "Map生图", "季节标签", "产业标签",
+        "定价节点", "模板匹配", "人工审核", "推送选款", "面料上身",
+        "款式分配", "匹配度打分", "图像裁头", "改款prompt推理",
+        "Caption", "机审", "视频生成", "视频上传", "高清化处理", "选片"
+      ]
+    },
+    "merchantConfig": {
+      "name": "商家信息配置",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "urlRoute": "/afdMerchantManagement/shopConfig",
+      "note": "商家管理 > 店铺信息配置。表格布局，展示店铺配置信息",
+      "filters": {
+        "搜索": { "type": "fill", "react": true }
+      },
+      "buttons": ["重置筛选", "搜索", "批量下载"],
+      "tableColumns": ["店铺信息", "合作供应商", "参考竞店", "负责买手", "视觉偏好", "搭配偏好", "参考视觉图例", "操作"],
+      "rowActions": ["编辑"],
+      "knownPitfalls": [
+        "编辑操作可能为行内编辑或弹窗编辑，需实际确认",
+        "批量下载可能为异步任务，需等待下载链接"
+      ]
+    },
+    "productionDashboard": {
+      "name": "生产看板",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "urlRoute": "/strategy/productionDashboard",
+      "note": "策略平台-数据看板。指标：整体推送进度(总任务数/生产中/已推送/未推送)、链路生产进度(按链路展示)"
+    },
+    "templateManagement": {
+      "name": "模版包管理",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "urlRoute": "/templateManagement",
+      "note": "模版库 > 模版包管理。店铺卡片列表布局（非 ant-table），每卡片展示店铺信息+模板包数量+使用状态",
+      "filters": {
+        "店铺名称": { "type": "fill", "react": true },
+        "店铺ID": { "type": "fill", "react": true },
+        "买手名称": { "type": "fill", "react": true },
+        "使用状态": { "type": "selectOption", "options": ["全部", "使用中", "未使用"] }
+      },
+      "buttons": ["重置", "新建模板包", "导入模板包"],
+      "shopCard": {
+        "fields": ["店铺名称", "店铺ID", "买手", "模板包数量(N个)", "使用状态标签"],
+        "statusTags": ["使用中", "未使用"],
+        "actions": ["查看详情", "编辑", "激活", "停用"]
+      },
+      "createPackageForm": {
+        "type": "modal",
+        "fields": {
+          "店铺选择": { "type": "select", "note": "选择关联店铺（seller）" },
+          "模板包名称": { "type": "input", "required": true },
+          "应用环节": { "type": "select", "options": ["搭配", "视觉", "套图", "视频"] },
+          "应用场景": { "type": "select", "options": ["主图素材", "种草素材", "详情页"] },
+          "模板上传": { "type": "upload", "note": "支持批量上传图片" }
+        },
+        "note": "表单字段为推测值，需实际页面确认"
+      },
+      "importPackageDialog": {
+        "type": "modal",
+        "uploadType": "input[type=file]",
+        "acceptedFormats": [".xlsx", ".zip"],
+        "fields": {
+          "上传文件": { "type": "upload", "note": "Excel 或 ZIP 格式" },
+          "店铺关联": { "type": "select", "note": "导入模板包关联的店铺" }
+        },
+        "note": "导入字段为推测值，需实际页面确认"
+      },
+      "detailPage": {
+        "note": "点击查看详情后进入店铺模板包列表",
+        "templateList": {
+          "columns": ["模板名称", "模板预览", "状态", "创建时间", "操作"],
+          "operations": ["预览", "编辑", "停用"]
+        },
+        "templatePreview": {
+          "type": "imageGallery",
+          "note": "模板图片预览，支持放大查看"
+        }
+      },
+      "knownPitfalls": [
+        "卡片布局非 ant-table，断言以文本为主",
+        "使用状态标签可能用 ant-tag 或自定义样式",
+        "模板包数量为0时显示'0个'，需验证渲染正确",
+        "新建/导入可能为页面右上角按钮或卡片区域按钮",
+        "编辑后触发 IDLE→DRAFT 状态回退（风险点#20）",
+        "激活需检查同seller+range+scene仅一个IN_USE（风险点#15）"
+      ]
+    },
+    "templateLibrary": {
+      "name": "淘内资源池",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "urlRoute": "/templateLibrary",
+      "note": "模版库 > 淘内资源池。模版资源池+标签筛选+基础信息筛选",
+      "filters": {
+        "Seller ID": { "type": "fill", "react": true },
+        "店铺名称": { "type": "fill", "react": true },
+        "Item ID": { "type": "fill", "react": true },
+        "图片ID": { "type": "fill", "react": true }
+      },
+      "buttons": ["重置"],
+      "tagDimensions": [
+        "设计-主品描述",
+        "搭配-配饰穿搭",
+        "拍摄-模特维度",
+        "场景维度",
+        "光影维度",
+        "构图维度",
+        "整体视觉"
+      ],
+      "metrics": ["推荐曝光数"],
+      "templatePreview": {
+        "entry": "点击模板图片卡片进入预览",
+        "display": ["大图预览", "标签信息", "推荐曝光数", "所属店铺"],
+        "note": "预览形式可能为 Drawer/Modal/图片放大，需实际确认"
+      }
+    },
+    "qualityTemplate": {
+      "name": "优质模板库",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "urlRoute": "/selfTemplateLibrary_f88",
+      "note": "模版库 > 优质模板库。标签筛选+洗图状态+应用场景，支持批量操作和任务创建",
+      "filters": {
+        "模板来源": { "type": "selectOption" },
+        "Seller ID": { "type": "fill", "react": true },
+        "模板来源店铺名称": { "type": "fill", "react": true },
+        "模板组ID": { "type": "fill", "react": true }
+      },
+      "tagDimensions": ["同淘内资源池"],
+      "extraFilters": ["洗图状态", "应用场景"],
+      "buttons": ["批量操作", "查看任务进度", "创建任务"],
+      "createTaskFlow": {
+        "type": "multiStep",
+        "steps": ["选择模板", "任务基础设置", "审核标准", "确认提交"],
+        "note": "与任务大厅模版库来源流程类似，入口不同"
+      },
+      "batchOperations": {
+        "selectMode": "checkbox 勾选模板",
+        "actions": ["批量洗图", "批量导出", "批量标签修改"],
+        "note": "具体操作选项需实际页面确认"
+      }
+    }
+  },
+
+  "uiFramework": "react-antd（class 前缀 ant-）",
+
+  "commonElements": {
+    "brandLogo": {
+      "location": "页面左上角",
+      "expectedText": "F88–运营平台",
+      "note": "品牌标识，用于验证租户身份正确性"
+    },
+    "identityDropdown": {
+      "location": "品牌标识下方",
+      "label": "当前身份：",
+      "expectedValue": "F88",
+      "note": "下拉框，确认当前租户为 F88"
+    }
+  },
+
+  "pageDetails": {
+
+    "personalTaskCenter": {
+      "tabs": {
+        "审核任务": {
+          "description": "人工审核任务列表，审核员对商家提交的素材进行初审/复审",
+          "isActive": true,
+          "taskTypes": [
+            {
+              "name": "图片审核",
+              "description": "审核商家上传的商品主图/详情图是否符合规范",
+              "resultOptions": ["通过", "驳回"],
+              "rejectRequires": "驳回原因（必填）"
+            },
+            {
+              "name": "视频审核",
+              "description": "审核商家上传的商品视频是否符合规范",
+              "resultOptions": ["通过", "驳回"],
+              "rejectRequires": "驳回原因（必填）"
+            },
+            {
+              "name": "文本审核",
+              "description": "审核商品标题/描述文案是否合规",
+              "resultOptions": ["通过", "驳回"],
+              "rejectRequires": "驳回原因（必填）"
+            }
+          ],
+          "statusFlow": "待分配 → 待审核 → 审核通过/审核驳回 → 已完成",
+          "sampleTask": "null-BT_5972-【zy测试】首图审核-人工审核-20260701"
+        },
+        "抽检任务": {
+          "description": "对已审核完成的素材进行随机抽检复核，验证审核一致性",
+          "purpose": "质量监控 - 检查审核员的审核质量",
+          "taskTypes": [
+            {
+              "name": "审核一致性抽检",
+              "description": "随机抽取已审核素材，重新审核并比对结果",
+              "resultOptions": ["与原审核一致", "与原审核不一致"],
+              "inconsistentAction": "标记不一致原因 + 提交纠正"
+            },
+            {
+              "name": "专项抽检",
+              "description": "针对特定品类/审核类型/时间段的定向抽检",
+              "resultOptions": ["合格", "不合格"],
+              "scopeConfig": "可配置抽检范围（品类、时间段、审核员）"
+            }
+          ],
+          "statusFlow": "待抽检 → 抽检中 → 抽检完成",
+          "sampleTask": "待确认"
+        },
+        "埋雷任务": {
+          "description": "在正常审核流中混入已知答案的测试素材，考核审核员准确率",
+          "purpose": "审核员能力评估 - 衡量审核员的审核准确率",
+          "taskTypes": [
+            {
+              "name": "标准埋雷",
+              "description": "混入已知'应该通过'的素材，测试审核员是否正确通过",
+              "expectedResult": "通过",
+              "scoring": "审核员判定为'通过' = 正确，判定为'驳回' = 漏过（false negative）"
+            },
+            {
+              "name": "违规埋雷",
+              "description": "混入已知'应该驳回'的素材，测试审核员是否正确拦截",
+              "expectedResult": "驳回",
+              "scoring": "审核员判定为'驳回' = 正确，判定为'通过' = 误放（false positive）"
+            },
+            {
+              "name": "边界埋雷",
+              "description": "混入处于边界线的素材（如擦边球内容），测试审核员判断力",
+              "expectedResult": "由专家组预定义",
+              "scoring": "与专家组判定一致 = 正确"
+            }
+          ],
+          "statusFlow": "待审核 → 审核中 → 审核完成 → 结果比对",
+          "invisibility": "审核员无法区分埋雷任务与正常任务",
+          "sampleTask": "待确认"
+        }
+      },
+
+      "metrics": {
+        "description": "正确率/准确率计算体系",
+        "审核任务指标": {
+          "审核通过率": {
+            "formula": "审核通过数 / 总审核数 × 100%",
+            "description": "审核员在审核任务中的整体通过率",
+            "example": "审核100条素材，通过80条 → 审核通过率 = 80%"
+          },
+          "审核驳回率": {
+            "formula": "审核驳回数 / 总审核数 × 100%",
+            "description": "审核员在审核任务中的整体驳回率",
+            "example": "审核100条素材，驳回20条 → 驳回率 = 20%"
+          },
+          "平均审核耗时": {
+            "formula": "Σ(每条审核完成时间 - 审核开始时间) / 审核总数",
+            "description": "审核员单条素材平均处理时间"
+          }
+        },
+        "抽检任务指标": {
+          "抽检一致率": {
+            "formula": "与原审核结果一致数 / 抽检总数 × 100%",
+            "description": "抽检复核结果与原始审核结果的吻合度",
+            "example": "抽检50条，45条与原审核一致 → 一致率 = 90%"
+          },
+          "抽检不一致率": {
+            "formula": "与原审核结果不一致数 / 抽检总数 × 100%",
+            "description": "抽检发现的审核偏差比例"
+          },
+          "误通过率": {
+            "formula": "抽检发现应驳回但原审核通过数 / 抽检总数 × 100%",
+            "description": "审核员放行不合规素材的比例（漏网率）"
+          },
+          "误驳回率": {
+            "formula": "抽检发现应通过但原审核驳回数 / 抽检总数 × 100%",
+            "description": "审核员错误驳回合规素材的比例（误伤率）"
+          }
+        },
+        "埋雷任务指标": {
+          "埋雷准确率": {
+            "formula": "审核员正确判定埋雷数 / 埋雷总数 × 100%",
+            "description": "审核员对埋雷素材的整体判定准确率（核心KPI）",
+            "example": "10条埋雷，正确判定9条 → 准确率 = 90%"
+          },
+          "标准埋雷命中率": {
+            "formula": "正确通过标准埋雷数 / 标准埋雷总数 × 100%",
+            "description": "审核员正确通过合规素材的能力"
+          },
+          "违规埋雷拦截率": {
+            "formula": "正确拦截违规埋雷数 / 违规埋雷总数 × 100%",
+            "description": "审核员正确拦截不合规素材的能力"
+          },
+          "误放率": {
+            "formula": "错误通过违规埋雷数 / 违规埋雷总数 × 100%",
+            "description": "审核员放行违规素材的概率（最危险指标）",
+            "threshold": "一般要求 < 5%"
+          },
+          "漏过率": {
+            "formula": "错误驳回标准埋雷数 / 标准埋雷总数 × 100%",
+            "description": "审核员误伤合规素材的概率"
+          }
+        },
+        "综合指标": {
+          "审核员综合得分": {
+            "formula": "埋雷准确率 × 权重A + 抽检一致率 × 权重B + 审核任务完成量 × 权重C",
+            "description": "综合评估审核员整体表现（权重由审核标准管理配置）"
+          },
+          "通过率偏差": {
+            "formula": "|审核员通过率 - 团队平均通过率|",
+            "description": "审核员通过率偏离团队均值的程度，过大可能触发专项抽检"
+          }
+        }
+      },
+
+      "taskList": {
+        "note": "任务卡片/列表样式，非传统表格",
+        "taskFields": ["任务编号", "任务名称", "审核类型", "日期"],
+        "searchFields": {
+          "任务名称": { "type": "fill", "react": true }
+        }
+      },
+
+      "auditDetailOperations": {
+        "note": "点击任务条目进入审核详情页后的所有可操作项",
+        "commonActions": {
+          "通过": {
+            "description": "确认素材符合规范，允许通过",
+            "buttonText": "通过",
+            "confirmDialog": "可能出现确认弹窗",
+            "afterAction": "提交后返回任务列表，状态变为'审核通过'"
+          },
+          "驳回": {
+            "description": "素材不符合规范，拒绝并填写原因",
+            "buttonText": "驳回",
+            "rejectForm": {
+              "驳回原因": { "type": "textarea", "required": true, "note": "必填，不填时按钮始终disabled" },
+              "驳回类型": { "type": "select", "options": ["图片质量", "内容违规", "尺寸不达标", "格式不符", "其他"], "required": true },
+              "示例图片": { "type": "upload", "note": "可上传正确示例供商家参考" }
+            },
+            "afterAction": "提交后返回任务列表，状态变为'审核驳回'"
+          }
+        },
+
+        "图片审核操作": {
+          "description": "图片审核详情页的所有具体操作",
+          "imageDisplay": {
+            "原图展示": "左侧展示商家提交的原始图片，支持放大查看",
+            "AI建议": "右侧展示AI自动检测建议（质量分、问题标注）",
+            "尺寸信息": "显示图片宽高、分辨率、文件大小",
+            "图片类型": "主图 / 详情图 / 白底图 / 场景图 / 长图"
+          },
+          "operations": {
+            "通过": {
+              "description": "图片符合所有规范，直接通过",
+              "precondition": "审核员确认图片无质量问题"
+            },
+            "驳回": {
+              "description": "图片不符合规范，填写驳回原因",
+              "rejectReasons": [
+                "图片模糊/清晰度不足",
+                "图片尺寸不达标",
+                "包含水印/牛皮癣",
+                "包含违规内容",
+                "背景不符合要求（非纯白/非场景）",
+                "图片比例失调",
+                "图片变形/拉伸",
+                "包含第三方平台标识",
+                "价格/促销信息不符",
+                "其他"
+              ]
+            },
+            "高清化": {
+              "description": "图片分辨率/清晰度不足，标记为需要高清化处理",
+              "triggerCondition": "图片分辨率低于要求阈值或清晰度评分不足",
+              "action": "标记'需高清化'，系统自动触发图片增强流程",
+              "result": "生成高清化版本供二次审核"
+            },
+            "裁剪": {
+              "description": "图片尺寸/比例不符合要求，需要裁剪",
+              "triggerCondition": "图片比例失调或包含多余区域",
+              "action": "指定裁剪区域或选择自动裁剪",
+              "result": "生成裁剪后版本"
+            },
+            "去背景": {
+              "description": "主图背景不符合要求，需要抠图处理",
+              "triggerCondition": "主图要求白底但背景杂乱",
+              "action": "标记'需去背景'，触发自动抠图",
+              "result": "生成白底版本"
+            },
+            "加水印": {
+              "description": "给素材添加平台水印",
+              "note": "特定场景下需要添加版权保护水印"
+            },
+            "标注问题区域": {
+              "description": "在图片上框选问题区域（如水印位置、违规内容位置）",
+              "action": "用矩形框选图片中的问题区域",
+              "note": "辅助商家理解驳回原因"
+            }
+          },
+          "qualityChecks": {
+            "分辨率检查": "主图要求≥800×800px，详情图≥750px宽",
+            "清晰度评分": "AI自动评分，低于阈值建议高清化",
+            "水印检测": "自动检测是否包含水印/牛皮癣",
+            "背景检测": "检测背景是否符合品类要求",
+            "尺寸比例": "主图要求1:1，详情图无严格比例要求"
+          }
+        },
+
+        "视频审核操作": {
+          "description": "视频审核详情页的所有具体操作",
+          "videoDisplay": {
+            "视频播放器": "左侧展示视频播放器，支持播放/暂停/拖拽",
+            "视频信息": "时长、分辨率、文件大小、格式",
+            "AI建议": "右侧展示AI自动检测建议"
+          },
+          "operations": {
+            "通过": { "description": "视频符合规范，直接通过" },
+            "驳回": {
+              "description": "视频不符合规范",
+              "rejectReasons": [
+                "视频模糊/画质不足",
+                "视频时长不符",
+                "包含水印/角标",
+                "包含违规内容",
+                "音频不合规",
+                "视频格式不支持",
+                "其他"
+              ]
+            },
+            "标记时间点": {
+              "description": "在视频时间轴上标记问题出现的时间点",
+              "action": "拖动到问题时间点 + 添加标记"
+            }
+          }
+        },
+
+        "文本审核操作": {
+          "description": "文本审核详情页的所有具体操作",
+          "operations": {
+            "通过": { "description": "文本合规，直接通过" },
+            "驳回": {
+              "description": "文本不合规",
+              "rejectReasons": [
+                "标题包含违禁词",
+                "标题包含夸大宣传",
+                "描述与商品不符",
+                "包含价格/促销信息",
+                "包含第三方平台信息",
+                "其他"
+              ]
+            },
+            "高亮问题词": {
+              "description": "在文本中高亮显示违规词语/敏感词",
+              "action": "系统自动标红 + 审核员手动确认"
+            }
+          }
+        }
+      },
+
+      "taskClickFlow": [
+        "点击任务条目进入审核详情页",
+        "审核详情页展示素材内容（视频/图片/文本）",
+        "根据素材类型执行具体操作：通过/驳回/高清化/裁剪/替换/局部修改等",
+        "如驳回：填写驳回原因 + 选择驳回类型（必填）",
+        "如高清化：标记需高清化处理，等待系统生成高清版本",
+        "提交后返回列表"
+      ],
+
+      "editOperations": {
+        "note": "所有编辑操作必须经过「编辑后 + ✅确认」才生效，确认后 toolbar 才可见",
+        "toolbarButtons": {
+          "首图审核(9个)": ["局部修改", "下载", "替换", "裁剪", "高清化", "负反馈", "驳回", "复位", "复制URL"],
+          "套图审核(8个)": ["局部修改", "下载", "替换", "裁剪", "高清化", "负反馈", "复位", "复制URL"],
+          "visibleCondition": "imageActions容器默认display:none，hover图片区域触发显示；按钮全部硬编码在同一div中，无链路级显隐条件",
+          "verifiedSource": "2026-07-09 链路20180首图审核运行时DOM实证 + industry-source-code/iFashion-tools 前端源码确认",
+          "notes": {
+            "驳回按钮": "仅首图审核有，套图审核无；知识库旧版误记为'编辑'，实际DOM显示为'驳回'",
+            "局部修改": "EditOutlined图标，所有链路均渲染，无链路级条件控制",
+            "去背景": "toolbar中不存在独立按钮，去背景能力可能在其他入口"
+          },
+          "knownLinks": {
+            "20180(主图生成链路)": "首图审核9按钮全部可见（含驳回）",
+            "其他链路": "代码层面同样全按钮渲染，但旧前端版本可能未合并"
+          }
+        },
+        "commonFlow": [
+          "1. 执行编辑操作（替换/裁剪/高清化/局部修改）",
+          "2. 点击「编辑后」查看效果",
+          "3. 点击 ✅ 确认",
+          "4. toolbar 变为可见（CopyURL/下载按钮可用）",
+          "5. 后端将 localAdjustUrl 写入 material entity.url",
+          "6. 【验证】CopyURL 得到的是编辑后URL（不是originUrl）",
+          "7. 【验证】下载得到的是编辑后图片（不是原始素材）"
+        ],
+        "前端逻辑": "handleCopyUrl(img.originUrl || img.url)，originUrl 优先",
+        "确认机制": "确认后后端将 localAdjustUrl 写入 material entity.url，localAdjustStatus 置为 0",
+        "组件类型": {
+          "SingleImageReview": "qt=1，单图审核",
+          "SetImageReview": "qt=2，套图审核",
+          "CoverImageReview": "qt=4，封面图审核"
+        },
+        "参考图组件_ReferenceImageCarousel": {
+          "description": "种草素材审核页面中参考图使用独立的ReferenceImageCarousel组件，与结果图CoverImageReview组件分离",
+          "cssPrefix": "ReferenceImageCarousel--",
+          "verifiedSource": "2026-07-16 预发环境 taskId=1324711 DOM实证",
+          "subClasses": {
+            "wrapper": "组件外层容器",
+            "carousel": "Swiper轮播容器",
+            "slide": "Swiper轮播单项",
+            "actionItem": "单图模式工具栏按钮容器（3个按钮：负反馈/复位/复制URL）",
+            "actionItemFeedback": "负反馈按钮额外class",
+            "actionItemReset": "复位按钮额外class",
+            "gridFeedbackBtn": "多图模式负反馈按钮（含img[alt=\"负反馈\"]）",
+            "gridContainer": "多图网格容器",
+            "gridWrap": "多图网格包裹层",
+            "gridRow": "多图网格行",
+            "gridCell": "多图网格单元格",
+            "gridCellPlaceholder": "多图网格占位符",
+            "gridImage": "多图模式下的参考图图片",
+            "feedbackBadge": "已标记的负反馈展示徽章（如\"负反馈: 模特未改变\"）",
+            "switchIcon": "单图/多图模式切换图标",
+            "modeLayer": "模式层",
+            "imageTag": "参考图标签",
+            "arrowLeft": "轮播左箭头",
+            "arrowRight": "轮播右箭头"
+          },
+          "singleModeToolbar": {
+            "buttons": ["负反馈", "复位", "复制URL"],
+            "selector": "[class*=ReferenceImageCarousel--actionItem] img[alt=\"负反馈\"]",
+            "note": "仅3个按钮，不包含裁剪/高清化/驳回等"
+          },
+          "multiModeFeedback": {
+            "selector": "[class*=ReferenceImageCarousel--gridFeedbackBtn]",
+            "imgAlt": "负反馈",
+            "note": "每个网格单元格上都有负反馈按钮"
+          },
+          "feedbackBadgeSelector": "[class*=ReferenceImageCarousel--feedbackBadge]",
+          "importantNote": "参考图的负反馈按钮在ReferenceImageCarousel组件中（alt=负反馈）。待审核图/结果图CoverImageReview也有同样的👎拇指按钮，但其label为「驳回」（见coverImageToolbar），两者用同一个👎icon PNG(6000000005448)"
+        },
+        "coverImageToolbar_待审核图工具栏": {
+          "description": "待审核图/结果图CoverImageReview的hover工具栏，容器class CoverImageReview--imageActions，内部项CoverImageReview--actionItem",
+          "verifiedSource": "2026-07-16 预发环境 taskId=1324711 DOM+点击实证",
+          "buttons9": [
+            {"label": "局部修改", "type": "anticon-edit", "selector": "[aria-label=edit]"},
+            {"label": "下载", "type": "anticon-download", "selector": "[aria-label=download]"},
+            {"label": "替换", "type": "anticon-swap", "selector": "[aria-label=swap]"},
+            {"label": "裁剪", "type": "img", "selector": "img[alt=裁剪]"},
+            {"label": "高清化", "type": "img", "selector": "img[alt=高清化]"},
+            {"label": "复位(redo)", "type": "anticon-redo", "selector": "[aria-label=redo]"},
+            {"label": "驳回(👎拇指向下)", "type": "img", "selector": "img[alt=驳回]", "iconPng": "6000000005448", "note": "图标为拇指向下，与参考图负反馈同一PNG"},
+            {"label": "复位", "type": "img", "selector": "img[alt=复位]"},
+            {"label": "复制URL", "type": "img", "selector": "img[alt=复制URL]"}
+          ],
+          "rejectDialog_驳回面板": {
+            "trigger": "点击👎驳回按钮(img[alt=驳回])",
+            "type": "ant-modal",
+            "title": "驳回",
+            "prompt": "请选择驳回理由",
+            "reasonOptions": ["模特未改变", "搭配不美", "手动输入"],
+            "buttons": ["确认驳回", "取消"],
+            "note": "理由项与参考图负反馈徽章的问题标签一致（如模特未改变），对应PRD主图问题标记能力"
+          }
+        }
+      },
+
+      "replaceOperation": {
+        "description": "替换图片文件，Bug场景：替换后CopyURL/下载仍返回原图",
+        "flow": "替换 → 上传新图 → 编辑后 → ✅确认 → CopyURL/下载",
+        "postConfirmVerify": {
+          "copyUrl": "必须是替换后的新图URL，不能是originUrl",
+          "download": "必须下载到替换后的新图文件"
+        },
+        "dataFields": {
+          "material.url": "确认后更新为新图URL",
+          "material.originUrl": "始终保持原始URL不变",
+          "material.localAdjustUrl": "确认前为替换后URL，确认后写入url字段",
+          "material.localAdjustStatus": "确认前≠0，确认后=0"
+        },
+        "knownBug": "替换后CopyURL和下载仍返回原图URL，预期是新图URL"
+      },
+
+      "cropOperation": {
+        "description": "图片裁剪，后端接口：POST /api/material/crop",
+        "flow": "裁剪 → 指定裁剪区域 → 编辑后 → ✅确认 → CopyURL/下载",
+        "postConfirmVerify": {
+          "copyUrl": "必须是裁剪后的新图URL，不能是originUrl",
+          "download": "必须下载到裁剪后的新图文件"
+        },
+        "note": "与替换场景结构相同，操作改为裁剪"
+      },
+
+      "hdEnhanceOperation": {
+        "description": "图片高清化/分辨率增强",
+        "flow": "高清化 → 编辑后 → ✅确认 → CopyURL/下载",
+        "postConfirmVerify": {
+          "copyUrl": "必须是高清化后的新图URL，不能是originUrl",
+          "download": "必须下载到高清化后的新图文件（分辨率高于原图）"
+        },
+        "apiPattern": "submitLocalAdjust|material/write|hdEnhance"
+      },
+
+      "localModifyOperation": {
+        "description": "局部修改/inpainting布局调整",
+        "flow": "局部修改 → 编辑后 → ✅确认 → CopyURL/下载",
+        "postConfirmVerify": {
+          "copyUrl": "必须是局部修改后的新图URL，不能是originUrl",
+          "download": "必须下载到局部修改后的新图文件"
+        },
+        "visibilityCondition": "按钮仅在链路配置了inpainting能力时可见（如链路20180）",
+        "apiPattern": "submitLocalAdjust|material/write"
+      },
+
+      "removeBackgroundOperation": {
+        "description": "去背景/抠图处理（注：当前前端toolbar无此按钮，前端源码未找到去背景相关代码）",
+        "flow": "去背景 → 编辑后 → ✅确认 → CopyURL/下载",
+        "status": "当前UI未暴露此能力，可能在其他入口或旧版本中存在",
+        "postConfirmVerify": {
+          "copyUrl": "必须是去背景后的新图URL，不能是originUrl",
+          "download": "必须下载到去背景后的新图文件（背景透明/纯色）"
+        }
+      },
+
+      "regenerateOperation": {
+        "description": "驳回后系统触发重生(reGen)，新生成图片再次进入审核",
+        "triggerCondition": "封面图审核(qt=4)中驳回触发，inRegenerateMode 参与 shouldShowTab 判断",
+        "flow": "驳回 → 填写原因 → 系统触发重生 → 等待重生完成 → 重生图进入审核 → 审核通过/驳回",
+        "invisibility": "重生期间 toolbar 同样隐藏",
+        "failureHandling": "重生失败时任务状态应为 FAIL 或触发重试，不应卡在重生中"
+      },
+
+      "downstreamFlow": {
+        "description": "审核通过后图片流转到下游节点（算法过滤、套图生产等）",
+        "dataChain": "审核确认 → output_json(passedImg/passedImg1~5) → g_workflow_instance.common_variable → 下游节点 input_data",
+        "验证方法": "通过 DMS 查询 workflow_record_log 的 output_json 和下游节点 input_data",
+        "downstreamNodes": ["算法过滤", "套图生产", "素材生产"],
+        "keyFields": {
+          "output_json.passedImg": "单图审核通过的图片URL",
+          "output_json.passedImg1~5": "套图/封面图审核通过的多张图片URL",
+          "output_json.notPassImgUrl": "被驳回图片的URL",
+          "common_variable.passedImg": "工作流实例中的通过图片URL"
+        }
+      }
+    },
+
+    "auditStandard": {
+      "actions": {
+        "新增标准": "创建新的审核规则",
+        "编辑标准": "修改已有审核规则",
+        "启用/禁用": "切换规则生效状态"
+      },
+      "standardFields": [
+        "规则名称",
+        "审核类型（图片/视频/文本）",
+        "判定阈值",
+        "生效范围",
+        "状态（启用/禁用）"
+      ]
+    },
+
+    "auditNode": {
+      "actions": {
+        "新增节点": "创建审核流程节点",
+        "编辑节点": "修改节点配置",
+        "排序": "调整节点顺序（初审→复审→终审）",
+        "关联标准": "为节点绑定审核标准"
+      },
+      "nodeFields": [
+        "节点名称",
+        "节点类型（初审/复审/终审）",
+        "负责人/审核组",
+        "关联审核标准",
+        "超时时间"
+      ]
+    },
+
+    "taskManagement": {
+      "searchFields": {
+        "任务ID": { "type": "fill", "react": true },
+        "审核状态": { "type": "selectOption", "options": ["待审核", "审核通过", "审核驳回", "已撤回"] },
+        "商家名称": { "type": "fill", "react": true },
+        "提交时间": { "type": "dateRange" }
+      },
+      "actions": {
+        "查看详情": "点击任务ID跳转详情",
+        "批量导出": "导出任务数据（Excel）",
+        "重试": "对失败任务执行重试"
+      },
+      "tableColumns": ["任务ID", "商家名称", "审核状态", "审核人", "提交时间", "审核时间", "操作"]
+    },
+
+    "templateManagement": {
+      "_note": "实测2026-07-09通过CDP探查确认。页面两级结构: 店铺卡片列表(ShopList--)→点击'查看详情'→模板包卡片列表",
+      "pageStructure": {
+        "level1_shopList": {
+          "url": "/templateManagement",
+          "cssPrefix": "ShopList--",
+          "layout": "店铺卡片网格(4列)",
+          "filters": [
+            {"name": "店铺名称", "type": "input", "placeholder": "请输入"},
+            {"name": "店铺ID", "type": "input", "placeholder": "请输入如M001"},
+            {"name": "买手名称", "type": "input", "placeholder": "请输入"},
+            {"name": "使用状态", "type": "select", "placeholder": "请选择"}
+          ],
+          "cardFields": ["店铺名", "使用状态(参与中/未使用/使用中/挂起中)", "店铺ID", "买手", "模版包数量", "视觉类型(品牌/红人)", "筹备状态"],
+          "cardActions": ["查看详情"],
+          "pagination": "10条/页, 分页显示'共 N 项数据'",
+          "resetButton": "重置(icon=undo)"
+        },
+        "level2_packageList": {
+          "entry": "点击店铺卡片'查看详情'按钮",
+          "breadcrumb": "店铺管理 > 模版包列表",
+          "layout": "模板包卡片网格",
+          "filters": [
+            {"name": "名称/ID/负责人", "type": "input", "placeholder": "名称/ID/负责人"},
+            {"name": "应用环节", "type": "select", "options": ["搭配", "视觉", "套图"]},
+            {"name": "应用场景", "type": "select", "options": ["主图素材", "种草素材"]},
+            {"name": "所有状态", "type": "select", "options": ["闲置中", "使用中"]}
+          ],
+          "actionButtons": ["导入模板包", "新建模版包(注意:模版非模板)", "重置"],
+          "cardFields": ["图片轮播(1/N)", "标题", "状态标签(使用中绿/闲置中灰)", "应用环节标签", "应用场景标签", "创建人", "创建日期"],
+          "cardActions": {
+            "ellipsis": "ant-dropdown(placement=bottomLeft), 菜单含删除(已排除测试)",
+            "查看详情": "展开模板包详情",
+            "置为闲置": "仅使用中状态显示, API: POST /api/template/package/setIdle, 无确认弹窗, toast '已设置为闲置中'",
+            "立即使用": "仅闲置中状态显示, API: POST /api/template/package/setValid, 无确认弹窗, toast '已设置为使用中'"
+          },
+          "pagination": "显示'共 N 条'"
+        }
+      },
+      "createPackage": {
+        "entry": "进入店铺详情后点击'新建模版包'按钮",
+        "type": "3步向导(ant-steps)",
+        "steps": ["1 基础信息", "2 选择模版图", "3 配置确认"],
+        "step1Fields": {
+          "模版包名称": {"type": "input", "required": true, "maxLength": 30},
+          "应用环节": {"type": "select", "required": true, "options": ["搭配", "视觉", "套图"]},
+          "应用场景": {"type": "select", "required": true, "options": ["主图素材", "种草素材"]},
+          "描述": {"type": "textarea", "required": false, "maxLength": 300}
+        },
+        "nextButton": "下一步(必填未完成时disabled)",
+        "cancelButton": "取消",
+        "verifiedSource": "2026-07-09 CDP实操确认"
+      },
+      "importPackage": {
+        "entry": "进入店铺详情后点击'导入模板包'按钮",
+        "type": "3步向导(ant-steps)",
+        "steps": ["1 基础信息", "2 预览模板图", "3 确认导入"],
+        "step1Fields": {
+          "选择源模板包": {"type": "select", "required": true, "placeholder": "请选择店铺和模板包", "note": "从其他店铺复制模板包，不是文件上传"},
+          "模版包名称": {"type": "input", "required": true, "maxLength": 30},
+          "应用环节": {"type": "select", "required": true, "options": ["搭配", "视觉", "套图"]},
+          "应用场景": {"type": "select", "required": true, "options": ["主图素材", "种草素材"]},
+          "描述": {"type": "textarea", "required": false, "maxLength": 300, "placeholder": "请输入模版包用途说明"}
+        },
+        "nextButton": "下一步(必填未完成时disabled)",
+        "verifiedSource": "2026-07-09 CDP实操确认"
+      },
+      "toggleStatus": {
+        "activate": {
+          "buttonText": "立即使用",
+          "precondition": "模板包状态为闲置中",
+          "confirmDialog": false,
+          "api": "POST /api/template/package/setValid",
+          "toast": "已设置为使用中",
+          "afterAction": "状态变为使用中, 按钮变为'置为闲置'"
+        },
+        "deactivate": {
+          "buttonText": "置为闲置",
+          "precondition": "模板包状态为使用中",
+          "confirmDialog": false,
+          "api": "POST /api/template/package/setIdle",
+          "toast": "已设置为闲置中",
+          "afterAction": "状态变为闲置中, 按钮变为'立即使用'"
+        },
+        "verifiedSource": "2026-07-09 CDP实操确认: 两者均无Popconfirm/Modal，直接执行+toast"
+      }
+    },
+
+    "templateLibrary": {
+      "templatePreview": {
+        "entry": "点击模板图片卡片进入预览",
+        "display": ["大图预览", "标签信息", "推荐曝光数", "所属店铺"],
+        "note": "预览形式可能为 Drawer/Modal/图片放大，需实际确认"
+      },
+      "pagination": {
+        "note": "资源池可能有大量模板，需验证分页/加载更多功能"
+      }
+    },
+
+    "qualityTemplate": {
+      "createTask": {
+        "entry": "点击“创建任务”按钮",
+        "type": "multiStep",
+        "steps": ["选择模板", "任务基础设置", "审核标准", "确认提交"],
+        "note": "与任务大厅模版库来源流程类似(ui_f88_task_hall_template.json)，入口不同"
+      },
+      "batchOps": {
+        "entry": "点击“批量操作”按钮",
+        "selectMode": "checkbox 勾选模板",
+        "actions": ["批量洗图", "批量导出", "批量标签修改"],
+        "note": "具体操作选项需实际页面确认"
+      },
+      "taskProgress": {
+        "entry": "点击“查看任务进度”按钮",
+        "type": "modal_or_drawer",
+        "content": ["任务名称", "任务状态", "进度", "创建时间"],
+        "note": "展示当前进行中的任务进度"
+      }
+    },
+
+    "linkList": {
+      "editLink": {
+        "entry": "点击链路卡片的“编辑”操作",
+        "type": "redirect_to_detail",
+        "note": "编辑后进入链路详情页"
+      },
+      "copyLink": {
+        "entry": "点击链路卡片的“复制”操作",
+        "confirmDialog": true,
+        "afterAction": "创建副本链路，名称添加副本后缀"
+      },
+      "lifecycleFilter": {
+        "type": "selectOption",
+        "options": ["全部", "实验", "灰度", "正式"]
+      }
+    },
+
+    "strategyList": {
+      "stageFilter": {
+        "type": "selectOption",
+        "options": ["全部", "实验", "灰度", "正式"],
+        "note": "筛选策略所处阶段"
+      },
+      "processFilter": {
+        "type": "selectOption",
+        "options": ["全部", "视觉", "设计", "视频"],
+        "note": "筛选策略所属环节"
+      },
+      "strategyActions": ["打开", "复制"]
+    },
+
+    "merchantConfigDetail": {
+      "editConfig": {
+        "entry": "点击行内“编辑”按钮",
+        "type": "modal_or_inline",
+        "fields": ["合作供应商", "参考竞店", "负责买手", "视觉偏好", "搭配偏好"],
+        "submit": "保存",
+        "note": "编辑形式可能为行内编辑或弹窗，需实际确认"
+      },
+      "batchDownload": {
+        "entry": "点击“批量下载”按钮",
+        "type": "async_download",
+        "note": "批量导出商家配置数据为 Excel"
+      }
+    }
+  },
+
+  "apis": {
+    "查询审核任务列表": {
+      "name": "待抓包确认",
+      "urlKeyword": "待抓包确认",
+      "note": "需通过 CDP Network 抓包确认 /review/personal-task-center 页面的实际接口"
+    },
+    "查询审核标准列表": {
+      "name": "待抓包确认",
+      "urlKeyword": "待抓包确认"
+    },
+    "查询审核节点列表": {
+      "name": "待抓包确认",
+      "urlKeyword": "待抓包确认"
+    },
+    "查询任务列表": {
+      "name": "待抓包确认",
+      "urlKeyword": "待抓包确认"
+    }
+  },
+
+  "knownIssues": [
+    "租户身份校验：页面左上角必须显示'F88–运营平台'，否则说明租户身份不对",
+    "当前身份下拉值必须为'F88'",
+    "预发域名：pre-aifashion-xiaoer.alibaba-inc.com",
+    "个人任务中心使用Tab切换（审核任务/抽检任务/埋雷任务），非左侧导航",
+    "审核管理子菜单在左侧导航中展开后才可见",
+    "搜索框为 React 受控组件，fill 必须用 react: true（native setter + dispatchEvent）",
+    "水印 .wm_div_id 每次操作前需清除",
+    "截图用 CDP Page.captureScreenshot",
+    "图片审核链路：【zy测试】主图生成链路（生命周期：实验）",
+    "视频审核链路：视频审核（描述：mmttest，生命周期：实验）"
+  ],
+
+  "testPipelines": {
+    "imageAudit": {
+      "name": "【zy测试】主图生成链路",
+      "lifecycle": "实验",
+      "type": "image",
+      "auditTypes": ["qt=1单图", "qt=2套图", "qt=4封面图"],
+      "testDataFile": "test-fixtures/image-audit-data.json"
+    },
+    "videoAudit": {
+      "name": "视频审核",
+      "lifecycle": "实验",
+      "description": "mmttest",
+      "type": "video",
+      "testDataFile": "test-fixtures/video-audit-data.json"
+    }
+  },
+
+  "_todo": [
+    "通过【zy测试】主图生成链路实际生成测试素材，填入materialId和imageUrl",
+    "通过视频审核链路实际生成视频素材，填入materialId和videoUrl",
+    "确认链路生成的素材能在个人任务中心的审核任务Tab中出现",
+    "通过 CDP 抓包确认各页面 API 路径和参数",
+    "确认审核标准管理/审核节点管理/任务管理的实际 URL 路由",
+    "确认点击任务条目后的审核详情页交互形式",
+    "确认封面图审核驳回后确实触发重生流程",
+    "将替换用的图片文件放入test-fixtures/images/目录"
+  ]
+}

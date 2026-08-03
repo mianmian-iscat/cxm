@@ -1,0 +1,118 @@
+{
+  "id": "xiaoer-adplacement-clearout-1044587480343",
+  "name": "商品清退验证 - 供给商品ID 1044587480343",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=EATwc13bB8ASuTqySmUv",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=EATwc13bB8ASuTqySmUv",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开广告位商品报名页面"
+    },
+    {
+      "type": "fill",
+      "selector": "input[type='text']",
+      "selectorIndex": 0,
+      "value": "1044587480343",
+      "description": "输入供给商品ID 1044587480343"
+    },
+    {
+      "type": "clickText",
+      "text": "搜 索",
+      "selector": "button",
+      "description": "点击搜索按钮（文字含空格：'搜 索'）"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "bzb.api.fsyx_quality_guard.f88.queryItemSuperDiscountActivity",
+      "timeout": 15000,
+      "description": "等待搜索接口响应"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待表格渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "search-result",
+      "description": "截图 - 搜索结果"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "1044587480343",
+      "description": "验证搜索结果包含目标商品ID"
+    },
+    {
+      "type": "clickText",
+      "text": "清退",
+      "selector": "button, a, span",
+      "description": "点击清退按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待确认弹窗出现"
+    },
+    {
+      "type": "screenshot",
+      "label": "confirm-dialog",
+      "description": "截图 - 清退确认弹窗"
+    },
+    {
+      "type": "clickText",
+      "text": "确认清退",
+      "selector": "button",
+      "description": "点击确认清退（弹窗按钮文字为'确认清退'）"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "bzb.api.fsyx_quality_guard.f88.cancelSuperItemDiscountActivity",
+      "timeout": 20000,
+      "description": "等待清退接口响应"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面刷新数据"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-clearout",
+      "description": "截图 - 清退后页面状态"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "contains": "true",
+      "description": "验证清退接口返回 success=true"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "已清退",
+      "description": "验证页面显示已清退状态"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

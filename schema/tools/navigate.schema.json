@@ -1,0 +1,29 @@
+{
+  "name": "navigate",
+  "version": "1.0.0",
+  "description": "跳转到指定 URL，等待页面加载完成",
+  "triggers": ["导航", "跳转", "打开", "navigate", "goto", "open"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "url"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "navigate" },
+      "url": { "type": "string", "description": "目标 URL" },
+      "waitUntil": {
+        "type": "string",
+        "enum": ["load", "domcontentloaded", "networkidle"],
+        "default": "load"
+      },
+      "timeout": { "type": "integer", "default": 30000 },
+      "waitText": { "type": "string", "description": "导航后等待页面出现该文字" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": { "type": "object" },
+  "timeout_ms": 30000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 1000 }
+}

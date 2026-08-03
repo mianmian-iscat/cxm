@@ -1,0 +1,86 @@
+{
+  "id": "atomic-f88-mc-reset",
+  "name": "UI：店铺信息配置-重置筛选验证",
+  "description": "输入搜索条件后点击重置筛选，验证搜索框清空",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='sellerid']",
+      "value": "测试搜索",
+      "react": true,
+      "description": "输入搜索条件"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待输入"
+    },
+    {
+      "type": "clickText",
+      "text": "重置筛选",
+      "description": "点击重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input[placeholder*=\"sellerid\"]'); return { value: input?.value || '', isEmpty: !input?.value }; })()",
+      "description": "验证搜索框已清空",
+      "storeAs": "resetCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "resetCheck",
+      "path": "isEmpty",
+      "equals": true,
+      "description": "搜索框值已清空"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-reset",
+      "description": "重置筛选后"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录",
+    "realDomNotes": "重置筛选清空搜索输入框",
+    "riskPoints": []
+  }
+}

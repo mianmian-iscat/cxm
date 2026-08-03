@@ -1,0 +1,75 @@
+{
+  "id": "nr-sl-pageload",
+  "name": "新需求 PRD-test001: 策略列表页面加载验证",
+  "description": "PRD-test001 变更后验证 策略列表 页面可正常加载",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证页面标题包含'策略列表'"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const ths = Array.from(document.querySelectorAll('th, .ant-table-thead th')); return { columnCount: ths.length, headers: ths.slice(0, 15).map(th => (th.textContent || '').trim()) }; })()",
+      "description": "检查表格列信息",
+      "storeAs": "tableInfo"
+    },
+    {
+      "type": "screenshot",
+      "label": "nr-sl-pageload",
+      "description": "页面加载截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；PRD-test001已部署",
+    "realDomNotes": "PRD-test001自动生成的页面加载验证",
+    "riskPoints": [
+      "页面可能因部署未完成而加载失败"
+    ]
+  },
+  "_promoted": {
+    "from_prd": "test001",
+    "generated_at": "2026-07-11T10:46:08.060106",
+    "generator": "case_generator.py"
+  }
+}

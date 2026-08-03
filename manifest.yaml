@@ -1,0 +1,122 @@
+name: web-automation
+version: 3.0.0
+description: 通用 Web 浏览器自动化操作基座 + AI 测试 Harness 编排底座，提供页面操作、截图、表单填写、网络抓包、视频录制、工具注册、Pipeline DSL、三层断言、变量存储、证据链等能力
+
+# ── 运行时依赖 ──
+runtime:
+  node: ">=22.0.0"
+  python: ">=3.8"
+  chrome:
+    version: ">=135"
+    cdp_port: 9222
+    cdp_url: "http://127.0.0.1:9222"
+    cdp_ws_url: ""              # WebSocket 端点（云端沙箱：wss://...）
+    require_logged_in: true     # 本地模式需要已登录的浏览器
+    runtimes:                   # 支持的运行环境
+      - local                   # 本地 Chrome（--remote-debugging-port）
+      - sandbox                 # OpenClaw 沙箱（固定端口 9222）
+      - cloudcli                # CloudCLI 浏览器（动态端口）
+      - agentbay                # 云端沙箱（WebSocket CDP 端点）
+
+# ── Node 依赖 ──
+node_dependencies:
+  puppeteer-core:
+    version: "^24.7.2"
+    install: "npm install"      # 在 web-automation/ 目录下执行
+    resolve_order:
+      - env:WEB_AUTO_PUPPETEER_PATH   # 1. 环境变量显式指定
+      - local:node_modules            # 2. 本地 npm install
+      - system:openclaw-bundled       # 3. OpenClaw 服务端内置（fallback）
+      - system:global                 # 4. 全局安装（fallback）
+
+# ── Python 依赖 ──
+python_dependencies:
+  openai:
+    version: ">=1.0.0"
+    install: "pip install openai"
+    required_by: "nl2input.py（自然语言转 input JSON）"
+    optional: true   # 直接传 input JSON 给 impl.py 时不需要
+
+# ── 产物配置 ──
+artifacts:
+  base_dir: "./artifacts"       # 相对路径，可用环境变量 WEB_AUTO_ARTIFACTS_DIR 覆盖
+  isolation: "per_run"          # 每次执行独立目录：artifacts/{run_id}/
+  retention_days: 7             # 7 天后自动清理
+  types:
+    - screenshots               # PNG 截图
+    - har                       # HTTP Archive
+    - video                     # MP4 录屏（screencast）
+    - capture_json              # 完整抓包 JSON
+
+# ── 环境变量（移植时可按需覆盖） ──
+env_vars:
+  WEB_AUTO_CDP_URL:
+    default: "http://127.0.0.1:9222"
+    desc: "Chrome CDP 地址，默认端口 9222，如被占用可改为 9223 等"
+  WEB_AUTO_CDP_WS_URL:
+    default: ""
+    desc: "WebSocket CDP 端点（wss://...），用于云端沙箱连接 BrowserTool/AgentBay，设置后自动切换 agentbay 运行时"
+  WEB_AUTO_COOKIES_JSON:
+    default: ""
+    desc: "直接传入 Cookie JSON 字符串（云端沙箱场景，跳过 OSS 下载）"
+  WEB_AUTO_SKIP_SSO_WARMUP:
+    default: "false"
+    desc: "跳过 SSO 预热（云端沙箱已有登录态时设为 true）"
+  WEB_AUTO_ARTIFACTS_DIR:
+    default: "{skill_dir}/artifacts"
+    desc: "产物输出目录，默认为 skill 目录下的 artifacts/"
+  WEB_AUTO_PUPPETEER_PATH:
+    default: "auto"
+    desc: "puppeteer-core 路径，\"auto\" 时自动探测（本地 npm install > OpenClaw 内置 > 全局）"
+  WEB_AUTO_SCREENSHOTS_DIR:
+    default: "{skill_dir}/artifacts/screenshots"
+    desc: "截图输出目录，不设置则指向 artifacts/screenshots/"
+  WEB_AUTO_SKILLS_DIR:
+    default: "{skill_dir}/.."
+    desc: "skills 根目录，仅当移植到非标准路径时需要设置"
+  WEB_AUTO_LLM_BASE_URL:
+    default: "https://idealab.alibaba-inc.com/api/openai/v1"
+    desc: "LLM 接口 base URL（nl2input.py 使用），支持任意 OpenAI 兼容服务"
+  WEB_AUTO_LLM_API_KEY:
+    default: "<需要配置>"
+    desc: "LLM API Key（nl2input.py 使用），生产环境下必须通过环境变量设置"
+  WEB_AUTO_LLM_MODEL:
+    default: "claude-sonnet-4-6"
+    desc: "LLM 模型名（nl2input.py 使用）"
+
+# ── 资源配额 ──
+quotas:
+  max_steps: 50                 # 单次执行最大步骤数
+  max_duration_ms: 120000       # 单次执行超时 2 分钟
+  max_screenshot_mb: 50         # 单次执行截图总大小上限
+  max_capture_mb: 100           # 单次抓包数据大小上限
+
+# ── 上线门槛（对应 eval/thresholds.yaml）──
+release_gates:
+  smoke_pass_rate: 1.0          # 冒烟测试 100% pass
+  core_unit_test_pass: true     # core/ 单测全部通过
+
+# ── Harness 子系统 ──
+harness:
+  version: "1.0.0"
+  subsystems:
+    - name: tool_registry
+      module: core/tool_registry.py
+      schemas: schema/tools/*.json
+      description: 工具注册与发现，Schema 注入 + 参数校验
+    - name: variable_store
+      module: core/variable_store.py
+      description: 上下文与状态管理，${step_id.field} 变量绑定
+    - name: assertion_framework
+      module: core/assertion_framework.py
+      description: 四层领域断言（状态机/结算/契约/合规）+ 三层执行断言（Pre/Realtime/Post）
+    - name: evidence_store
+      module: core/evidence_store.py
+      description: 证据链采集与持久化
+    - name: pipeline_engine
+      module: core/pipeline_engine.py
+      pipelines: pipelines/*.yaml
+      description: Pipeline DSL 声明式编排引擎
+
+# ── 变更履历 ──
+changelog: history/CHANGELOG.md

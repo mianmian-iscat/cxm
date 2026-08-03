@@ -1,0 +1,64 @@
+{
+  "name": "op_exec_assistant",
+  "version": "2.0.0",
+  "description": "原创保护测试执行助手，支持三层验证、证据采集、状态机校验、结算金额核算",
+  "triggers": ["执行测试用例", "验证状态流转", "校验结算金额", "回归测试"],
+  "parameters": {
+    "type": "object",
+    "required": ["case_id"],
+    "properties": {
+      "case_id": {
+        "type": "string",
+        "pattern": "^OP-TC-\\d{4}$",
+        "description": "测试用例ID，格式为OP-TC-加4位数字"
+      },
+      "execution_mode": {
+        "type": "string",
+        "enum": ["FULL", "API_ONLY", "DB_ONLY", "UI_ONLY"],
+        "default": "FULL",
+        "description": "执行模式：FULL三层全跑，其余为单层验证"
+      },
+      "env": {
+        "type": "string",
+        "enum": ["PRE", "DAILY", "PROD_READONLY"],
+        "default": "PRE",
+        "description": "执行环境，PROD仅允许只读操作"
+      },
+      "evidence_level": {
+        "type": "string",
+        "enum": ["MINIMAL", "STANDARD", "AUDIT"],
+        "default": "STANDARD",
+        "description": "证据采集级别：AUDIT级含截图+DB快照+API报文全文"
+      },
+      "merchant_id": {
+        "type": "string",
+        "description": "商家ID，用于数据隔离和定位"
+      },
+      "application_id": {
+        "type": "string",
+        "description": "专利申请ID"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "case_id": { "type": "string" },
+      "result": { "type": "string", "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL"] },
+      "layers": {
+        "type": "object",
+        "properties": {
+          "api": { "type": "string", "enum": ["PASS", "FAIL", "SKIP"] },
+          "db": { "type": "string", "enum": ["PASS", "FAIL", "SKIP"] },
+          "ui": { "type": "string", "enum": ["PASS", "FAIL", "SKIP"] }
+        }
+      },
+      "evidence_trace_id": { "type": "string" },
+      "duration_ms": { "type": "integer" },
+      "failure_detail": { "type": "string" }
+    }
+  },
+  "dependencies": ["dms-mcp", "browser-use"],
+  "timeout_ms": 60000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 2000 }
+}

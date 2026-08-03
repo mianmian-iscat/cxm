@@ -1,0 +1,91 @@
+{
+  "id": "regression-op-signup-flow",
+  "name": "回归：原创保护商家端签约/申请入口（新增专利申请）",
+  "description": "验证商家端「淘天服饰原创保护」页可访问，并通过「新增专利申请」入口打开申请/协议表单（仅验证入口与表单打开，不做真实提交以免脏数据）",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/yc-child-shoes-testcases/test_03_signup.py",
+  "sourceIds": [
+    "TC_SIGN_001"
+  ],
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "description": "打开原创保护商家端「淘天服饰原创保护」页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "专利保护步骤",
+      "description": "验证商家端原创保护页已加载（含专利保护步骤/申请列表）"
+    },
+    {
+      "type": "screenshot",
+      "label": "signup-entry",
+      "description": "截图-商家端原创保护主页"
+    },
+    {
+      "type": "clickText",
+      "text": "新增专利申请",
+      "description": "【TC_SIGN_001】点击「新增专利申请」签约/申请入口"
+    },
+    {
+      "type": "wait",
+      "ms": 3500,
+      "description": "等待新增专利申请表单渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "signup-form",
+      "description": "截图-新增专利申请表单"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "图片要求",
+      "description": "验证新增专利申请表单已打开（含图片要求上传说明，表单特有）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "yc.seller|yc.right|apply",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "produces": {
+    "applyId": "200000757"
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "9223 淘宝登录态有效，测试账号已打 TTYCBH 白名单标签，商家端 pre-fsyc.taobao.com 可访问",
+    "riskPoints": [
+      "「新增专利申请」点击后可能为弹窗/抽屉，断言用宽泛弹层选择器",
+      "不做真实提交，避免在预发产生脏数据"
+    ],
+    "erratum": "原用例假设的小二端 quality-pulse/original-protection 路由未注册；签约/申请入口实际在商家端 pre-fsyc.taobao.com 的「新增专利申请」，据真实页面重新定位",
+    "qoderworkRef": "test_03_signup.py TC_SIGN_001"
+  }
+}

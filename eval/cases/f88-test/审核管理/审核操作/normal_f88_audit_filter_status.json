@@ -1,0 +1,98 @@
+{
+  "id": "normal-f88-audit-filter-status",
+  "name": "正常流程：F88 个人任务中心-按审核状态筛选",
+  "description": "进入个人任务中心，使用审核状态下拉筛选（待审核），验证列表按筛选条件刷新。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "个人任务中心",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "选择审核状态=待审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待列表按状态筛选刷新"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "待审核",
+      "description": "验证列表出现待审核标签"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-audit-filter-pending",
+      "description": "截图-按待审核筛选结果"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "审核通过",
+      "description": "切换审核状态=审核通过"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待列表刷新"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证列表刷新"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-audit-filter-passed",
+      "description": "截图-按审核通过筛选结果"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在审核任务数据。",
+    "realDomNotes": "审核状态字段：待审核/审核通过/审核驳回/已撤回；素材类型字段：主图/详情页/白底图/场景图/标题/描述；筛选使用antd Select下拉，body挂载。",
+    "riskPoints": [
+      "selectOption依赖antd下拉body挂载，runner内置鼠标点击",
+      "审核状态label需与实际选项完全匹配"
+    ]
+  }
+}

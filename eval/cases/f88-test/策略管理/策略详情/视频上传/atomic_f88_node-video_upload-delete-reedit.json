@@ -1,0 +1,103 @@
+{
+  "id": "atomic-f88-node-video_upload-delete-reedit",
+  "name": "UI：视频上传节点-删除+二次编辑边界",
+  "description": "验证视频上传节点保存后：1)删除节点功能可用 2)二次打开编辑抽屉能正确回显已保存数据",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '打开'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no open btn'; })()",
+      "description": "打开第一条策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.innerText || ''; const hasVideoUpload = text.includes('视频上传'); const nodes = Array.from(document.querySelectorAll('[class*=node], [class*=Node]')).filter(n => (n.textContent || '').includes('视频上传')); return { hasVideoUpload, videoNodeCount: nodes.length }; })()",
+      "description": "检查策略中是否已有视频上传节点",
+      "storeAs": "existingNodes"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const allEls = Array.from(document.querySelectorAll('[class*=node], [class*=Node], [class*=item]')); const videoNode = allEls.find(el => { const text = (el.textContent || '').trim(); return text.includes('视频上传') && text.length < 50; }); if (videoNode) { const r = videoNode.getBoundingClientRect(); return { found: true, x: r.x + r.width / 2, y: r.y + r.height / 2 }; } return { found: false }; })()",
+      "description": "定位视频上传节点(如果存在)",
+      "storeAs": "nodeLoc"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const nodeLoc = arguments[0]; if (nodeLoc && nodeLoc.found) { const allEls = Array.from(document.querySelectorAll('*')); const target = allEls.find(el => { const r = el.getBoundingClientRect(); return Math.abs(r.x + r.width/2 - nodeLoc.x) < 5 && Math.abs(r.y + r.height/2 - nodeLoc.y) < 5; }); if (target) { target.click(); return { clicked: true, method: 'coordinate' }; } } return { clicked: false }; })(arguments[0])",
+      "description": "点击视频上传节点打开编辑抽屉(回显验证)",
+      "storeAs": "reopenNode"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const text = drawer.textContent || ''; const hasUploadType = text.includes('上传类型'); const hasItemId = text.includes('商品ID') || text.includes('商品'); const hasVideo = text.includes('视频'); const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const fieldValues = {}; for (const item of formItems) { const label = (item.querySelector('.ant-form-item-label')?.textContent || '').trim(); const input = item.querySelector('input:not([type=checkbox]):not([type=radio])'); const select = item.querySelector('.ant-select-selection-item'); if (label && input) fieldValues[label] = input.value || ''; if (label && select) fieldValues[label] = select.textContent || ''; } return { open: true, hasUploadType, hasItemId, hasVideo, fieldValues }; })()",
+      "description": "验证二次打开编辑抽屉的数据回显",
+      "storeAs": "reeditCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { noDrawer: true }; const deleteBtn = Array.from(drawer.querySelectorAll('button, [role=button], a')).find(el => { const t = (el.textContent || '').trim(); return t.includes('删除') || t.includes('移除') || t.includes('Delete'); }); if (deleteBtn) { return { hasDeleteBtn: true, btnText: deleteBtn.textContent.trim() }; } const icons = Array.from(drawer.querySelectorAll('[class*=delete], [class*=Delete], [class*=trash], [class*=close]')); return { hasDeleteBtn: false, iconCount: icons.length }; })()",
+      "description": "检查编辑抽屉中是否有删除节点按钮",
+      "storeAs": "deleteBtnCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "video_upload-delete-reedit",
+      "description": "删除+二次编辑边界截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const c = document.querySelector('.ant-drawer:not(.ant-drawer-hidden) .ant-drawer-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭抽屉"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；策略中已存在视频上传节点(由前置创建用例保证)",
+    "realDomNotes": "节点在编排区以卡片形式展示；点击节点可重新打开编辑抽屉",
+    "riskPoints": [
+      "二次编辑时字段值是否正确回显",
+      "删除节点功能入口是否可用",
+      "删除节点后编排区是否正确更新"
+    ]
+  }
+}

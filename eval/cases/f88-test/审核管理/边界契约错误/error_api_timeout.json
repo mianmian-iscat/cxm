@@ -1,0 +1,65 @@
+{
+  "id": "error-api-timeout",
+  "name": "异常流程：API 超时 → 错误处理验证",
+  "description": "设置极短超时等待一个不存在的API，验证框架超时处理和错误报告是否正确",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "error_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "this-api-does-not-exist-xxxx",
+      "timeout": 2000,
+      "description": "【故意超时】等待不存在的API（2秒超时）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api",
+    "captureBody": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "error",
+    "_comment": "该用例应当以 error 状态结束，验证错误报告中包含 timeout 和 stepIndex 信息"
+  },
+  "_testDesign": {
+    "preconditions": "环境可访问",
+    "riskPoints": [
+      "超时后未正确报告 stepIndex",
+      "超时后未触发 onError 截图"
+    ],
+    "expectedOutput": {
+      "status": "error",
+      "error.message_contains": "timeout"
+    }
+  },
+  "source": null,
+  "sourceIds": null
+}

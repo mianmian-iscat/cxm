@@ -1,0 +1,37 @@
+{
+  "name": "f88_knowledge_query",
+  "version": "1.0.0",
+  "description": "F88 页面知识查询器：查询页面选择器、字段、坑点等知识",
+  "triggers": ["知识库", "选择器", "页面结构", "坑点"],
+  "parameters": {
+    "type": "object",
+    "required": ["query_type"],
+    "properties": {
+      "query_type": {
+        "type": "string",
+        "enum": ["selector", "field", "action", "pitfall", "page_info"],
+        "description": "查询类型"
+      },
+      "page": {
+        "type": "string",
+        "enum": ["personal-task-center", "standard-management", "node-management", "task-management", "link-list", "link-detail", "strategy-list", "production-dashboard"],
+        "description": "目标页面"
+      },
+      "element_name": {
+        "type": "string",
+        "description": "元素名称（如'审核状态'、'商家ID'）"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "found": { "type": "boolean" },
+      "selector": { "type": "string" },
+      "type": { "type": "string" },
+      "notes": { "type": "array", "items": { "type": "string" } },
+      "pitfalls": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "timeout_ms": 5000
+}

@@ -1,0 +1,71 @@
+{
+  "id": "atomic-f88-sd-desc-fields",
+  "name": "UI：策略详情-策略说明和适配场景字段验证",
+  "description": "验证策略详情页面策略说明和适配场景/商家画像两个文本框",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10568"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10568",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tas = document.querySelectorAll('textarea'); const desc = Array.from(tas).find(t => t.placeholder?.includes('策略说明')); const scene = Array.from(tas).find(t => t.placeholder?.includes('适配场景')); return { hasDesc: !!desc, hasScene: !!scene, descPlaceholder: desc?.placeholder, scenePlaceholder: scene?.placeholder }; })()",
+      "description": "验证文本框",
+      "storeAs": "fieldsInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "fieldsInfo",
+      "path": "hasDesc",
+      "equals": true,
+      "description": "验证策略说明文本框存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "fieldsInfo",
+      "path": "hasScene",
+      "equals": true,
+      "description": "验证适配场景文本框存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "sd-desc-fields",
+      "description": "策略说明和适配场景"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "两个textarea：策略说明/适配场景或商家画像",
+    "riskPoints": []
+  }
+}

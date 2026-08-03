@@ -1,0 +1,302 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "web-automation/input",
+  "title": "BrowserTestInput",
+  "description": "web-automation skill 的测试用例输入结构",
+  "type": "object",
+  "required": ["id", "name", "context", "steps"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "用例唯一 ID，用于结果归档和截图命名",
+      "examples": ["product-mgmt-adjust-price-001"]
+    },
+    "name": {
+      "type": "string",
+      "description": "用例名称，人可读",
+      "examples": ["日销价调价-正常流程"]
+    },
+    "context": {
+      "type": "object",
+      "description": "浏览器环境上下文",
+      "additionalProperties": true,
+      "properties": {
+        "urlPattern": {
+          "type": "string",
+          "description": "匹配已打开 tab 的 URL 关键词，优先使用已有 tab"
+        },
+        "url": {
+          "type": "string",
+          "description": "起始页面 URL，urlPattern 未匹配到时新开 tab 导航到此地址"
+        },
+        "waitAfterLoad": {
+          "type": "integer",
+          "default": 3000,
+          "description": "页面加载后等待时长（ms），等待动态内容渲染"
+        },
+        "cookiesUrl": {
+          "type": "string",
+          "description": "Cookie JSON 文件的 URL（默认使用内置 OSS 地址）。文件格式为 CDP Network.setCookies 接受的 cookie 数组"
+        },
+        "isolated": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否启动独立 Chrome 实例（完全隔离）。为 true 时自动启动新 Chrome 进程，独立 cookie/登录态/窗口，与其他会话互不干扰"
+        },
+        "cdpPort": {
+          "type": "integer",
+          "description": "连接到指定端口的 Chrome 实例（如 9223）。与 isolated 二选一：cdpPort 连接已有实例，isolated 启动新实例"
+        },
+        "launchOptions": {
+          "type": "object",
+          "description": "isolated=true 时的 Chrome 启动参数",
+          "additionalProperties": false,
+          "properties": {
+            "port": {
+              "type": "integer",
+              "default": 0,
+              "description": "指定调试端口，0=自动分配空闲端口"
+            },
+            "headless": {
+              "type": "boolean",
+              "default": false,
+              "description": "是否以 headless 模式运行"
+            },
+            "chromeBin": {
+              "type": "string",
+              "description": "Chrome 可执行文件路径（默认自动探测）"
+            },
+            "windowSize": {
+              "type": "string",
+              "default": "1458,900",
+              "description": "窗口尺寸，格式为 width,height"
+            },
+            "extraArgs": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "额外的 Chrome 启动参数"
+            }
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "操作步骤序列，按顺序执行",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string", "description": "步骤类型" },
+          "id": { "type": "string", "description": "步骤 ID，用于 Variable Store 引用" },
+          "output_binding": {
+            "type": "object",
+            "description": "输出变量绑定，JSONPath 表达式提取步骤输出",
+            "additionalProperties": { "type": "string" }
+          },
+          "realtime_asserts": {
+            "type": "array",
+            "description": "实时断言规则",
+            "items": {
+              "type": "object",
+              "required": ["expression"],
+              "properties": {
+                "id": { "type": "string" },
+                "expression": { "type": "string", "description": "断言表达式" },
+                "severity": { "type": "string", "enum": ["CRITICAL", "WARNING", "INFO"], "default": "INFO" },
+                "message": { "type": "string" },
+                "auto_action": { "type": "string" }
+              }
+            }
+          },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "description": "断点续跑配置",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否开启断点续跑。长流程用例建议开启"
+        },
+        "segmentSize": {
+          "type": "integer",
+          "default": 8,
+          "minimum": 2,
+          "description": "每段最多执行的步骤数，达到后保存 checkpoint。含截图多时建议 5-6"
+        },
+        "outputSizeLimitKb": {
+          "type": "integer",
+          "default": 200,
+          "description": "当段累积输出体积（KB）超过此限制时提前保存 checkpoint"
+        }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "description": "网络抓包配置",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "filter": {
+          "type": "string",
+          "description": "URL 关键词过滤，只记录匹配的请求。留空则记录所有请求",
+          "examples": ["/cobweb/api/"]
+        },
+        "captureBody": { "type": "boolean", "default": true, "description": "是否获取响应体" },
+        "exportHAR": { "type": "boolean", "default": false, "description": "是否导出 HAR 文件" }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "description": "截图策略配置",
+      "additionalProperties": false,
+      "properties": {
+        "onEachStep": { "type": "boolean", "default": false },
+        "onError": { "type": "boolean", "default": true },
+        "dir": {
+          "type": "string",
+          "default": "{skill_dir}/artifacts/screenshots",
+          "description": "截图保存目录"
+        }
+      }
+    },
+    "contextOptimization": {
+      "type": "object",
+      "description": "上下文消耗优化配置（推荐开启）",
+      "additionalProperties": false,
+      "properties": {
+        "screenshotExternal": {
+          "type": "boolean",
+          "default": true,
+          "description": "截图仅保存文件路径，output 中不嵌入 Base64（大幅减少上下文）"
+        },
+        "maxResponseSizeKb": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 0,
+          "description": "单个 API 响应体最大保留大小（KB），0=不限制。超出部分截断并标记"
+        },
+        "outputCompact": {
+          "type": "boolean",
+          "default": true,
+          "description": "精简 output.json：成功步骤只保留核心字段，抓包数据只保留前 20 条完整记录"
+        },
+        "verboseMode": {
+          "type": "string",
+          "enum": ["full", "summary", "minimal"],
+          "default": "summary",
+          "description": "对话输出模式：full=完整输出；summary=只输出摘要；minimal=只输出最终结论"
+        }
+      }
+    },
+    "video": {
+      "type": "object",
+      "description": "录屏配置（可选）",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "fps": { "type": "integer", "default": 15, "description": "帧率" }
+      }
+    },
+    "businessType": {
+      "type": "string",
+      "description": "业务类型标识，用于度量指标分区统计",
+      "enum": ["f88_material", "f88_material_audit", "f88_material_production", "original_protection", "xiaoer", "xiaoer_original_protection", "product_management", "qianniu", "tpp", "aifashion", "hjratingconsole", "safety-code", "smoke", "unknown"],
+      "default": "unknown"
+    },
+    "llm": {
+      "type": "object",
+      "description": "LLM 调用记录（由上游 Agent 写入，用于度量 Token 消耗和置信度）",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "LLM 模型名称",
+          "examples": ["claude-sonnet-4-6", "gpt-4o"]
+        },
+        "provider": {
+          "type": "string",
+          "description": "LLM 提供商",
+          "examples": ["idealab", "openai", "dashscope"]
+        },
+        "calls": {
+          "type": "array",
+          "description": "LLM 调用记录列表",
+          "items": {
+            "type": "object",
+            "required": ["tokenUsed", "confidence"],
+            "additionalProperties": false,
+            "properties": {
+              "step": { "type": "string", "description": "LLM 操作类型", "examples": ["llm_plan", "llm_assert", "llm_heal"] },
+              "action": { "type": "string", "description": "具体操作描述" },
+              "tokenUsed": { "type": "integer", "description": "Token 消耗数" },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "LLM 决策置信度" },
+              "result": { "type": "string", "enum": ["success", "failed", "retrying"], "default": "success" },
+              "durationMs": { "type": "integer", "description": "调用耗时（ms）" },
+              "errorCode": { "type": "string", "description": "错误码（如 LLM_HALLUCINATION / LLM_TIMEOUT）" }
+            }
+          }
+        }
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "description": "Pipeline DSL 配置（Harness）。当存在时委托给 PipelineEngine 执行，否则走 steps[] 流程",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Pipeline YAML 文件路径"
+        },
+        "definition": {
+          "type": "object",
+          "description": "内联 Pipeline 定义（与 path 二选一）"
+        },
+        "variables": {
+          "type": "object",
+          "description": "Pipeline 初始变量",
+          "additionalProperties": true
+        }
+      }
+    },
+    "depends_on": {
+      "type": "array",
+      "description": "前置依赖用例 ID 列表。调度器按 DAG 拓扑序执行，前置 FAIL/SKIP 时本用例自动 SKIP 并标注根因。不声明则视为独立用例",
+      "items": { "type": "string" },
+      "examples": [["regression-op-signup-flow"]]
+    },
+    "produces": {
+      "type": "object",
+      "description": "本用例执行成功后写入共享上下文的键值对。key 为变量名，value 为 JSONPath 或固定值。下游用例通过 consumes 读取",
+      "additionalProperties": true,
+      "examples": [{ "applyId": "$.steps[3].result" }]
+    },
+    "consumes": {
+      "type": "object",
+      "description": "从共享上下文读取前置用例的产出。key 为本用例内的变量名，value 为 '{caseId}.{varName}' 引用路径。steps 中可通过 {{varName}} 插值引用",
+      "additionalProperties": { "type": "string" },
+      "examples": [{ "applyId": "regression-op-signup-flow.applyId" }]
+    },
+    "post_asserts": {
+      "type": "array",
+      "description": "后置断言规则（Harness），在 FINALIZE 阶段执行",
+      "items": {
+        "type": "object",
+        "required": ["expression"],
+        "properties": {
+          "id": { "type": "string", "description": "断言规则 ID" },
+          "expression": { "type": "string", "description": "断言表达式" },
+          "severity": { "type": "string", "enum": ["CRITICAL", "WARNING", "INFO"], "default": "INFO" },
+          "message": { "type": "string", "description": "断言失败时的消息" },
+          "auto_action": { "type": "string", "description": "失败时自动触发的动作" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "id": "atomic-f88-ptc-audit-tab",
+  "name": "UI：个人任务中心-审核任务Tab切换验证",
+  "description": "切换到审核任务Tab，验证Tab激活状态和列表渲染",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核任务",
+      "description": "验证审核任务Tab存在"
+    },
+    {
+      "type": "clickText",
+      "text": "审核任务",
+      "description": "切换到审核任务Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const active = document.querySelector('.ant-tabs-tab-active')?.textContent?.trim(); return { tabs, active }; })()",
+      "description": "获取Tab状态",
+      "storeAs": "tabState"
+    },
+    {
+      "type": "assertStore",
+      "key": "tabState",
+      "path": "active",
+      "notEmpty": true,
+      "description": "验证有激活Tab"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const els = document.querySelectorAll('.ant-tabs-tab'); return { count: els.length }; })()",
+      "description": "统计Tab数量",
+      "storeAs": "tabCount"
+    },
+    {
+      "type": "assertStore",
+      "key": "tabCount",
+      "path": "count",
+      "notEmpty": true,
+      "description": "验证Tab数量>0"
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-audit-tab",
+      "description": "审核任务Tab截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心有任务数据",
+    "realDomNotes": "Tab: 审核任务/抽检任务/埋雷任务",
+    "riskPoints": []
+  }
+}

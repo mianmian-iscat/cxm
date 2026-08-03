@@ -1,0 +1,119 @@
+{
+  "id": "atomic-f88-tm-assign-transfer-btn",
+  "name": "UI：任务管理-分配明细转交按钮验证",
+  "description": "验证分配明细操作列存在转交按钮",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n  // 展开链路卡片\n  const headers = document.querySelectorAll('[class*=linkCardHeader]');\n  if(headers.length > 0) headers[0].dispatchEvent(new MouseEvent('click', {bubbles:true}));\n  return 'link expanded';\n})()",
+      "description": "展开链路卡片"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n  const icons = document.querySelectorAll('span.anticon-right');\n  const batchIcons = Array.from(icons).filter(s => s.className.includes('expandIcon'));\n  if(batchIcons.length > 0) { batchIcons[0].click(); return 'batch expanded'; }\n  return 'no batch icon';\n})()",
+      "description": "展开批次"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n  const rows = document.querySelectorAll('.TreeRows--treeRow--DbExNiK');\n  const stageRow = Array.from(rows).find(r => r.textContent.includes('总任务数') && r.textContent.includes('审核完成率'));\n  if(stageRow) { const icon = stageRow.querySelector('span.anticon-right'); if(icon) { icon.click(); return 'stage expanded'; } }\n  return 'no stage';\n})()",
+      "description": "展开环节"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n  const rows = document.querySelectorAll('.TreeRows--treeRow--DbExNiK');\n  const taskRow = Array.from(rows).find(r => r.textContent.includes('审核') && r.textContent.includes('总任务数：'));\n  if(taskRow) { const icon = taskRow.querySelector('span.anticon-right'); if(icon) { icon.click(); return 'task expanded'; } }\n  return 'no task';\n})()",
+      "description": "展开任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n  const span = Array.from(document.querySelectorAll('span')).find(el => el.textContent.trim() === '分配明细' && el.children.length === 0);\n  const btn = span?.closest('button.ant-btn-link');\n  if(btn) { btn.click(); return 'clicked'; }\n  return 'no btn';\n})()",
+      "description": "点击分配明细"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!modal) return { hasTransfer: false }; const transferBtns = Array.from(modal.querySelectorAll('button')).filter(b => b.textContent.trim() === '转交'); return { hasTransfer: transferBtns.length > 0, count: transferBtns.length }; })()",
+      "description": "验证转交按钮",
+      "storeAs": "transferInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "transferInfo",
+      "path": "hasTransfer",
+      "equals": true,
+      "description": "验证转交按钮存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-assign-transfer",
+      "description": "转交按钮"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const close = document.querySelector('.ant-modal-close'); if(close) close.click(); return 'closed'; })()",
+      "description": "关闭"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在任务管理数据",
+    "realDomNotes": "转交按钮用于将审核任务转给其他人",
+    "riskPoints": []
+  }
+}

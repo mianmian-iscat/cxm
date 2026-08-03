@@ -1,0 +1,15 @@
+{
+  "id": "infra_f88_apis",
+  "category": "infra",
+  "title": "F88素材审核API清单",
+  "content": "{\"apis\": {\"queryMaterialAuditList\": {\"method\": \"POST\", \"desc\": \"查询审核列表\"}, \"approveMaterial\": {\"method\": \"POST\", \"desc\": \"审核通过\"}, \"rejectMaterial\": {\"method\": \"POST\", \"desc\": \"审核驳回\"}, \"batchAuditMaterial\": {\"method\": \"POST\", \"desc\": \"批量审核\"}, \"queryMaterialAuditDetail\": {\"method\": \"POST\", \"desc\": \"查询审核详情\"}}, \"capture_filter\": \"bzb.api.fsyx_quality_guard\"}",
+  "tags": [
+    "F88",
+    "API",
+    "MTOP"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.013581
+}

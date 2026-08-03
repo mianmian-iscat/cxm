@@ -1,0 +1,50 @@
+{
+  "id": "smoke-safety-code-page",
+  "name": "冒烟：安全码活动管理中心可访问",
+  "description": "验证 rmb.alibaba.com 活动管理中心能加载，能看到活动卡片",
+  "businessType": "unknown",
+  "scene": "safety-code",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "rmb.alibaba.com",
+    "url": "https://rmb.alibaba.com/index.html#/platform-activity/activityCenter"
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 4000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "活动",
+      "description": "验证页面包含「活动」字样"
+    },
+    {
+      "type": "screenshot",
+      "label": "safety-code-center-loaded",
+      "description": "活动管理中心截图"
+    }
+  ],
+  "capture": {
+    "enabled": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "内网 BUC 登录态有效",
+    "riskPoints": [
+      "活动卡片未渲染"
+    ]
+  },
+  "source": null,
+  "sourceIds": null,
+  "_note": "只验证页面可访问，不执行加白操作"
+}

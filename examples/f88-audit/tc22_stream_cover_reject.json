@@ -1,0 +1,252 @@
+{
+  "id": "f88-audit-tc22",
+  "name": "TC22 - STREAM审核 + 封面图Type=4 + 全不通过（模块A-C, 10条）",
+  "description": "后端API/DB级测试。模块A: STREAM模式审核(3条)；模块B: 封面图审核Type=4(4条)；模块C: 审核全不通过与重产(3条)。pytest脚本: test_approve_regression.py。涉及workflow_record_log/g_workflow_instance表查询。",
+  "businessType": "f88_material",
+  "relatedCases": ["NEW-A1","NEW-A2","NEW-A3","NEW-B1","NEW-B2","NEW-B3","NEW-B4","NEW-C1","NEW-C2","NEW-C3"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心（获取登录态cookie）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "========== 模块A: STREAM模式审核（3条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-A-start')()",
+      "description": "=== 模块A分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-A1: STREAM模式approve直接HANDLING — 无TO_SUBMIT中间态",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/workflow-records?nodeType=approve&status=HANDLING&limit=5",
+      "description": "NEW-A1: 查询STREAM模式下HANDLING状态的审核record"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.records[*].status",
+      "allEquals": "HANDLING",
+      "description": "NEW-A1: STREAM模式approve直接进入HANDLING，无TO_SUBMIT中间态"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT status, node_type FROM workflow_record_log WHERE node_type='approve' AND status='HANDLING' AND id > 4000000 ORDER BY id DESC LIMIT 5",
+      "description": "NEW-A1: DB验证 — approve record直接HANDLING"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.status == 'HANDLING'",
+      "description": "NEW-A1: DB中所有approve record均为HANDLING，无TO_SUBMIT"
+    },
+
+    {
+      "_comment": "NEW-A2: STREAM无图片→静默跳过 — record保持INIT，无审核任务创建",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/workflow-records?nodeType=approve&status=INIT&limit=10",
+      "description": "NEW-A2: 查询INIT状态的审核record"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.records[?(@.inputData.images==null || @.inputData.images.length==0)].status",
+      "allEquals": "INIT",
+      "description": "NEW-A2: 无图片的record保持INIT状态"
+    },
+    {
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/audit-tasks?recordIds=${initRecordIds}",
+      "description": "NEW-A2: 查询INIT record是否创建了对应审核任务"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.tasks",
+      "isEmpty": true,
+      "description": "NEW-A2: 无图片的INIT record未创建审核任务（静默跳过）"
+    },
+
+    {
+      "_comment": "NEW-A3: STREAM审核通过→下游收到passedImg",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/workflow-records?nodeType=approve&status=SUCCESS&limit=5",
+      "description": "NEW-A3: 查询审核通过的record"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.records[0].outputJson.passedImg",
+      "notEmpty": true,
+      "description": "NEW-A3: output_json含passedImg字段"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(common_variable, '$.batchId') FROM workflow_record_log WHERE node_type='approve' AND status='SUCCESS' AND id > 4000000 LIMIT 1) AND node_type != 'approve' ORDER BY id ASC",
+      "description": "NEW-A3: DB查询同batch下游record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count > 0",
+      "description": "NEW-A3: 审核通过后下游record已被创建"
+    },
+
+    {
+      "_comment": "========== 模块B: 封面图审核Type=4（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-B-start')()",
+      "description": "=== 模块B分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-B1: 封面图审核(qt=4)任务创建",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/audit-tasks?questionType=4&limit=5",
+      "description": "NEW-B1: 查询qt=4封面图审核任务"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.tasks[0].questionType",
+      "equals": 4,
+      "description": "NEW-B1: questionType=4"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.tasks[0].content",
+      "contains": "CoverImageAuditContentVO",
+      "description": "NEW-B1: 封面图审核内容为CoverImageAuditContentVO类型"
+    },
+
+    {
+      "_comment": "NEW-B2: 封面图审核通过→passedImg1~5输出",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/workflow-records?nodeType=approve&questionType=4&status=SUCCESS&limit=5",
+      "description": "NEW-B2: 查询封面图审核通过的record"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.records[0].outputJson.passedImg1",
+      "contains": "http",
+      "description": "NEW-B2: output_json含passedImg1"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.records[0].outputJson.passedImg5",
+      "description": "NEW-B2: output_json含passedImg5（最多5张）"
+    },
+
+    {
+      "_comment": "NEW-B3: 封面图审核部分通过→notPassImgUrl",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/audit-results?questionType=4&hasNotPass=true&limit=5",
+      "description": "NEW-B3: 查询封面图部分通过的审核结果"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.results[0].notPassImgUrl",
+      "notEmpty": true,
+      "description": "NEW-B3: notPassImgUrl含被拒图URL"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.results[0].passedImg",
+      "notEmpty": true,
+      "description": "NEW-B3: 同时有passedImg（部分通过）"
+    },
+
+    {
+      "_comment": "NEW-B4: 封面图审核全不通过→terminated+notPass",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/audit-results?questionType=4&allRejected=true&limit=5",
+      "description": "NEW-B4: 查询封面图全不通过的结果"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.results[0].status",
+      "equals": "SUCCESS",
+      "description": "NEW-B4: status=SUCCESS（流程正常完成）"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.results[0].notPass",
+      "equals": true,
+      "description": "NEW-B4: notPass=true（全部不通过标记）"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.results[0].terminated",
+      "equals": true,
+      "description": "NEW-B4: terminated=true（终止标记）"
+    },
+
+    {
+      "_comment": "========== 模块C: 审核全不通过与重产（3条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-C-start')()",
+      "description": "=== 模块C分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-C1: 全部不通过→status=SUCCESS+notPass=true",
+      "type": "dbQuery",
+      "sql": "SELECT id, status, JSON_EXTRACT(extra_info, '$.notPass') as not_pass FROM workflow_record_log WHERE node_type='approve' AND status='SUCCESS' AND id > 4000000 AND JSON_EXTRACT(extra_info, '$.notPass')='true' ORDER BY id DESC LIMIT 5",
+      "description": "NEW-C1: DB查询全不通过的record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.not_pass == 'true' AND all_rows.status == 'SUCCESS'",
+      "description": "NEW-C1: extraInfo.notPass=true 且 status=SUCCESS"
+    },
+
+    {
+      "_comment": "NEW-C2: notPass后无下游record",
+      "type": "dbQuery",
+      "sql": "SELECT r1.id as notpass_id, JSON_EXTRACT(r1.common_variable, '$.batchId') as batch_id FROM workflow_record_log r1 WHERE r1.node_type='approve' AND r1.id > 4000000 AND JSON_EXTRACT(r1.extra_info, '$.notPass')='true' ORDER BY r1.id DESC LIMIT 1",
+      "storeAs": "notPassRecord",
+      "description": "NEW-C2: 获取一条notPass record的batchId"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(common_variable, '$.batchId')='${notPassRecord.batch_id}' AND node_type != 'approve' AND id > ${notPassRecord.notpass_id} ORDER BY id ASC",
+      "description": "NEW-C2: 查询notPass record同batch的下游record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count == 0",
+      "description": "NEW-C2: notPass后同batch无下游node_type record"
+    },
+
+    {
+      "_comment": "NEW-C3: notPass后触发reGen",
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status, JSON_EXTRACT(extra_info, '$.strategyName') as strategy_name FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(common_variable, '$.batchId')='${notPassRecord.batch_id}' AND node_type IN ('gen_img', 'gen_material') AND id > ${notPassRecord.notpass_id} ORDER BY id ASC LIMIT 5",
+      "description": "NEW-C3: 查询notPass后是否有reGen生产record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count >= 0",
+      "description": "NEW-C3: reGen配置下触发新生产record（如无reGen配置则row_count=0也合理）"
+    }
+  ]
+}

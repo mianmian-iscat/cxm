@@ -1,0 +1,260 @@
+{
+  "id": "normal_f88_quality_batch_ops",
+  "name": "优质模板库 - 批量操作全流程+查看进度",
+  "description": "覆盖优质模板库批量操作全部功能点：checkbox勾选+全选/反选+批量操作菜单展开+实际执行一个批量操作(洗图/导出/标签修改)+确认执行流程+查看任务进度。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "quality-template",
+    "batch",
+    "full"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 4000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "description": "打开优质模板库页面"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const checkboxes = document.querySelectorAll('input[type=checkbox], .ant-checkbox-input, [class*=checkbox] input'); const cards = document.querySelectorAll('.ant-card, [class*=template], [class*=item]'); const selectAll = document.querySelector('.ant-table-selection-all, [class*=select-all], [class*=check-all]'); return { checkboxCount: checkboxes.length, cardCount: cards.length, hasSelectAll: !!selectAll, selectAllText: selectAll?.textContent || '' }; })()",
+      "description": "探查checkbox/卡片/全选组件"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selectAll = document.querySelector('.ant-table-selection-all .ant-checkbox, [class*=select-all] input, [class*=check-all]'); if(selectAll) { selectAll.click(); return { clicked: true, type: 'select-all' }; } const cbs = document.querySelectorAll('input[type=checkbox], .ant-checkbox-input'); if(cbs.length > 0) { const headerCb = Array.from(cbs).find(cb => cb.closest('thead, [class*=header]')); if(headerCb) { headerCb.click(); return { clicked: true, type: 'header-checkbox' }; } } return { clicked: false, note: 'no select-all found' }; })()",
+      "data-test-target": "select-all",
+      "description": "点击全选"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待全选"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-select-all",
+      "description": "截图-全选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const checked = document.querySelectorAll('.ant-checkbox-checked, input[type=checkbox]:checked'); const countText = document.querySelector('[class*=selected], [class*=count], .ant-alert'); return { checkedCount: checked.length, countDisplay: countText?.textContent?.trim() || 'none' }; })()",
+      "description": "验证全选数量"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selectAll = document.querySelector('.ant-table-selection-all .ant-checkbox, [class*=select-all] input'); if(selectAll) { selectAll.click(); } return { unselected: true }; })()",
+      "description": "取消全选"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cbs = document.querySelectorAll('input[type=checkbox], .ant-checkbox-input'); const bodyCbs = Array.from(cbs).filter(cb => !cb.closest('thead, [class*=header]')); if(bodyCbs.length >= 2) { bodyCbs[0].click(); bodyCbs[1].click(); return { selected: 2, method: 'individual' }; } else if(bodyCbs.length === 1) { bodyCbs[0].click(); return { selected: 1, method: 'individual' }; } return { selected: 0 }; })()",
+      "data-test-target": "batch-select-partial",
+      "description": "勾选前2个模板(部分选择)"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待选中状态更新"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-partial-selected",
+      "description": "截图-部分选中"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selected = document.querySelectorAll('.ant-checkbox-checked, input[type=checkbox]:checked'); const countText = document.querySelector('[class*=selected], [class*=count], .ant-alert'); return { checkedCount: selected.length, countDisplay: countText?.textContent?.trim() || 'none' }; })()",
+      "description": "验证部分选中数量"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|batch|task|wash|export",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "批量操作",
+      "data-test-target": "batch-ops-btn",
+      "description": "点击批量操作按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作菜单/弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-menu",
+      "description": "截图-批量操作菜单"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dropdown = document.querySelector('.ant-dropdown:not(.ant-dropdown-hidden), .ant-popover:not(.ant-popover-hidden), .ant-modal'); if(!dropdown) return { found: false }; return { found: true, text: dropdown.textContent.substring(0,300), buttons: Array.from(dropdown.querySelectorAll('button,.ant-btn,a,[class*=item]')).map(b=>b.textContent.trim()).filter(Boolean) }; })()",
+      "description": "探查批量操作选项菜单(洗图/导出/标签修改)"
+    },
+    {
+      "type": "capture",
+      "selector": ".ant-dropdown, .ant-popover, .ant-modal",
+      "description": "捕获批量操作DOM"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(洗图|导出|标签|操作|批量|任务)/",
+      "description": "验证批量操作选项存在"
+    },
+    {
+      "type": "clickText",
+      "text": "/(洗图|导出|标签修改)/",
+      "within": ".ant-dropdown, .ant-popover, .ant-modal",
+      "data-test-target": "batch-action-execute",
+      "description": "选择第一个批量操作(洗图/导出/标签修改)",
+      "fallback": {
+        "type": "evaluate",
+        "expression": "(() => { const items = document.querySelectorAll('.ant-dropdown:not(.ant-dropdown-hidden) .ant-dropdown-menu-item, .ant-popover a, .ant-modal .ant-btn'); if(items.length) { items[0].click(); return { clicked: items[0].textContent.trim() }; } return { clicked: false }; })()"
+      }
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作确认弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-confirm",
+      "description": "截图-操作确认"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const confirm = document.querySelector('.ant-modal-confirm, .ant-popconfirm, .ant-modal:not(.ant-modal-hidden)'); if(!confirm) return { found: false }; return { found: true, text: confirm.textContent.substring(0,200), buttons: Array.from(confirm.querySelectorAll('button')).map(b=>b.textContent.trim()) }; })()",
+      "description": "探查操作确认弹窗"
+    },
+    {
+      "type": "clickText",
+      "text": "/(确定|确认|开始|提交)/",
+      "within": ".ant-modal, .ant-popconfirm, .ant-popover",
+      "data-test-target": "batch-confirm-submit",
+      "description": "确认执行批量操作",
+      "fallback": {
+        "type": "pressKey",
+        "key": "Enter"
+      }
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待操作API返回"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-result",
+      "description": "截图-操作结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-message,.ant-notification,[class*=message],[class*=success],[class*=result]')?.textContent || 'no message'",
+      "description": "获取批量操作结果提示"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button, .ant-btn, a')); const found = btns.filter(b => /任务进度|查看任务|进度/.test(b.textContent)); return { found: found.length > 0, buttons: found.map(b => ({text:b.textContent.trim(), tag:b.tagName})) }; })()",
+      "description": "查找'查看任务进度'按钮",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "/(任务进度|查看任务|查看进度)/",
+      "data-test-target": "task-progress-btn",
+      "description": "点击查看任务进度",
+      "optional": true,
+      "fallback": {"type": "evaluate", "expression": "(() => { const b = Array.from(document.querySelectorAll('button,.ant-btn,a')).find(x => /任务进度|查看任务/.test(x.textContent)); if(b){b.click();return 'clicked';} return 'not found'; })()"}
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待进度弹窗/页面加载",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-task-progress",
+      "description": "截图-任务进度",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); const container = modal || drawer || document.querySelector('main, .ant-layout-content'); if(!container) return {type:'unknown', url}; const isModal = !!modal; const isDrawer = !!drawer; const columns = Array.from(container.querySelectorAll('.ant-table-thead th')).map(th=>th.textContent.trim()).filter(Boolean); const rows = container.querySelectorAll('.ant-table-row, tr[data-row-key]'); const progressBars = container.querySelectorAll('.ant-progress, [class*=progress]'); const statusTags = container.querySelectorAll('.ant-tag, [class*=tag]'); return { type: isModal?'modal':isDrawer?'drawer':'page', url, hasTable: columns.length>0, columns, rowCount: rows.length, hasProgressBar: progressBars.length>0, progressTexts: Array.from(progressBars).map(p=>p.textContent.trim()).filter(Boolean).slice(0,5), statusTags: Array.from(statusTags).map(t=>t.textContent.trim()).filter(Boolean).slice(0,10), firstRowData: rows.length ? rows[0].innerText.substring(0,200) : '' }; })()",
+      "description": "深度探查任务进度结构: Modal/Drawer/页面+表格列名+进度条+状态标签+首行数据",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const container = document.querySelector('.ant-modal:not(.ant-modal-hidden), .ant-drawer:not(.ant-drawer-hidden), main'); if(!container) return {}; const rows = container.querySelectorAll('.ant-table-row, tr[data-row-key]'); return { taskCount: rows.length, tasks: Array.from(rows).slice(0,3).map(r => { const cells = r.querySelectorAll('td'); return { name: cells[0]?.innerText?.trim()?.substring(0,40) || '', status: Array.from(cells).find(c => /进行中|已完成|待开始|失败/.test(c.innerText))?.innerText?.trim() || '', progress: Array.from(cells).find(c => /\\d+%|\\d+\\/\\d+/.test(c.innerText))?.innerText?.trim() || '' }; }) }; })()",
+      "description": "提取前3个任务数据: 任务名/状态/进度",
+      "optional": true
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(任务|进度|进行中|已完成|待开始|任务名称)/",
+      "description": "验证任务进度页含任务相关字段",
+      "optional": true
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭任务进度弹窗",
+      "optional": true,
+      "fallback": {"type": "clickText", "text": "/(关闭|取消|×)/", "within": ".ant-modal, .ant-drawer"}
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); return { modalClosed: !modal, drawerClosed: !drawer }; })()",
+      "description": "验证弹窗已关闭",
+      "optional": true
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "优质模板库批量操作全功能: ①全选/反选 ②部分选择checkbox ③批量操作菜单(洗图/导出/标签修改) ④实际执行一个操作+确认流程 ⑤操作结果提示 ⑥查看任务进度。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在2个可选模板"
+}

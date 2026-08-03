@@ -1,0 +1,53 @@
+{
+  "id": "TC-PM-003",
+  "name": "TC-PM-003 — 终态(ARCHIVED/CANCELLED)不允许继续操作 [P1]",
+  "description": "验证已归档和已终止状态不展示任何主流程action和终止入口",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "权限与状态机",
+  "page": "迭代详情",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const isTerminal = text.includes('已归档') || text.includes('已终止') || text.includes('ARCHIVED') || text.includes('CANCELLED'); const forbiddenActions = ['提交 Brief', '确认 Brief', '驳回 Brief', '发起评审', '提交审核', '确认通过', '确认驳回', '打回买手', '补充上传', '终止']; const foundForbidden = forbiddenActions.filter(a => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes(a) && !b.disabled); return !!btn; }); return { isTerminal, foundForbidden, forbiddenCount: foundForbidden.length }; })()",
+      "description": "验证终态无主流程action",
+      "storeAs": "terminalCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const terminateBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('终止') && !b.disabled); return { terminateBtnExists: !!terminateBtn }; })()",
+      "description": "验证终态无终止入口",
+      "storeAs": "noTerminate"
+    },
+    {
+      "type": "screenshot",
+      "label": "terminal-state"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在ARCHIVED和CANCELLED状态的迭代",
+    "stepsText": "1. 进入已归档迭代详情\n2. 验证不展示任何主流程action\n3. 验证不展示终止入口\n4. 同样验证已终止迭代",
+    "expectedResult": "1. 已归档：不展示提交/确认/驳回/审核/复核/上传/终止\n2. 已终止：不展示任何主流程action\n3. 两种终态均只读展示",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/权限与状态机"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "id": "atom-cl-02-search",
+  "name": "原子：链路列表搜索功能",
+  "description": "在搜索框输入关键词，验证列表正确过滤",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('table tbody tr'); return { initialCount: [...rows].filter(r => r.querySelectorAll('td').length > 0).length }; })()",
+      "storeAs": "beforeSearch"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input[placeholder=\"搜索链路名称\"]'); if (!input) return { ok: false }; const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(input, 'zy测试'); input.dispatchEvent(new Event('input', {bubbles:true})); input.dispatchEvent(new Event('change', {bubbles:true})); return { ok: true }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input[placeholder=\"搜索链路名称\"]'); if (!input) return { ok: false }; input.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', keyCode:13, bubbles:true})); input.dispatchEvent(new KeyboardEvent('keypress', {key:'Enter', keyCode:13, bubbles:true})); input.dispatchEvent(new KeyboardEvent('keyup', {key:'Enter', keyCode:13, bubbles:true})); return { ok: true }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('table tbody tr'); const dataRows = [...rows].filter(r => r.querySelectorAll('td').length > 0); const texts = dataRows.map(r => r.querySelector('td')?.textContent.trim()).filter(Boolean); return { filteredCount: dataRows.length, names: texts }; })()",
+      "storeAs": "afterSearch"
+    },
+    {
+      "type": "screenshot",
+      "label": "search-result"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input[placeholder=\"搜索链路名称\"]'); if (!input) return { ok: false }; const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(input, ''); input.dispatchEvent(new Event('input', {bubbles:true})); input.dispatchEvent(new Event('change', {bubbles:true})); input.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', keyCode:13, bubbles:true})); return { ok: true }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('table tbody tr'); return { restoredCount: [...rows].filter(r => r.querySelectorAll('td').length > 0).length }; })()",
+      "storeAs": "afterClear"
+    }
+  ]
+}

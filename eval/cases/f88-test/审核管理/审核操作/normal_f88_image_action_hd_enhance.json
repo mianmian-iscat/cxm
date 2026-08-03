@@ -1,0 +1,105 @@
+{
+  "id": "normal-f88-image-action-hd-enhance",
+  "name": "正常流程：F88 图片审核-高清化按钮触发",
+  "description": "进入图片审核详情，hover素材图触发工具栏，点击高清化按钮，验证高清化处理面板/提示出现。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务列表"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "打开第一条待审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待审核详情Drawer打开"
+    },
+    {
+      "type": "hover",
+      "selector": "img",
+      "description": "hover素材图触发工具栏"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待工具栏出现"
+    },
+    {
+      "type": "clickText",
+      "text": "高清化",
+      "description": "点击高清化按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待高清化UI/处理提示"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "高清化",
+      "description": "验证高清化相关UI"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-image-hd-panel",
+      "description": "截图-高清化UI"
+    },
+    {
+      "type": "clickText",
+      "text": "取消",
+      "description": "取消高清化"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核图片任务。",
+    "realDomNotes": "高清化按钮触发高清化处理面板；高清化→编辑后→确认→CopyURL/下载/导出。",
+    "riskPoints": [
+      "高清化按钮文案可能带空格",
+      "无待审核任务时无法进入详情"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "ui-f88-template-management",
+  "name": "UI：F88 模版包管理页结构验证",
+  "description": "打开模版包管理，验证店铺管理列表、店铺筛选项与查看详情入口。基于预发真实路由 /templateManagement。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待店铺管理列表加载" },
+    { "type": "assert", "target": "page", "contains": "店铺管理", "description": "验证模版包管理页已加载" },
+    { "type": "assert", "target": "page", "contains": "店铺名称", "description": "验证含店铺名称筛选" },
+    { "type": "assert", "target": "page", "contains": "买手名称", "description": "验证含买手名称筛选" },
+    { "type": "assert", "target": "page", "contains": "使用状态", "description": "验证含使用状态筛选" },
+    { "type": "assert", "target": "page", "contains": "查看详情", "description": "验证含查看详情入口" },
+    { "type": "screenshot", "label": "template-management", "description": "截图-模版包管理页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /templateManagement；店铺管理卡片列表（店铺名称/店铺ID/买手名称/使用状态/N个模版包）；按钮：重置/查看详情。非 ant-table，为卡片布局。",
+    "riskPoints": ["卡片布局非表格，断言以文本为主"]
+  }
+}

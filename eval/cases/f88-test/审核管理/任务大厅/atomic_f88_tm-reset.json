@@ -1,0 +1,90 @@
+{
+  "id": "atomic-f88-tm-reset",
+  "name": "UI：任务管理-重置按钮验证",
+  "description": "点击重置按钮，验证筛选条件清空",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "selectOption",
+      "label": "链路",
+      "option": "【zy测试】主图生成链路",
+      "description": "选择链路筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "value": "BT_6356",
+      "react": true,
+      "description": "输入批次ID"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "点击重置按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selectText = document.querySelector('.ant-select-selection-item')?.textContent?.trim(); const inputValue = document.querySelector('input[placeholder*=请输入]')?.value; return { selectValue: selectText, inputValue: inputValue || '' }; })()",
+      "description": "验证筛选已清空",
+      "storeAs": "resetCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-reset",
+      "description": "重置后状态"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在任务管理数据",
+    "realDomNotes": "重置清空链路Select和批次Input",
+    "riskPoints": []
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "id": "f88-audit-tc09",
+  "name": "TC09 - 驳回重生场景：CopyURL / 下载 / Excel导出 / 下游流转",
+  "description": "审核驳回后系统触发重生(reGen)，验证重生后图片在CopyURL/下载/导出中的正确性。CoverImageReview(qt=4)中 inRegenerateMode 参与 shouldShowTab 判断。",
+  "businessType": "f88_material",
+  "relatedCases": ["RP-27", "RP-28", "RP-29", "RP-30", "RP-31", "RP-32", "RP-33", "RP-34", "RP-35", "RP-36", "NEW-I29", "NEW-I30", "NEW-I31", "NEW-I32", "NEW-I33", "NEW-I34", "NEW-I35"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== RP-27: 封面图(qt=4) 驳回 → 重生 → CopyURL ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=cover] img, [class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_regen_27",
+      "description": "RP-27: 记录被驳回前的原始封面图URL"
+    },
+    {
+      "type": "clickText",
+      "text": "驳回",
+      "selector": "button, [class*='reject']",
+      "description": "RP-27: 点击驳回"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "fill",
+      "selector": "textarea, .ant-input",
+      "value": "自动化测试：封面图不符合规范，触发重生",
+      "description": "RP-27: 填写驳回原因"
+    },
+    {
+      "type": "clickText",
+      "text": "确认驳回",
+      "selector": "button, [class*='modal'] button",
+      "description": "RP-27: 确认驳回，触发系统重生"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待驳回提交"
+    },
+    {
+      "type": "screenshot",
+      "label": "regen-rejected",
+      "description": "截图 - 驳回已提交"
+    },
+    {
+      "type": "wait",
+      "ms": 30000,
+      "description": "RP-27: 等待系统重生完成（最长30秒）",
+      "timeout": 35000
+    },
+    {
+      "type": "screenshot",
+      "label": "regen-completed",
+      "description": "截图 - 重生完成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证重生图进入审核流程"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=cover] img, [class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "regenUrl_27",
+      "description": "RP-27: 获取重生后的图片URL"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "regenUrl_27",
+      "notEquals": "${originalUrl_regen_27}",
+      "description": "RP-27: 【P0】重生图URL与原图URL不同"
+    },
+    {
+      "type": "clickText",
+      "text": "通过",
+      "selector": "button, [class*='approve']",
+      "description": "RP-27: 审核通过重生图"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']",
+      "description": "RP-27: CopyURL重生图"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_regen_27"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_regen_27",
+      "equals": "${regenUrl_27}",
+      "description": "RP-27: 【P0】CopyURL返回重生后的新图URL"
+    },
+
+    {
+      "_comment": "=== RP-28: 封面图(qt=4) 驳回 → 重生 → 下载 ===",
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='download']",
+      "description": "RP-28: 下载重生后的图片"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "regen-download",
+      "description": "截图 - 重生图下载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "下载",
+      "description": "RP-28: 【P0】下载的是重生后的新图"
+    },
+
+    {
+      "_comment": "=== RP-29: 封面图(qt=4) 驳回 → 重生 → 导出Excel ===",
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "导出",
+      "selector": "button, [class*='export']",
+      "description": "RP-29: 导出Excel"
+    },
+    {
+      "type": "wait",
+      "ms": 5000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "导出",
+      "description": "RP-29: 【P0】Excel中该记录URL列为重生后的新图URL（需离线验证）"
+    },
+
+    {
+      "_comment": "=== RP-30: 单图(qt=1) 驳回 → 重生 → CopyURL ===",
+      "type": "clickText",
+      "text": "单图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-30: 【P1】选择单图审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "label": "regen-single",
+      "description": "截图 - 单图审核"
+    },
+
+    {
+      "_comment": "=== RP-31: 套图(qt=2) 驳回其中一张 → 重生 ===",
+      "type": "clickText",
+      "text": "套图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-31: 【P1】选择套图审核任务，驳回其中一张"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "label": "regen-set-image",
+      "description": "截图 - 套图审核"
+    },
+
+    {
+      "_comment": "=== RP-32: 重生中查看API material数据 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-32: 重生图审核中(未确认)，API material.url 应为重生后URL - 需后端验证'; })()",
+      "description": "RP-32: 【P1】API验证需后端配合"
+    },
+
+    {
+      "_comment": "=== RP-33: 重生失败场景 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-33: 重生失败时任务状态应为FAIL或触发重试，不应卡在重生中 - 需后端注入异常'; })()",
+      "description": "RP-33: 【P1】重生失败场景需后端配合模拟"
+    },
+
+    {
+      "_comment": "=== RP-36: 下游节点验证 ===",
+      "type": "eval",
+      "expression": "(() => { return 'RP-36: 审核通过后下游节点消费的图片URL为重生后的新图URL - 需查询DMS workflow_record_log'; })()",
+      "description": "RP-36: 【P0】下游节点验证需DMS查询配合"
+    },
+    {
+      "type": "screenshot",
+      "label": "regen-final",
+      "description": "截图 - 驳回重生测试完成"
+    },
+
+    {"_comment": "========== 模块I-E: 驳回重生→CopyURL/下载/导出（NEW-I29~I35） ==========", "type": "eval", "expression": "(() => 'module-I-E-start')()", "description": "=== 模块I-E分隔标记 ==="},
+
+    {"_comment": "NEW-I29: 封面图审核(qt=4)：驳回→重生→确认→CopyURL", "type": "clickText", "text": "驳回", "selector": "button, [class*='action']", "description": "NEW-I29: 封面图审核中点击驳回"},
+    {"type": "wait", "ms": 3000, "description": "等待重生图生成"},
+    {"type": "clickText", "text": "编辑后", "selector": "[class*='tab'], [role='tab']", "description": "NEW-I29: 切换到编辑后Tab查看重生图"},
+    {"type": "clickText", "text": "✅", "selector": "button, [class*='confirm']", "description": "NEW-I29: 确认重生图"},
+    {"type": "clickText", "text": "Copy URL", "selector": "button, [data-testid='copy-url']", "description": "NEW-I29: CopyURL"},
+    {"type": "assert", "target": "clipboard", "contains": "http", "description": "NEW-I29: 剪贴板为重生后新图URL，非原始被驳回图URL"},
+
+    {"_comment": "NEW-I30: 单图审核(qt=1)：驳回→重生→确认→CopyURL", "type": "clickText", "text": "驳回", "selector": "button, [class*='action']", "description": "NEW-I30: 单图审核中驳回"},
+    {"type": "wait", "ms": 3000},
+    {"type": "clickText", "text": "编辑后", "selector": "[class*='tab'], [role='tab']", "description": "NEW-I30: 编辑后Tab"},
+    {"type": "clickText", "text": "✅", "selector": "button, [class*='confirm']", "description": "NEW-I30: 确认"},
+    {"type": "clickText", "text": "Copy URL", "selector": "button, [data-testid='copy-url']", "description": "NEW-I30: CopyURL"},
+    {"type": "assert", "target": "clipboard", "contains": "http", "description": "NEW-I30: 剪贴板为重生后新图URL"},
+
+    {"_comment": "NEW-I31: 套图审核(qt=2)：驳回一张→重生→确认→CopyURL", "type": "clickText", "text": "驳回", "selector": "button, [class*='action']", "description": "NEW-I31: 套图中驳回一张"},
+    {"type": "wait", "ms": 3000},
+    {"type": "clickText", "text": "编辑后", "selector": "[class*='tab'], [role='tab']", "description": "NEW-I31: 编辑后Tab"},
+    {"type": "clickText", "text": "✅", "selector": "button, [class*='confirm']", "description": "NEW-I31: 确认"},
+    {"type": "clickText", "text": "Copy URL", "selector": "button, [data-testid='copy-url']", "description": "NEW-I31: CopyURL"},
+    {"type": "assert", "target": "clipboard", "contains": "http", "description": "NEW-I31: 被驳回重生的图为新图URL，其余不变"},
+
+    {"_comment": "NEW-I32: 驳回→重生→确认→下载 (qt=1/2/4)", "type": "clickText", "text": "下载", "selector": "button, [class*='download']", "description": "NEW-I32: 下载重生后图片"},
+    {"type": "wait", "ms": 2000},
+    {"type": "assert", "target": "download", "description": "NEW-I32: 下载图片为重生后新图"},
+
+    {"_comment": "NEW-I33: 驳回→重生→确认→导出Excel", "type": "clickText", "text": "导出", "selector": "button, [class*='export']", "description": "NEW-I33: 导出Excel"},
+    {"type": "wait", "ms": 3000},
+    {"type": "assert", "target": "download", "fileType": "xlsx", "description": "NEW-I33: Excel中URL列为重生后新图URL"},
+
+    {"_comment": "NEW-I34: 驳回→重生→API查询material实体（未确认）", "type": "eval", "expression": "(() => { return document.querySelector('[class*=task-id]')?.textContent || ''; })()", "storeAs": "taskId_regen_i34", "description": "NEW-I34: 获取当前任务ID"},
+    {"type": "apiCall", "method": "GET", "url": "/api/review/material?taskId=${taskId_regen_i34}", "description": "NEW-I34: API查询material实体（重生后未确认状态）"},
+    {"type": "assertJson", "path": "$.material.url", "contains": "http", "description": "NEW-I34: url已为重生后URL（重生完成即更新，非确认后）"},
+
+    {"_comment": "NEW-I35: 驳回→重生→重生图再次被驳回→再次重生→确认→CopyURL", "type": "clickText", "text": "驳回", "selector": "button, [class*='action']", "description": "NEW-I35: 对重生图再次驳回"},
+    {"type": "wait", "ms": 3000, "description": "等待第二次重生图生成"},
+    {"type": "clickText", "text": "编辑后", "selector": "[class*='tab'], [role='tab']", "description": "NEW-I35: 编辑后Tab查看第二次重生图"},
+    {"type": "clickText", "text": "✅", "selector": "button, [class*='confirm']", "description": "NEW-I35: 确认第二次重生图"},
+    {"type": "clickText", "text": "Copy URL", "selector": "button, [data-testid='copy-url']", "description": "NEW-I35: CopyURL"},
+    {"type": "assert", "target": "clipboard", "contains": "http", "description": "NEW-I35: CopyURL返回第二次重生后的URL"}
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "regenerate|regen|material|reject",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

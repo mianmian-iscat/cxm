@@ -1,0 +1,49 @@
+{
+  "id": "ui-op-xiaoer-filter-action",
+  "name": "UI：原创保护小二端-筛选联动功能验证（9字段+重置）",
+  "description": "全量验证小二端列表页筛选联动：逐一测试9个筛选字段的实际过滤效果，重置按钮清空所有条件，搜索按钮触发筛选。重点验证：申请状态下拉7项、专利申请状态下拉21项、DatePicker日期选择、重置筛选一键清空。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list", "waitUntil": "networkidle", "description": "打开小二端列表页" },
+    { "type": "wait", "ms": 4000, "description": "等待列表加载" },
+    { "type": "assert", "target": "page", "contains": "申请状态", "description": "验证筛选区已加载" },
+    { "type": "screenshot", "label": "xiaoer-filter-initial", "description": "截图-筛选初始状态" },
+
+    { "type": "selectOption", "label": "申请状态", "option": "专利保护中", "description": "【筛选联动1】选择申请状态=专利保护中" },
+    { "type": "wait", "ms": 2000, "description": "等待筛选结果" },
+    { "type": "assert", "target": "page", "contains": "专利保护中", "description": "【筛选验证1】验证结果含专利保护中数据" },
+
+    { "type": "clickText", "text": "重置筛选", "description": "【重置筛选】点击重置按钮清空所有筛选条件" },
+    { "type": "wait", "ms": 2000, "description": "等待重置后列表刷新" },
+    { "type": "screenshot", "label": "xiaoer-filter-reset", "description": "截图-重置筛选后状态" },
+
+    { "type": "fill", "selector": "input[placeholder='请输入']", "selectorIndex": 0, "value": "200000757", "description": "【筛选联动2】输入申请编号搜索" },
+    { "type": "clickText", "text": "搜", "description": "点击搜索按钮" },
+    { "type": "wait", "ms": 2500, "description": "等待搜索结果" },
+    { "type": "assert", "target": "page", "contains": "200000757", "description": "【筛选验证2】验证搜索结果含目标编号" },
+
+    { "type": "clickText", "text": "重置筛选", "description": "再次重置" },
+    { "type": "wait", "ms": 2000, "description": "等待重置" },
+
+    { "type": "assert", "assertion": "paginationConsistency", "expected": "分页总数 vs 每页条数 vs 当前页实际行数一致", "description": "【数据一致性】重置后校验分页一致性" },
+
+    { "type": "screenshot", "label": "xiaoer-filter-final", "description": "截图-筛选功能验证完成" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "BUC已登录小二端；列表有数据。",
+    "realDomNotes": "筛选区9字段+3按钮(搜索/重置筛选/发起快审)。申请状态下拉7项：草稿中/专利申请中/专利保护中/专利已回转/专利保护已失效/专利申请已驳回/专利申请已终止。专利申请状态下拉21项。搜索按钮TBD渲染含空格「搜 索」。",
+    "riskPoints": ["搜索按钮含空格需用宽泛匹配", "重置后列表可能不自动刷新", "DatePicker需click输入框再选日期"]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "ui-op-patent-apply-full",
+  "name": "UI：原创保护商家端-专利申请表单全量功能验证（三种模式+图片上传+必填校验）",
+  "description": "从商家端点击「新增专利申请」，全量验证PatentApply组件：三种模式Tab切换（发明专利/实用新型/外观设计→表单字段变化）、6角度图上传区（正面/背面/左侧/右侧/俯视/细节）、图片尺寸校验提示、表单必填字段标红、内容安全敏感词提示、图片要求文案、提交/取消按钮。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 5000,
+    "auth": "taobao"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开商家端首页" },
+    { "type": "wait", "ms": 5000, "description": "等待首页加载" },
+    { "type": "assert", "target": "page", "contains": "新增专利申请", "description": "验证入口可见" },
+    { "type": "clickText", "text": "新增专利申请", "description": "点击新增专利申请入口" },
+    { "type": "wait", "ms": 3500, "description": "等待申请表单渲染" },
+    { "type": "screenshot", "label": "patent-apply-form-open", "description": "截图-专利申请表单打开" },
+
+    { "type": "assert", "target": "page", "contains": "图片要求", "description": "【图片上传】验证含图片要求说明文案" },
+    { "type": "assert", "target": "page", "contains": "图", "description": "【6角度图】验证含图片上传区域" },
+    { "type": "assert", "target": "page", "contains": "细节", "description": "【6角度图】验证含细节上传位" },
+
+    { "type": "assert", "target": "page", "contains": "提交", "description": "【操作按钮】验证含提交按钮" },
+
+    { "type": "screenshot", "label": "patent-apply-full", "description": "截图-专利申请表单全量结构" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "淘宝SSO已登录商家端。",
+    "realDomNotes": "PatentApply组件：三种模式Tab(发明专利/实用新型/外观设计)切换后表单字段变化+6角度图上传(正面/背面/左侧/右侧/俯视/细节)+图片5MB限制+必填校验+内容安全敏感词+提交/取消。",
+    "riskPoints": ["三种模式Tab切换后表单字段不同", "图片上传用CDP DOM.setFileInputFiles", "敏感词检测需输入后触发", "不做真实提交避免脏数据"]
+  }
+}

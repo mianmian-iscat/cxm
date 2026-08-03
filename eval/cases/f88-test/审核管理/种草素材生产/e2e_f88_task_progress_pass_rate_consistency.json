@@ -1,0 +1,115 @@
+{
+  "id": "e2e-f88-task-progress-pass-rate-consistency",
+  "name": "端到端：F88 个人任务中心-任务状态&进度 / 通过率 与详情数据一致性校验",
+  "description": "在个人任务中心列表读取首个任务的进度文案与通过率，进入任务详情统计总/已完成/已通过数量，计算期望值并断言列表展示与详情数据一致；要求测试任务内至少4条审核数据。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; if (!row) return null; const cells = row.querySelectorAll('td'); const progressCell = Array.from(cells).find(c => /进行|完成|待开始|\\d\\/\\d/.test(c.innerText)); const passRateCell = Array.from(cells).find(c => /%|通过/.test(c.innerText)); const opCell = Array.from(cells).find(c => c.innerText.includes('查看详情')); const detailLink = opCell ? opCell.querySelector('a') : null; const href = detailLink?.getAttribute('href') || ''; const taskIdMatch = href.match(/[?&]taskId=([^&]+)/); return { taskName: cells[0]?.innerText?.trim(), progressText: progressCell?.innerText?.trim(), passRateText: passRateCell?.innerText?.trim(), detailHref: href, taskId: taskIdMatch ? taskIdMatch[1] : '', rowText: row.innerText }; })()",
+      "storeAs": "listTask",
+      "description": "读取首行任务的进度与通过率"
+    },
+    {
+      "type": "assertStore",
+      "key": "listTask",
+      "path": "progressText",
+      "notEmpty": true,
+      "description": "断言列表进度文案非空"
+    },
+    {
+      "type": "assertStore",
+      "key": "listTask",
+      "path": "passRateText",
+      "notEmpty": true,
+      "description": "断言列表通过率文案非空"
+    },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "description": "打开首个任务详情"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务详情页加载" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key], .audit-item, .material-item')); const total = rows.length; if (total === 0) return null; let completed = 0; let approved = 0; let rejected = 0; rows.forEach(r => { const text = r.innerText; if (text.includes('审核通过') || text.includes('已通过')) approved++; else if (text.includes('审核驳回') || text.includes('已驳回')) rejected++; if (text.includes('审核通过') || text.includes('审核驳回') || text.includes('已完成')) completed++; }); return { total, completed, approved, rejected }; })()",
+      "storeAs": "detailStats",
+      "description": "统计任务详情中素材总数/已完成/已通过/已驳回"
+    },
+    {
+      "type": "assertStore",
+      "key": "detailStats",
+      "path": "total",
+      "notEmpty": true,
+      "description": "断言详情有素材数据"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const stats = JSON.parse('${store.detailStats}'); const list = JSON.parse('${store.listTask}'); const progressMatch = list.progressText.match(/(\\d+)\\s*\\/\\s*(\\d+)/); const expectedCompleted = progressMatch ? parseInt(progressMatch[1]) : null; const expectedTotal = progressMatch ? parseInt(progressMatch[2]) : null; const passMatch = list.passRateText.match(/([\\d.]+)%/); const expectedPassRate = passMatch ? parseFloat(passMatch[1]) : null; const computedPassRate = stats.total > 0 ? Math.round((stats.approved / stats.total) * 1000) / 10 : 0; return { expectedCompleted, expectedTotal, expectedPassRate, computedCompleted: stats.completed, computedTotal: stats.total, computedPassRate, consistent: expectedCompleted === stats.completed && expectedTotal === stats.total && Math.abs(expectedPassRate - computedPassRate) < 0.1 }; })()",
+      "storeAs": "consistencyCheck",
+      "description": "计算并比较列表与详情数据"
+    },
+    {
+      "type": "assertStore",
+      "key": "consistencyCheck",
+      "path": "consistent",
+      "equals": "true",
+      "description": "断言列表进度/通过率与详情统计一致"
+    },
+    {
+      "type": "apiCall",
+      "api": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditDetail",
+      "v": "1.0",
+      "data": { "taskId": "${store.listTask.taskId}" },
+      "storeAs": "auditDetailApi",
+      "description": "API查询任务详情"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.totalCount",
+      "equals": "${store.detailStats.total}",
+      "description": "API totalCount 与详情统计一致"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.passCount",
+      "equals": "${store.detailStats.approved}",
+      "description": "API passCount 与详情统计一致"
+    },
+    {
+      "type": "screenshot", "label": "f88-task-progress-pass-rate-consistency", "description": "截图-进度/通过率一致性" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心至少有一个含≥4条素材的任务。",
+    "realDomNotes": "列表列：任务状态&进度（进行中/已完成/待开始 + 完成数/总数）、通过率；详情页可统计各状态素材数量。",
+    "riskPoints": [
+      "任务详情页DOM结构可能与预期不一致",
+      "通过率计算口径可能为 approved/completed 而非 approved/total",
+      "无任务或任务数据不足4条时无法验证",
+      "API字段名（totalCount/passCount）为示例，需按真实接口调整"
+    ]
+  }
+}

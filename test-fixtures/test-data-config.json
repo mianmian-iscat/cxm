@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "description": "F88 审核管理模块测试数据配置 - 关联链路与测试素材",
+  "lastUpdated": "2026-06-30",
+
+  "tenant": {
+    "identity": "F88",
+    "platform": "F88运营平台",
+    "baseUrl": "https://pre-aifashion-xiaoer.alibaba-inc.com",
+    "check": "页面左上角必须显示'F88–运营平台'"
+  },
+
+  "pipelines": {
+    "imageAudit": {
+      "name": "【zy测试】主图生成链路",
+      "type": "image",
+      "lifecycle": "实验",
+      "description": "20180 老...",
+      "auditTypes": {
+        "qt1_singleImage": {
+          "name": "单图审核",
+          "qt": 1,
+          "component": "SingleImageReview",
+          "description": "单张主图审核"
+        },
+        "qt2_setImage": {
+          "name": "套图审核",
+          "qt": 2,
+          "component": "SetImageReview",
+          "description": "多张图片套图审核"
+        },
+        "qt4_coverImage": {
+          "name": "封面图审核",
+          "qt": 4,
+          "component": "CoverImageReview",
+          "description": "封面图审核，支持驳回重生"
+        }
+      },
+      "testDataFile": "test-fixtures/image-audit-data.json"
+    },
+
+    "videoAudit": {
+      "name": "视频审核",
+      "type": "video",
+      "lifecycle": "实验",
+      "description": "mmttest",
+      "testDataFile": "test-fixtures/video-audit-data.json"
+    }
+  },
+
+  "testScenarios": {
+    "image": {
+      "basicAudit": "tc05_audit_flow.json - 基本通过/驳回流程",
+      "replaceCopyUrl": "tc06_replace_copyurl.json - 替换后CopyURL验证",
+      "replaceDownload": "tc07_replace_download_excel.json - 替换后下载+导出",
+      "cropOperations": "tc08_crop_operations.json - 裁剪操作场景",
+      "rejectRegenerate": "tc09_reject_regenerate.json - 驳回重生",
+      "compareApiBoundary": "tc10_compare_api_boundary.json - 对比/API/边界",
+      "downstreamFlow": "tc11_downstream_flow.json - 下游流转"
+    },
+    "video": {
+      "basicAudit": "tc05_audit_flow.json - 视频审核通过/驳回"
+    }
+  }
+}

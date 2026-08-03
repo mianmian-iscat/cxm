@@ -1,0 +1,15 @@
+{
+  "id": "pat_f88_image_lazy_load",
+  "category": "patterns",
+  "title": "F88素材大图懒加载截图空白",
+  "content": "{\"error\": \"截图时素材大图区域空白\", \"root_cause\": \"图片使用懒加载, 未进入视口时不加载\", \"fix\": \"滚动到图片位置 + waitForTimeout等待加载完成再截图\"}",
+  "tags": [
+    "F88",
+    "懒加载",
+    "截图"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.013568
+}

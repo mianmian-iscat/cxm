@@ -1,0 +1,338 @@
+{
+  "id": "f88-audit-tc06",
+  "name": "TC06 - 图片替换后 CopyURL 验证（单图/套图/封面图）",
+  "description": "Bug场景：图片编辑替换后，CopyURL 还是原来的图，预期是新生成的图。覆盖 qt=1/2/4 三种审核类型。",
+  "businessType": "f88_material",
+  "relatedCases": ["RP-01", "RP-02", "RP-03", "RP-04", "RP-05", "RP-06"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】页面必须包含F88标识"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面渲染"
+    },
+
+    {
+      "_comment": "=== RP-01: 单图审核(qt=1) 替换 + CopyURL ===",
+      "type": "assert",
+      "target": "page",
+      "contains": "审核任务",
+      "description": "确认在审核任务Tab"
+    },
+    {
+      "type": "clickText",
+      "text": "单图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-01: 选择一条单图审核(qt=1)任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待审核详情页加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp01-single-before",
+      "description": "截图 - 替换前的原始图片"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img, [class*=image] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_qt1",
+      "description": "RP-01: 记录替换前的原始图片URL"
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action'], [class*='toolbar']",
+      "description": "RP-01: 点击替换按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待替换弹窗/上传组件出现"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp01-replace-dialog",
+      "description": "截图 - 替换弹窗"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg",
+      "description": "RP-01: 上传替换图片"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待替换图片上传完成"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab'], [class*='toggle']",
+      "description": "RP-01: 点击「编辑后」查看替换效果"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待编辑后视图切换"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm'], [class*='check']",
+      "description": "RP-01: 点击 ✅ 确认替换"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待确认操作完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp01-after-confirm",
+      "description": "截图 - 替换确认后状态"
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy'], [class*='toolbar']",
+      "description": "RP-01: 点击 CopyURL 按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待剪贴板写入"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_qt1",
+      "description": "RP-01: 读取剪贴板中的URL"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_qt1",
+      "notEquals": "${originalUrl_qt1}",
+      "description": "RP-01: 【P0】验证 CopyURL 内容为替换后的新图URL，非原始URL"
+    },
+
+    {
+      "_comment": "=== RP-02: 套图审核(qt=2) 替换 + CopyURL ===",
+      "type": "clickText",
+      "text": "套图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-02: 选择一条套图审核(qt=2)任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待套图审核详情加载"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const imgs = document.querySelectorAll('[class*=review] img, [class*=image] img'); return imgs.length > 0 ? imgs[0].src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_qt2",
+      "description": "RP-02: 记录替换前第一张图的URL"
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']",
+      "selectorIndex": 0,
+      "description": "RP-02: 替换其中一张图"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']",
+      "selectorIndex": 0,
+      "description": "RP-02: 点击替换后那张图的 CopyURL"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_qt2"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_qt2",
+      "notEquals": "${originalUrl_qt2}",
+      "description": "RP-02: 【P0】验证套图中被替换图的 CopyURL 为新图URL"
+    },
+
+    {
+      "_comment": "=== RP-03: 封面图审核(qt=4) 替换 + CopyURL ===",
+      "type": "clickText",
+      "text": "封面图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-03: 选择一条封面图审核(qt=4)任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=cover] img, [class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_qt4"
+    },
+    {
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_qt4"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_qt4",
+      "notEquals": "${originalUrl_qt4}",
+      "description": "RP-03: 【P0】验证封面图替换后 CopyURL 为新图URL"
+    },
+
+    {
+      "_comment": "=== RP-04: 未确认直接 CopyURL（预期 toolbar 不可见）===",
+      "type": "clickText",
+      "text": "替换",
+      "selector": "button, [class*='action']",
+      "description": "RP-04: 再次替换但不确认"
+    },
+    {
+      "type": "upload",
+      "selector": "input[type='file']",
+      "filePath": "test-fixtures/replacement-image.jpg"
+    },
+    {
+      "type": "assert",
+      "target": "selector",
+      "selector": "[class*='toolbar']",
+      "notExists": true,
+      "description": "RP-04: 【P1】替换后未点确认，toolbar 不可见"
+    },
+
+    {
+      "_comment": "=== RP-05: 开发者工具查看 img.url 和 img.originUrl ===",
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "RP-05: 先确认替换"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); if (!img) return 'NO_IMG'; return JSON.stringify({url: img.src, originUrl: img.dataset.originUrl || 'N/A'}); })()",
+      "storeAs": "imgFields_rp05",
+      "description": "RP-05: 获取 img.url 和 img.originUrl 字段"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "imgFields_rp05",
+      "notContains": "${originalUrl_qt4}",
+      "description": "RP-05: 【P0】img.url 已更新为新图URL"
+    },
+
+    {
+      "_comment": "=== RP-06: API 查询 material 实体 ===",
+      "type": "eval",
+      "expression": "(() => { const materialId = window.__currentMaterialId || document.querySelector('[data-material-id]')?.dataset.materialId; return materialId || 'NO_ID'; })()",
+      "storeAs": "materialId_rp06",
+      "description": "RP-06: 获取当前 materialId"
+    },
+    {
+      "type": "screenshot",
+      "label": "rp-final",
+      "description": "截图 - CopyURL验证完成"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "material|copyUrl|clipboard",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

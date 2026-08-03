@@ -1,0 +1,75 @@
+{
+  "id": "atomic-f88-ptc-task-click",
+  "name": "UI：个人任务中心-点击任务进入审核详情",
+  "description": "点击第一条任务，验证进入审核详情页",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('tr[class*=row],[class*=task-item],[class*=list-item]'); if(rows.length > 0) { rows[0].click(); return 'clicked'; } const links = document.querySelectorAll('a'); for(const a of links) { if(a.textContent.includes('审核') || a.href.includes('detail')) { a.click(); return 'clicked link'; } } return 'no clickable'; })()",
+      "description": "点击第一条任务",
+      "storeAs": "clickResult"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-task-detail",
+      "description": "审核详情页截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { url: location.href, title: document.title, hasContent: document.body.innerText.length > 100 }; })()",
+      "description": "记录详情页信息",
+      "storeAs": "detailInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "detailInfo",
+      "path": "hasContent",
+      "equals": true,
+      "description": "验证详情页有内容"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心有任务数据",
+    "realDomNotes": "点击任务条目进入审核详情页",
+    "riskPoints": []
+  }
+}

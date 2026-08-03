@@ -1,0 +1,82 @@
+{
+  "id": "atomic-f88-std-toggle",
+  "name": "UI：审核标准管理-启用禁用切换验证",
+  "description": "找到启用/禁用按钮，验证Switch或按钮切换",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核标准管理"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const switches = Array.from(document.querySelectorAll('.ant-switch')); const toggleBtns = Array.from(document.querySelectorAll('a,button')).filter(el => { const t = el.textContent.trim(); return t.includes('启用') || t.includes('禁用'); }); return { switchCount: switches.length, toggleBtns: toggleBtns.map(b => b.textContent.trim()), total: switches.length + toggleBtns.length }; })()",
+      "description": "查找启用禁用控件",
+      "storeAs": "toggleInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "toggleInfo",
+      "path": "found",
+      "equals": true,
+      "description": "验证 查找启用禁用控件 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "toggleInfo",
+      "path": "total",
+      "notEmpty": true,
+      "description": "验证启用禁用控件存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "std-toggle",
+      "description": "启用禁用控件截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在审核标准数据",
+    "realDomNotes": "启用/禁用可能为Switch组件或文字按钮",
+    "riskPoints": []
+  }
+}

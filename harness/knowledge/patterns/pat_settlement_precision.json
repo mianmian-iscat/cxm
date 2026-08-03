@@ -1,0 +1,15 @@
+{
+  "id": "pat_settlement_precision",
+  "category": "patterns",
+  "title": "结算金额浮点精度误差",
+  "content": "{\"error\": \"金额计算出现0.01偏差\", \"root_cause\": \"使用float而非Decimal\", \"fix\": \"使用Decimal精确计算，verify_precision校验偏差<1分\"}",
+  "tags": [
+    "结算",
+    "精度",
+    "P2"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.4997
+}

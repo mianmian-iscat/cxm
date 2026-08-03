@@ -1,0 +1,15 @@
+{
+  "id": "pat_quick_reject_no_to_regular",
+  "category": "patterns",
+  "title": "快审驳回误触发转普通",
+  "content": "{\"error\": \"快审驳回后to_regular_status变为TO_DO\", \"root_cause\": \"代码未区分快审/预审驳回\", \"fix\": \"只有预审/证书驳回才触发转普通\"}",
+  "tags": [
+    "转普通",
+    "快审",
+    "P1"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.4996989
+}

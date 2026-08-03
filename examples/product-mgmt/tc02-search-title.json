@@ -1,0 +1,70 @@
+{
+  "id": "xiaoer-adplacement-tc02-search-title",
+  "name": "TC02: 搜索商品标题 '测试商品请不要拍'，验证搜索结果",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=AqBQyXxR2LUF60UQqst4"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=AqBQyXxR2LUF60UQqst4",
+      "waitUntil": "networkidle2",
+      "timeout": 30000,
+      "description": "打开广告位报名页面"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='标题']",
+      "value": "测试商品请不要拍",
+      "react": true,
+      "description": "在商品信息搜索框中填入商品标题"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "screenshot",
+      "label": "01-filled-title",
+      "description": "填入商品标题后截图"
+    },
+    {
+      "type": "click",
+      "text": "搜 索",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "02-search-result",
+      "description": "搜索结果截图"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "测试商品请不要拍",
+      "description": "验证搜索结果中包含商品标题"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryItemSuperDiscountActivity",
+      "path": "data.data.items[0].title",
+      "description": "通过API验证返回的商品标题包含搜索关键词"
+    }
+  ]
+}

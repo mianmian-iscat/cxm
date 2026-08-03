@@ -1,0 +1,65 @@
+# F88 素材生产 知识库保鲜台账
+# 对齐 07-21 会议「知识保鲜」要求：按页面/模块维度定期核验，staleness_days > 30 的 P0 模块自动进入待保鲜队列
+# 维护方式：commit 变更 / PRD 新增 / 规则校准 三类触发时更新对应模块的 last_verified 与 source_commit
+
+domain: f88-material
+last_full_review: 2026-07-23
+staleness_threshold_days: 30
+owner_default: TBD
+
+# D1-D5 五维知识源映射（内容一致：机器可读=人读，同一套内容）
+dimensions:
+  D1_code: [code-architecture.md, review-platform-architecture.md, code-level-issues.md, review-platform-code-risks.md]
+  D2_tech: [api-contracts.md, db-schema.md, F88-DB表速查.md, environment-matrix.md, tool-reference.md]
+  D3_prd:  [dingtalk-prd-extraction.md]              # 待补：本期PRD-场景映射.md
+  D4_cases: [examples/f88-audit/, eval/cases/f88-test/]
+  D5_rule: [09-审核平台-业务规则.md, 08-视频生产.md, ffmpeg-verification.md, 04-模板匹配.md, 11-季节标刷标.md, known-issues.md, 隐性规则结构化清单.md]
+  index:   [F88-测试知识库总纲.md]                    # v3.2 总纲作为导航索引
+
+modules:
+  生产链路主干:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-23
+    source_commit: TBD
+    triggers: [commit变更, PRD新增]
+    notes: 选品→素材→创品→招商→上架 端到端（tc27 E2E 29步）；7/23 锚点10条执行（4 SKIP需特定数据）
+  素材生成-图片:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-11
+    source_commit: TBD
+    triggers: [commit变更, 规则校准]
+    notes: LLM生文→模板匹配→生图 三段式
+  素材生成-视频:
+    priority: P0
+    owner: 目民
+    last_verified: 2026-07-23
+    source_commit: TBD
+    triggers: [commit变更, 规则校准]
+    notes: ffprobe 校验分辨率/编码/帧率/时长；GenVideo 幂等；isVideoUrl 缺陷；7/23 锚点8条执行（3KNOWN_ISSUE已录入known-issues）
+  审核平台:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-23
+    source_commit: TBD
+    triggers: [commit变更, 规则校准]
+    notes: 单图/套图/封面三类；误放率<5%；编辑后 localAdjustUrl 流转；7/23 UI验证BT_5421批次4任务100%完成
+  策略平台:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-11
+    source_commit: TBD
+    triggers: [commit变更]
+    notes: 链路生命周期；试运行；批次终止幂等
+  招商上架:
+    priority: P0
+    owner: TBD
+    last_verified: 2026-07-11
+    source_commit: TBD
+    triggers: [PRD新增]
+    notes: 招商自动审核开关；人工上架检查；自动跟价
+  模版库:      {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD, notes: setValid 并发竞态；Tair 计数重置}
+  商家管理:    {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD}
+  策略节点编排: {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD, notes: 20 种节点；dataSourceConfig 约束}
+  抽检埋雷:    {priority: P1, owner: TBD, last_verified: 2026-07-11, source_commit: TBD, notes: 埋雷准确率核心KPI}

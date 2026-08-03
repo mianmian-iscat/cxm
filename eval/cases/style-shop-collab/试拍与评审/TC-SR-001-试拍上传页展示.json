@@ -1,0 +1,53 @@
+{
+  "id": "TC-SR-001",
+  "name": "TC-SR-001 — 试拍上传页展示与图组坑位 [P0]",
+  "description": "验证IN_PRODUCTION状态下上传页展示：默认5个图组坑位、上传提示区、Excel导入区、底部操作栏",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const sampleTab = tabs.find(t => t.includes('试拍')); return { tabs, sampleTab: !!sampleTab }; })()",
+      "description": "检查试拍与评审tab",
+      "storeAs": "tabCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const groups = document.querySelectorAll('[class*=group-card], [class*=sample-group]'); const addGroupBtn = Array.from(document.querySelectorAll('button, a')).find(b => b.textContent.includes('加一组')); const excelArea = text.includes('Excel') || text.includes('导入'); const draftBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('保存草稿')); const reviewBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('发起评审')); return { groupCount: groups.length, addGroupBtn: !!addGroupBtn, excelArea, draftBtn: !!draftBtn, reviewBtn: !!reviewBtn, reviewBtnDisabled: reviewBtn?.disabled }; })()",
+      "description": "验证上传页元素",
+      "storeAs": "uploadPage"
+    },
+    {
+      "type": "screenshot",
+      "label": "sample-upload-page"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为IN_PRODUCTION，当前用户是产运",
+    "stepsText": "1. 进入试拍与评审tab\n2. 验证默认5个图组坑位\n3. 验证Excel导入区\n4. 验证底部操作栏",
+    "expectedResult": "1. 默认展示5个图组坑位\n2. 上传提示区展示最小集规则\n3. Excel导入区展示下载模板和导入入口\n4. 底部展示保存草稿和发起评审\n5. 未达标时发起评审按钮置灰",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

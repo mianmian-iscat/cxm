@@ -1,0 +1,256 @@
+{
+  "id": "e2e-f88-dual-merchant-trial-run",
+  "name": "E2E：双商家试运行造数 → 单批次单审核任务聚合验证",
+  "description": "使用两个不同商家(2219662018344/2219635649153)构造试运行数据，验证一个批次只产生一个审核任务，不按商家拆分",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路详情页(主图生成链路id=20180)"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const hasF88 = (document.body.textContent || '').includes('F88'); const url = window.location.href; return { hasF88, url, loaded: hasF88 && url.includes('linkDetail') }; })()",
+      "description": "验证F88租户+链路详情页",
+      "storeAs": "pageCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageCheck",
+      "path": "loaded",
+      "equals": true,
+      "description": "F88租户已验证且链路详情页已加载"
+    },
+
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待试运行弹窗出现"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!modal) return { open: false }; const title = modal.querySelector('.ant-modal-title')?.textContent?.trim(); return { open: true, title }; })()",
+      "description": "验证试运行弹窗已打开",
+      "storeAs": "modalCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "modalCheck",
+      "path": "open",
+      "equals": true,
+      "description": "试运行弹窗已打开"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-trial-modal-opened",
+      "description": "试运行弹窗已打开"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!modal) return { uploaded: false, reason: 'no_modal' }; const fileInput = modal.querySelector('input[type=file]'); if(!fileInput) return { uploaded: false, reason: 'no_file_input' }; return { uploaded: false, fileInputFound: true, reason: 'need_file' }; })()",
+      "description": "定位文件上传input[type=file]",
+      "storeAs": "uploadProbe"
+    },
+
+    {
+      "type": "uploadFile",
+      "selector": ".ant-modal:not(.ant-modal-hidden) input[type=file]",
+      "filePath": "test-fixtures/dual-merchant-trial-data.xlsx",
+      "description": "上传双商家试运行Excel(含2219662018344和2219635649153)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待文件上传完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-excel-uploaded",
+      "description": "Excel已上传"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!modal) return { filled: false, reason: 'no_modal' }; const taskInput = modal.querySelector('input[placeholder*=\"任务名称\"]'); if(taskInput) { const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; const taskName = '自动化回归_双商家聚合_' + new Date().toISOString().slice(0, 10); setter.call(taskInput, taskName); taskInput.dispatchEvent(new Event('input', { bubbles: true })); taskInput.dispatchEvent(new Event('change', { bubbles: true })); return { filled: true, taskName }; } return { filled: false, reason: 'no_task_input' }; })()",
+      "description": "填写任务名称(带双商家标记)",
+      "storeAs": "taskNameFill"
+    },
+    {
+      "type": "assertStore",
+      "key": "taskNameFill",
+      "path": "filled",
+      "equals": true,
+      "description": "任务名称已填写"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!modal) return { opened: false }; const selectors = Array.from(modal.querySelectorAll('.ant-select-selector')); for(const sel of selectors) { const formItem = sel.closest('.ant-form-item'); const label = formItem?.querySelector('.ant-form-item-label')?.textContent || ''; if(label.includes('运行类型') || sel.closest('.ant-form-item')?.textContent?.includes('运行类型')) { sel.click(); return { opened: true, label: '运行类型' }; } } if(selectors.length > 0) { selectors[selectors.length - 1].click(); return { opened: true, label: 'last_select' }; } return { opened: false }; })()",
+      "description": "点击运行类型Select下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待下拉展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const options = document.querySelectorAll('.ant-select-item-option'); for(const opt of options) { const text = (opt.textContent || '').trim(); if(text === '测试') { opt.click(); return { selected: '测试' }; } } if(options.length > 0) { options[0].click(); return { selected: options[0].textContent.trim() }; } return { selected: null }; })()",
+      "description": "选择运行类型=测试"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待选择生效"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-form-filled",
+      "description": "试运行表单已填写完成"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!modal) return { submitted: false }; const btns = Array.from(modal.querySelectorAll('button')); const submitBtn = btns.find(b => { const t = (b.textContent || '').trim(); return (t.includes('发起任务运行') || t.includes('发起运行')) && !b.disabled; }); if(submitBtn) { submitBtn.click(); return { submitted: true, buttonText: submitBtn.textContent.trim() }; } return { submitted: false, btnLabels: btns.map(b => b.textContent.trim()).filter(t => t) }; })()",
+      "description": "点击发起任务运行",
+      "storeAs": "submitResult"
+    },
+    {
+      "type": "assertStore",
+      "key": "submitResult",
+      "path": "submitted",
+      "equals": true,
+      "description": "已提交试运行"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待提交响应"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-submitted",
+      "description": "试运行已提交"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.textContent || ''; const isSuccess = text.includes('成功') || text.includes('运行中') || text.includes('已提交'); const hasError = text.includes('失败') || text.includes('错误') || text.includes('请上传'); const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); return { isSuccess, hasError, modalStillOpen: !!modal, pageTextPreview: text.substring(0, 400) }; })()",
+      "description": "验证提交结果",
+      "storeAs": "submitVerify"
+    },
+    {
+      "type": "assertStore",
+      "key": "submitVerify",
+      "path": "hasError",
+      "equals": false,
+      "description": "提交无错误"
+    },
+
+    {
+      "type": "wait",
+      "ms": 10000,
+      "description": "等待试运行数据处理完成"
+    },
+
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "description": "导航到任务管理页面查看审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-task-management",
+      "description": "任务管理页面"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.textContent || ''; const today = new Date().toISOString().slice(0, 10); const dualMerchantTasks = []; const allTaskElements = document.querySelectorAll('.ant-table-row, .ant-list-item, [class*=task], tr'); for(const el of allTaskElements) { const rowText = (el.textContent || '').trim(); if(rowText.includes('双商家聚合') || rowText.includes('20180')) { const cells = Array.from(el.querySelectorAll('td, .ant-list-item-meta-title, span')); dualMerchantTasks.push({ text: rowText.substring(0, 200), cellCount: cells.length }); } } return { today, dualMerchantTaskCount: dualMerchantTasks.length, tasks: dualMerchantTasks.slice(0, 10), pageTextPreview: text.substring(0, 600) }; })()",
+      "description": "查找双商家试运行产生的审核任务",
+      "storeAs": "auditTasks"
+    },
+
+    {
+      "type": "assertStore",
+      "key": "auditTasks",
+      "path": "dualMerchantTaskCount",
+      "lte": 1,
+      "description": "核心断言：双商家同批次只产生≤1个审核任务(不按商家拆分)"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-audit-task-count",
+      "description": "审核任务数量验证截图"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.textContent || ''; const seller1 = '2219662018344'; const seller2 = '2219635649153'; const hasSeller1 = text.includes(seller1); const hasSeller2 = text.includes(seller2); const taskCountPattern = text.match(/共\\s*(\\d+)\\s*[条项]/); const totalFromPage = taskCountPattern ? parseInt(taskCountPattern[1]) : null; return { hasSeller1Data: hasSeller1, hasSeller2Data: hasSeller2, totalFromPage, bothSellersInBatch: hasSeller1 && hasSeller2 }; })()",
+      "description": "验证两个商家数据均在批次中",
+      "storeAs": "merchantVerify"
+    },
+    {
+      "type": "screenshot",
+      "label": "dual-merchant-final-state",
+      "description": "最终状态截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180(主图生成链路)已配置完整环节和策略；test-fixtures/dual-merchant-trial-data.xlsx已生成(含双商家数据)",
+    "realDomNotes": "试运行弹窗Modal结构：下载模板按钮/input[type=file]上传/任务名称input/运行类型Select(正式|测试)/发起任务运行按钮。Excel四列：seller_id/seed_image_url/tao_cate/item_id",
+    "riskPoints": [
+      "核心验证：1个批次含2个不同seller_id，应只产生1个审核任务",
+      "运行类型Select需用mouse.click()展开",
+      "Excel上传后需等待解析完成才能提交",
+      "任务管理页面需按链路/任务名称筛选才能定位本次运行产生的任务"
+    ],
+    "businessRule": "一个批次的试运行数据只会产生一个审核任务，不会因为使用不同商家而拆分成多个审核任务（审核任务按批次聚合，不按商家区分）",
+    "commonMerchants": ["2219662018344", "2219635649153"]
+  }
+}

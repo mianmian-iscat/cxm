@@ -1,0 +1,28 @@
+{
+  "name": "evaluate",
+  "version": "1.0.0",
+  "description": "在页面执行 JS 表达式，可选存储结果",
+  "triggers": ["执行JS", "evaluate", "eval", "计算", "提取"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "expression"],
+    "additionalProperties": true,
+    "properties": {
+      "type": { "const": "evaluate" },
+      "expression": { "type": "string", "description": "JS 表达式（IIFE 或普通表达式）" },
+      "storeAs": { "type": "string", "description": "将结果存储为指定键名" },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" },
+      "realtime_asserts": { "type": "array", "description": "实时断言列表" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "evalResult": { "description": "JS 表达式执行结果" }
+    }
+  },
+  "timeout_ms": 30000,
+  "retry_policy": { "max_retries": 1 }
+}

@@ -1,0 +1,58 @@
+{
+  "version": "3.0.0",
+  "description": "AI Test Harness 统一工具注册表（三业务域：AFD / F88 / 原创保护）",
+  "domains": {
+    "afd-collab": {
+      "description": "AFD 风格店铺协作平台（店铺迭代 / Brief / 试拍评审 / 视觉归档）",
+      "tools": [
+        { "name": "afd_iteration_validator",  "schema_path": "./schemas/afd/iteration_validator.json" },
+        { "name": "afd_brief_executor",       "schema_path": "./schemas/afd/brief_executor.json" },
+        { "name": "afd_sample_reviewer",      "schema_path": "./schemas/afd/sample_reviewer.json" },
+        { "name": "afd_permission_checker",   "schema_path": "./schemas/afd/permission_checker.json" },
+        { "name": "afd_evidence_collector",   "schema_path": "./schemas/afd/evidence_collector.json" }
+      ]
+    },
+    "original-protection": {
+      "description": "原创保护业务域工具",
+      "tools": [
+        { "name": "op_tc_generator",      "schema_path": "./schemas/op/exec_assistant.json" },
+        { "name": "op_exec_assistant",    "schema_path": "./schemas/op/exec_assistant.json" },
+        { "name": "op_state_validator",   "schema_path": "./schemas/op/state_validator.json" },
+        { "name": "op_settlement_calc",   "schema_path": "./schemas/op/settlement_calc.json" },
+        { "name": "op_compliance_check",  "schema_path": "./schemas/op/compliance_check.json" },
+        { "name": "op_evidence_collector","schema_path": "./schemas/op/evidence_collector.json" }
+      ]
+    },
+    "f88-material": {
+      "description": "F88 素材生产审核业务域工具",
+      "tools": [
+        { "name": "f88_audit_executor",    "schema_path": "./schemas/f88/audit_executor.json" },
+        { "name": "f88_pipeline_runner",   "schema_path": "./schemas/f88/pipeline_runner.json" },
+        { "name": "f88_knowledge_query",   "schema_path": "./schemas/f88/knowledge_query.json" },
+        { "name": "f88_evidence_collector","schema_path": "./schemas/f88/evidence_collector.json" },
+        { "name": "afd_iteration_validator",  "schema_path": "./schemas/afd/iteration_validator.json" },
+        { "name": "afd_brief_executor",       "schema_path": "./schemas/afd/brief_executor.json" },
+        { "name": "afd_sample_reviewer",      "schema_path": "./schemas/afd/sample_reviewer.json" },
+        { "name": "afd_permission_checker",   "schema_path": "./schemas/afd/permission_checker.json" },
+        { "name": "afd_evidence_collector",   "schema_path": "./schemas/afd/evidence_collector.json" }
+      ]
+    }
+  },
+  "tools": [
+    { "name": "op_tc_generator",      "schema_path": "./schemas/op/exec_assistant.json" },
+    { "name": "op_exec_assistant",    "schema_path": "./schemas/op/exec_assistant.json" },
+    { "name": "op_state_validator",   "schema_path": "./schemas/op/state_validator.json" },
+    { "name": "op_settlement_calc",   "schema_path": "./schemas/op/settlement_calc.json" },
+    { "name": "op_compliance_check",  "schema_path": "./schemas/op/compliance_check.json" },
+    { "name": "op_evidence_collector","schema_path": "./schemas/op/evidence_collector.json" },
+    { "name": "f88_audit_executor",    "schema_path": "./schemas/f88/audit_executor.json" },
+    { "name": "f88_pipeline_runner",   "schema_path": "./schemas/f88/pipeline_runner.json" },
+    { "name": "f88_knowledge_query",   "schema_path": "./schemas/f88/knowledge_query.json" },
+    { "name": "f88_evidence_collector","schema_path": "./schemas/f88/evidence_collector.json" },
+    { "name": "afd_iteration_validator",  "schema_path": "./schemas/afd/iteration_validator.json" },
+    { "name": "afd_brief_executor",       "schema_path": "./schemas/afd/brief_executor.json" },
+    { "name": "afd_sample_reviewer",      "schema_path": "./schemas/afd/sample_reviewer.json" },
+    { "name": "afd_permission_checker",   "schema_path": "./schemas/afd/permission_checker.json" },
+    { "name": "afd_evidence_collector",   "schema_path": "./schemas/afd/evidence_collector.json" }
+  ]
+}

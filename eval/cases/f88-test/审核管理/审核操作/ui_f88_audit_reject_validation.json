@@ -1,0 +1,123 @@
+{
+  "id": "ui-f88-audit-reject-validation",
+  "name": "UI：审核详情-驳回原因必填/驳回类型选择/确认按钮disabled验证",
+  "description": "验证审核详情页驳回流程：不填原因时确认按钮disabled→填写原因→选择驳回类型→确认按钮enabled→提交",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "打开审核详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-detail-reject",
+      "description": "审核详情"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rejectBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('驳回')); if(rejectBtn) { rejectBtn.click(); return 'clicked'; } return 'not found'; })()",
+      "description": "点击驳回"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => /确\\\\s*定|确\\\\s*认|提\\\\s*交/.test(b.textContent)); return { text: confirmBtn?.textContent?.trim(), disabled: confirmBtn?.disabled || false, hasClass: confirmBtn?.classList?.contains('ant-btn-disabled') || false }; })()",
+      "description": "验证确认按钮状态(未填原因)",
+      "storeAs": "rejectBtnEmpty"
+    },
+    {
+      "type": "assertStore",
+      "key": "rejectBtnEmpty",
+      "path": "disabled",
+      "equals": true,
+      "description": "断言未填原因时确认按钮disabled"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const ta = document.querySelector('textarea[placeholder*=\\\"原因\\\"], textarea[placeholder*=\\\"驳回\\\"]'); if(!ta) return 'no textarea'; const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; nativeSetter.call(ta, '测试驳回原因'); ta.dispatchEvent(new Event('input', {bubbles:true})); ta.dispatchEvent(new Event('change', {bubbles:true})); return 'filled'; })()",
+      "description": "填写驳回原因"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => /确\\\\s*定|确\\\\s*认|提\\\\s*交/.test(b.textContent)); return { disabled: confirmBtn?.disabled || false }; })()",
+      "description": "验证确认按钮状态(已填原因)",
+      "storeAs": "rejectBtnFilled"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-reject-filled",
+      "description": "填写驳回原因后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close, .ant-drawer-close'); if(closeBtn) closeBtn.click(); return 'closed'; })()",
+      "description": "关闭"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核任务。",
+    "realDomNotes": "驳回表单：驳回原因(textarea,必填)/驳回类型(Select)/示例图片(upload)。不填原因时确认按钮始终disabled。",
+    "riskPoints": [
+      "驳回按钮可能在工具栏或底部"
+    ]
+  }
+}

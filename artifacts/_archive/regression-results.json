@@ -1,0 +1,262 @@
+{
+  "summary": {
+    "total": 36,
+    "pass": 36,
+    "fail": 0,
+    "warn": 0
+  },
+  "results": [
+    {
+      "tc": "TC01",
+      "step": "租户-F88",
+      "status": "PASS",
+      "detail": "页面包含F88标识",
+      "time": "2026-07-03T02:47:33.133Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "租户-运营平台",
+      "status": "PASS",
+      "detail": "包含运营平台字样",
+      "time": "2026-07-03T02:47:33.137Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "Tab-审核任务",
+      "status": "PASS",
+      "detail": "审核任务Tab",
+      "time": "2026-07-03T02:47:33.137Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "Tab-抽检任务",
+      "status": "PASS",
+      "detail": "抽检任务Tab",
+      "time": "2026-07-03T02:47:33.137Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "Tab-埋雷任务",
+      "status": "PASS",
+      "detail": "埋雷任务Tab",
+      "time": "2026-07-03T02:47:33.137Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "导航-审核管理",
+      "status": "PASS",
+      "detail": "左侧导航审核管理",
+      "time": "2026-07-03T02:47:33.137Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "导航-商家管理",
+      "status": "PASS",
+      "detail": "左侧导航商家管理",
+      "time": "2026-07-03T02:47:33.137Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "搜索框存在",
+      "status": "PASS",
+      "detail": "搜索输入框存在",
+      "time": "2026-07-03T02:47:33.158Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "字段-任务名称",
+      "status": "PASS",
+      "detail": "任务名称字段",
+      "time": "2026-07-03T02:47:33.158Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "字段-优先级",
+      "status": "PASS",
+      "detail": "优先级字段",
+      "time": "2026-07-03T02:47:33.158Z"
+    },
+    {
+      "tc": "TC01",
+      "step": "截图",
+      "status": "PASS",
+      "detail": "tc01截图已保存",
+      "time": "2026-07-03T02:47:33.217Z"
+    },
+    {
+      "tc": "TC05",
+      "step": "切换到抽检任务",
+      "status": "PASS",
+      "detail": "成功切换",
+      "time": "2026-07-03T02:47:38.395Z"
+    },
+    {
+      "tc": "TC05",
+      "step": "切换到埋雷任务",
+      "status": "PASS",
+      "detail": "成功切换",
+      "time": "2026-07-03T02:47:40.489Z"
+    },
+    {
+      "tc": "TC05",
+      "step": "切回审核任务",
+      "status": "PASS",
+      "detail": "成功切换",
+      "time": "2026-07-03T02:47:42.575Z"
+    },
+    {
+      "tc": "TC05",
+      "step": "搜索-首图审核",
+      "status": "PASS",
+      "detail": "搜索结果包含首图审核",
+      "time": "2026-07-03T02:47:45.664Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "展开审核管理",
+      "status": "PASS",
+      "detail": "成功展开",
+      "time": "2026-07-03T02:47:51.664Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "点击审核标准管理",
+      "status": "PASS",
+      "detail": "成功导航",
+      "time": "2026-07-03T02:47:54.740Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "页面加载",
+      "status": "PASS",
+      "detail": "页面内容长度: 369",
+      "time": "2026-07-03T02:47:57.741Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "URL",
+      "status": "PASS",
+      "detail": "当前URL: https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "time": "2026-07-03T02:47:57.742Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "字段-标准名称",
+      "status": "PASS",
+      "detail": "标准名称字段",
+      "time": "2026-07-03T02:47:57.742Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "字段-创建人",
+      "status": "PASS",
+      "detail": "创建人字段",
+      "time": "2026-07-03T02:47:57.742Z"
+    },
+    {
+      "tc": "TC02",
+      "step": "截图",
+      "status": "PASS",
+      "detail": "tc02截图已保存",
+      "time": "2026-07-03T02:47:57.792Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "点击审核节点管理",
+      "status": "PASS",
+      "detail": "成功导航",
+      "time": "2026-07-03T02:48:06.697Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "页面加载",
+      "status": "PASS",
+      "detail": "页面内容长度: 985",
+      "time": "2026-07-03T02:48:09.701Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "URL",
+      "status": "PASS",
+      "detail": "当前URL: https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "time": "2026-07-03T02:48:09.701Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "字段-节点名称",
+      "status": "PASS",
+      "detail": "节点名称字段",
+      "time": "2026-07-03T02:48:09.701Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "字段-审核标准",
+      "status": "PASS",
+      "detail": "审核标准字段",
+      "time": "2026-07-03T02:48:09.701Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "字段-分配方式",
+      "status": "PASS",
+      "detail": "分配方式字段",
+      "time": "2026-07-03T02:48:09.701Z"
+    },
+    {
+      "tc": "TC03",
+      "step": "截图",
+      "status": "PASS",
+      "detail": "tc03截图已保存",
+      "time": "2026-07-03T02:48:09.757Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "点击任务管理",
+      "status": "PASS",
+      "detail": "成功导航",
+      "time": "2026-07-03T02:48:18.844Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "页面加载",
+      "status": "PASS",
+      "detail": "页面内容长度: 315",
+      "time": "2026-07-03T02:48:21.849Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "URL",
+      "status": "PASS",
+      "detail": "当前URL: https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "time": "2026-07-03T02:48:21.849Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "字段-链路",
+      "status": "PASS",
+      "detail": "链路筛选字段",
+      "time": "2026-07-03T02:48:21.849Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "字段-批次",
+      "status": "PASS",
+      "detail": "批次筛选字段",
+      "time": "2026-07-03T02:48:21.849Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "列表有数据",
+      "status": "PASS",
+      "detail": "任务列表包含链路数据",
+      "time": "2026-07-03T02:48:21.849Z"
+    },
+    {
+      "tc": "TC04",
+      "step": "截图",
+      "status": "PASS",
+      "detail": "tc04截图已保存",
+      "time": "2026-07-03T02:48:21.910Z"
+    }
+  ]
+}

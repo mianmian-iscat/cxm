@@ -1,0 +1,144 @@
+{
+  "id": "TC-E2E-002",
+  "name": "TC-E2E-002 — Brief驳回→重新提交流程 [P1]",
+  "description": "端到端Brief驳回流程：买手提交→产运驳回→买手重新编辑→重新提交→产运确认",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "端到端",
+  "page": "迭代详情-Brief tab",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "comment",
+      "text": "═══ Phase 1: 验证REJECTED_BRIEF状态展示 ═══"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasRejectInfo = text.includes('驳回原因') || text.includes('驳回'); const rejectReasonVisible = !!document.querySelector('[class*=reject], [class*=alert], .ant-alert'); const hasReEdit = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('重新编辑')); const stepHighlight = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const activeTab = document.querySelector('.ant-tabs-tab-active')?.textContent.trim(); return { hasRejectInfo, rejectReasonVisible, hasReEdit, stepHighlight, activeTab, isBriefTab: activeTab?.includes('Brief') }; })()",
+      "description": "P1断言: REJECTED_BRIEF状态(驳回原因展示+重新编辑按钮+Brief tab激活)",
+      "storeAs": "p1_rejected"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 2: 首版驳回无版本侧栏 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const sidebar = document.querySelector('[class*=version-sidebar], [class*=version-list], [class*=version-panel]'); const versionTags = Array.from(document.querySelectorAll('[class*=version], [class*=tag]')).filter(el => el.textContent.match(/v[0-9]/i)); return { versionSidebarExists: !!sidebar, versionTagCount: versionTags.length, noVersionForFirstReject: !sidebar && versionTags.length === 0 }; })()",
+      "description": "P2断言: 首版驳回前无版本侧栏(无v1/v2标识)",
+      "storeAs": "p2_noSidebar"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 3: 点击重新编辑fork新版本 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const reEditBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('重新编辑') && !b.disabled); if (reEditBtn) { reEditBtn.click(); return { clicked: true }; } return { clicked: false, msg: '重新编辑按钮不可用' }; })()",
+      "description": "P3操作: 点击重新编辑(fork新版本)",
+      "storeAs": "p3_reEdit"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const formEditable = !!document.querySelector('textarea:not([readonly]), input:not([readonly])'); const sidebar = document.querySelector('[class*=version-sidebar], [class*=version-list], [class*=version-panel]'); const versionTags = Array.from(document.querySelectorAll('[class*=version], [class*=tag], [class*=sidebar] *')).filter(el => el.textContent.match(/v[0-9]/i)); const hasV1 = versionTags.some(el => el.textContent.includes('v1')); const hasV2 = versionTags.some(el => el.textContent.includes('v2')); return { formEditable, sidebarExists: !!sidebar, hasV1, hasV2, versionCount: versionTags.length }; })()",
+      "description": "P3断言: fork后表单可编辑+版本侧栏展示v1/v2",
+      "storeAs": "p3_forked"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 4: 修改Brief并重新提交 → PENDING_BRIEF ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const textareas = document.querySelectorAll('textarea:not([readonly])'); for (const ta of textareas) { const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(ta, ta.value + '（已根据驳回意见修改）'); ta.dispatchEvent(new Event('input', { bubbles: true })); ta.dispatchEvent(new Event('change', { bubbles: true })); } return { modified: textareas.length }; })()",
+      "description": "P4操作: 修改Brief内容(根据驳回意见)",
+      "storeAs": "p4_modify"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const submitBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent.includes('提交') || b.textContent.includes('重新提交')) && !b.disabled); if (submitBtn) { submitBtn.click(); return { clicked: true }; } return { clicked: false, msg: '提交按钮不可用' }; })()",
+      "description": "P4操作: 点击重新提交",
+      "storeAs": "p4_resubmit"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const activeStep = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const isPendingBrief = activeStep?.includes('产运确认') || text.includes('待确认'); const briefReadonly = !document.querySelector('textarea:not([readonly])'); const rejectInfoGone = !text.includes('驳回原因'); return { isPendingBrief, activeStep, briefReadonly, rejectInfoGone }; })()",
+      "description": "P4断言: 状态回到PENDING_BRIEF(步骤条高亮产运确认+Brief只读+驳回提示消失)",
+      "storeAs": "p4_pendingAgain"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 5: 产运确认 + 时间线验证 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const confirmBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('确认') && !b.textContent.includes('驳回') && !b.disabled); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false, msg: '确认按钮不可用' }; })()",
+      "description": "P5操作: 产运确认Brief",
+      "storeAs": "p5_confirm"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const activeStep = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const isInProduction = activeStep?.includes('试拍'); return { isInProduction, activeStep }; })()",
+      "description": "P5断言: 确认后状态流转到IN_PRODUCTION",
+      "storeAs": "p5_inProduction"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const timelineBtn = Array.from(document.querySelectorAll('button, a, [class*=timeline]')).find(b => b.textContent.includes('时间线')); if (timelineBtn) { timelineBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "P5操作: 打开时间线抽屉",
+      "storeAs": "p5_openTimeline"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer, [class*=drawer]'); const text = drawer?.textContent || ''; const hasRejectEvent = text.includes('驳回'); const hasResubmitEvent = text.includes('重新提交') || text.includes('提交'); const hasConfirmEvent = text.includes('确认'); return { drawerOpen: !!drawer, hasRejectEvent, hasResubmitEvent, hasConfirmEvent, allEventsRecorded: hasRejectEvent && hasResubmitEvent && hasConfirmEvent }; })()",
+      "description": "P5断言: 时间线记录驳回+重新提交+确认事件",
+      "storeAs": "p5_timeline"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-brief-reject-resubmit"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在REJECTED_BRIEF状态的迭代",
+    "stepsText": "1. 验证驳回信息展示\n2. 验证首版无版本侧栏\n3. 点击重新编辑fork新版本\n4. 验证版本侧栏v1/v2\n5. 修改并重新提交→PENDING_BRIEF\n6. 产运确认→IN_PRODUCTION\n7. 时间线记录完整",
+    "expectedResult": "1. 驳回提示区展示驳回原因\n2. 首版驳回前无版本侧栏\n3. fork后表单可编辑，版本侧栏展示v1/v2\n4. 重新提交后回到PENDING_BRIEF，驳回提示消失\n5. 产运确认后进入IN_PRODUCTION\n6. 时间线记录驳回和重新提交事件",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/端到端",
+    "stateTransitions": ["REJECTED_BRIEF→PENDING_BRIEF", "PENDING_BRIEF→IN_PRODUCTION"]
+  }
+}

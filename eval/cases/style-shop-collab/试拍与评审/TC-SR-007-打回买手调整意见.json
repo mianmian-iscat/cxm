@@ -1,0 +1,63 @@
+{
+  "id": "TC-SR-007",
+  "name": "TC-SR-007 — Leader打回买手必填调整意见 [P1]",
+  "description": "验证打回买手：调整意见必填10-500字、记录打回次数",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('打回买手')); if (btn) { btn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击打回买手",
+      "storeAs": "clickReturn"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, [class*=modal]'); if (!modal) return { found: false }; const textarea = modal.querySelector('textarea'); const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.includes('确认') || b.textContent.includes('打回')); return { found: true, textarea: !!textarea, confirmBtn: !!confirmBtn, placeholder: textarea?.placeholder }; })()",
+      "description": "验证打回弹窗",
+      "storeAs": "returnModal"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal'); const textarea = modal?.querySelector('textarea'); if (textarea) { const short = '太短了'; const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(textarea, short); textarea.dispatchEvent(new Event('input', {bubbles: true})); return { input: short, length: short.length }; } return { found: false }; })()",
+      "description": "输入少于10字验证最小长度",
+      "storeAs": "minLength"
+    },
+    {
+      "type": "screenshot",
+      "label": "leader-return-buyer"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "PENDING_LEADER状态，当前用户是Leader",
+    "stepsText": "1. 点击打回买手\n2. 验证弹窗展示调整意见输入框\n3. 输入少于10字验证\n4. 输入超过500字验证",
+    "expectedResult": "1. 弹窗展示调整意见文本框\n2. 调整意见必填10-500字\n3. 不满足字数时不允许确认\n4. 确认后迭代进入RETURNED_TO_BUYER",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

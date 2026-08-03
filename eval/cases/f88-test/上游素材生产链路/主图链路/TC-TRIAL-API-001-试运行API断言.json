@@ -1,0 +1,91 @@
+{
+  "id": "TC-TRIAL-API-001",
+  "name": "TC-TRIAL-API-001 — 主图链路试运行 API 契约断言 [演示用例]",
+  "description": "演示 assertAPI 新断言类型：在链路管理页触发主图链路（20180）试运行，捕获 /api/workflow2/link/run 接口响应，做 status/jsonPath/duration 多维断言。",
+  "businessType": "f88_strategy",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/主图链路",
+  "page": "链路管理/链路详情",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/workflow/link/detail/20180",
+    "auth": "buc",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/workflow/link/detail/20180",
+      "waitUntil": "networkidle",
+      "description": "打开主图链路 20180 详情页"
+    },
+    {
+      "type": "assertUI",
+      "selector": "button.ant-btn-primary",
+      "textContains": "试运行",
+      "visible": true,
+      "description": "【assertUI】试运行按钮可见且包含「试运行」文本"
+    },
+    {
+      "type": "click",
+      "selector": "button.ant-btn-primary:has-text(试运行)",
+      "description": "点击试运行按钮（会先触发确认弹窗）"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待确认弹窗出现"
+    },
+    {
+      "type": "assertUI",
+      "selector": ".ant-modal-confirm-body",
+      "visible": true,
+      "description": "【assertUI】二次确认弹窗可见"
+    },
+    {
+      "type": "click",
+      "selector": ".ant-modal-confirm-btns button.ant-btn-primary",
+      "description": "点击确认 OK"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "/api/workflow2/link/run",
+      "timeout": 20000,
+      "description": "等待试运行接口响应"
+    },
+    {
+      "type": "assertAPI",
+      "urlPattern": "/api/workflow2/link/run",
+      "status": 200,
+      "jsonPath": "$.success",
+      "equals": true,
+      "maxDurationMs": 10000,
+      "description": "【assertAPI 1/3】试运行接口：HTTP 200 + success=true + 耗时 < 10s"
+    },
+    {
+      "type": "assertAPI",
+      "urlPattern": "/api/workflow2/link/run",
+      "jsonPath": "$.data.batchId",
+      "valueType": "string",
+      "matches": "^BT_\\d+$",
+      "description": "【assertAPI 2/3】data.batchId 是字符串且形如 BT_数字"
+    },
+    {
+      "type": "assertAPI",
+      "urlPattern": "/api/workflow2/link/run",
+      "jsonPath": "$.data",
+      "valueType": "object",
+      "description": "【assertAPI 3/3】data 是对象"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "预发环境已登录 F88 运营工作台；链路 20180 存在且可试运行",
+    "priority": "P1",
+    "groupPath": "F88/上游素材生产链路/主图链路/试运行"
+  }
+}

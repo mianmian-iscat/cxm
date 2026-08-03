@@ -1,0 +1,105 @@
+# Phase 编排定义 — web-automation 测试流程
+
+# 借鉴 cloth-test-memory 的 Phase 0-4 机制
+# 适配 web-automation 的实际场景
+
+name: web-automation-phases
+version: "1.0"
+
+phases:
+  # ============================================================
+  # Phase 0: 环境准备
+  # ============================================================
+  - id: phase_0
+    name: "环境准备"
+    description: "确认浏览器连接、登录态、目标页面可访问"
+    steps:
+      - id: connect_browser
+        tool: cdp.connect
+        params:
+          port: 9222
+      - id: verify_login
+        tool: auth.verify_session
+      - id: check_target_url
+        tool: http.ping
+    gate: gate_p0_to_p1
+
+  # ============================================================
+  # Phase 1: 用例设计
+  # ============================================================
+  - id: phase_1
+    name: "用例设计"
+    description: "从 PRD/知识库生成测试用例"
+    steps:
+      - id: retrieve_rules
+        agent: rule-hunter
+        params:
+          domain: "${domain}"
+          intent: "用例设计"
+      - id: generate_cases
+        tool: cases.generate
+        params:
+          source: rule_hunter_summary
+      - id: validate_coverage
+        tool: cases.validate_coverage
+        params:
+          min_coverage: 0.6
+    gate: gate_p1_to_p2
+
+  # ============================================================
+  # Phase 2: 数据构造 + 执行 + 验证
+  # ============================================================
+  - id: phase_2
+    name: "数据构造与执行"
+    description: "构造测试数据 → UI 执行 → DB/SLS 验证"
+    sub_phases:
+      - id: data_prep
+        agent: data-builder
+        gate: gate_data_to_exec
+      - id: execution
+        tool: test_executor.run
+      - id: verification
+        agent: verifier
+    gate: gate_p2_to_p3
+
+  # ============================================================
+  # Phase 3: 报告
+  # ============================================================
+  - id: phase_3
+    name: "报告生成"
+    description: "汇总执行结果，生成测试报告"
+    steps:
+      - id: generate_report
+        tool: report.generate
+      - id: submit_bugs
+        tool: aone.submit_bugs
+        on_fail: warn
+      - id: notify_result
+        tool: dingtalk.send_report
+        on_fail: skip
+    gate: gate_p3_to_p4
+
+  # ============================================================
+  # Phase 4: 知识沉淀
+  # ============================================================
+  - id: phase_4
+    name: "知识沉淀"
+    description: "从执行结果中提取教训，沉淀到知识库"
+    steps:
+      - id: extract_learnings
+        tool: scripts/knowledge_extractor.py
+        params:
+          min_count: 2
+      - id: update_okf_log
+        tool: knowledge.sync_log
+    gate: gate_p4_to_archive
+
+  # ============================================================
+  # Phase 5: 归档
+  # ============================================================
+  - id: phase_5
+    name: "归档"
+    description: "将产物归档，清理临时文件"
+    steps:
+      - id: archive_artifacts
+        tool: artifacts.archive

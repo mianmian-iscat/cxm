@@ -1,0 +1,103 @@
+# 收尾流水线 Pipeline 定义
+# 由 core/pipeline_dsl.py PipelineEngine 加载和执行
+# 步骤间有 DAG 依赖关系，单步失败按 on_error 策略处理
+
+name: finalize_flow
+version: "1.0"
+description: "测试执行后的收尾流水线：录屏→抓包→证据→知识→评估→脱敏"
+
+steps:
+  - id: stop_recording
+    tool: video_recorder.stop
+    on_error: skip
+    params:
+      graceful: true
+
+  - id: flush_capture
+    tool: capture_manager.flush
+    depends_on: [stop_recording]
+    on_error: skip
+    params:
+      timeout: 5.0
+
+  - id: disconnect_browser
+    tool: cdp.disconnect
+    depends_on: [flush_capture]
+    on_error: skip
+
+  - id: compute_metrics
+    tool: metrics_logger.flush
+    depends_on: [disconnect_browser]
+    on_error: skip
+
+  - id: persist_evidence
+    tool: evidence_store.save
+    depends_on: [compute_metrics]
+    on_error: skip
+
+  - id: save_output
+    tool: artifacts.save_output
+    depends_on: [persist_evidence]
+
+  - id: knowledge_update
+    tool: knowledge_updater.apply
+    depends_on: [persist_evidence]
+    on_error: skip
+
+  - id: badcase_collect
+    tool: badcase_collector.collect
+    depends_on: [persist_evidence]
+    on_error: skip
+
+  # ── 知识沉淀闭环（Phase 4 借鉴 cloth-test-memory）──
+  # 从失败用例中提取模式，写入 knowledge/okf/learnings/
+  - id: extract_learnings
+    tool: knowledge.extract_learnings
+    depends_on: [badcase_collect]
+    on_error: skip
+    params:
+      source: badcase_collector
+      target: knowledge/okf/learnings/
+      min_failure_count: 2  # 同一 pattern 失败 >= 2 次才沉淀
+
+  # 将新发现的业务规则写入 knowledge/okf/features/
+  - id: promote_features_rules
+    tool: knowledge.promote_features
+    depends_on: [extract_learnings]
+    on_error: skip
+    params:
+      source: execution_discovery
+      target: knowledge/okf/features/
+
+  # 同步更新 OKF 变更日志
+  - id: sync_okf_log
+    tool: knowledge.sync_log
+    depends_on: [promote_features_rules]
+    on_error: skip
+    params:
+      log_file: knowledge/okf/log.md
+
+  - id: quality_score
+    tool: quality_scorer.score
+    depends_on: [compute_metrics, persist_evidence]
+    on_error: skip
+
+  - id: evaluation
+    tool: eval_engine.evaluate
+    depends_on: [quality_score]
+    on_error: skip
+
+  - id: privacy_sanitize
+    tool: privacy_guard.sanitize
+    depends_on: [evaluation]
+    on_error: skip
+
+  - id: finalize_artifacts
+    tool: artifacts.finalize
+    depends_on: [save_output, privacy_sanitize]
+
+error_handling:
+  strategy: continue_on_skip
+  rollback_steps: []
+
+cleanup: []

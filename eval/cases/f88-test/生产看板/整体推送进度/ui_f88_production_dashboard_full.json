@@ -1,0 +1,82 @@
+{
+  "id": "ui-f88-production-dashboard-full",
+  "name": "UI：生产看板-指标卡片/链路进度/数据一致性验证",
+  "description": "验证生产看板：整体推送进度(总任务数/生产中/已推送/未推送)、链路生产进度表格，数据非空且文案正确",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生产看板",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = Array.from(document.querySelectorAll('.ant-card, [class*=card], [class*=stat]')).map(c => c.textContent.trim().substring(0, 80)); return { cards, count: cards.length }; })()",
+      "description": "记录指标卡片",
+      "storeAs": "dashCards"
+    },
+    {
+      "type": "screenshot",
+      "label": "dashboard-page",
+      "description": "生产看板页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const metrics = ['总任务数', '生产中', '已推送', '未推送']; const found = metrics.filter(m => text.includes(m)); return { metrics, found, coverage: found.length + '/' + metrics.length }; })()",
+      "description": "验证关键指标文案",
+      "storeAs": "metricCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tables = document.querySelectorAll('table, .ant-table'); return { tableCount: tables.length }; })()",
+      "description": "检查链路进度表格",
+      "storeAs": "dashTables"
+    },
+    {
+      "type": "screenshot",
+      "label": "dashboard-metrics",
+      "description": "生产看板指标截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在生产数据。",
+    "realDomNotes": "看板包含：整体推送进度(总任务数/生产中/已推送/未推送卡片)、链路生产进度(按链路展示表格)。",
+    "riskPoints": [
+      "无数据时指标显示0"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "ui-op-patent-apply-structure",
+  "name": "UI：原创保护商家端-专利申请表单结构验证（PatentApply）",
+  "description": "进入商家端首页，点击新增专利申请，全量验证 PatentApply 组件：三种模式切换（9类/非9类/童装童鞋）、内容安全检测、6角度图上传（正面/背面/左侧/右侧/俯视/细节）、图片尺寸校验（>5MB拒绝）、表单必填校验、图片要求说明。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开原创保护商家端首页" },
+    { "type": "wait", "ms": 4000, "description": "等待商家端加载" },
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护", "description": "验证商家端首页已加载" },
+    { "type": "clickText", "text": "新增专利申请", "description": "点击新增专利申请入口" },
+    { "type": "wait", "ms": 3500, "description": "等待PatentApply表单/弹窗渲染" },
+    { "type": "screenshot", "label": "patent-apply-form-open", "description": "截图-专利申请表单已打开" },
+
+    { "type": "assert", "target": "page", "contains": "图片要求", "description": "【表单特有文案】验证含图片要求说明" },
+    { "type": "assert", "target": "page", "contains": "申请", "description": "【表单标题】验证含申请相关文案" },
+
+    { "type": "screenshot", "label": "patent-apply-form-detail", "description": "截图-申请表单详情" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "isv测试账号2213249110271已登录商家端pre-fsyc.taobao.com。",
+    "realDomNotes": "PatentApply组件：三种模式切换（9类/非9类/童装童鞋）、内容安全、6角度图上传（正面/背面/左侧/右侧/俯视/细节）、图片尺寸校验(>5MB拒绝)、表单必填校验。",
+    "riskPoints": [
+      "isv账号主营类目影响申请表单模式",
+      "申请入口文案可能不是精确的「新增专利申请」，需探查",
+      "6角度图上传需CDP DOM.setFileInputFiles",
+      "图片要求为表单特有文案，用于断言确认表单已打开"
+    ]
+  }
+}

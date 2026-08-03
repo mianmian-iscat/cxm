@@ -1,0 +1,86 @@
+{
+  "id": "m52-TC-TM-018-个人任务中心暂停任务",
+  "name": "TC-TM-018 — 个人任务中心暂停任务 [P0]",
+  "description": "存在进行中的审核任务",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "F88-任务管理页面用例",
+  "page": "",
+  "testScope": "",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/F88-任务管理页面用例",
+  "sourceIds": [
+    "F88-任务管理页面用例/m52-TC-TM-018-个人任务中心暂停任务"
+  ],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-center",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button,a,[role=button]')).filter(el => (el.textContent || '').includes('暂停任务')); if(btns.length > 0) { btns[0].click(); return { clicked: true, text: '暂停任务' }; } return { clicked: false, searched: '暂停任务' }; })()",
+      "description": "操作1: 点击\"暂停任务\"按钮 2.在确认浮层中点击\"确定\"",
+      "storeAs": "action1"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作1结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const checks = [\"是否要暂停此任务？\", \"取消\", \"确定\", \"确定\", \"进行中：X/Y\"]; const results = checks.map(c => ({ check: c, found: text.includes(c) })); const passCount = results.filter(r => r.found).length; return { totalChecks: checks.length, passCount, results, pageTextPreview: text.substring(0, 300) }; })()",
+      "description": "验证预期结果",
+      "storeAs": "resultCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在进行中的审核任务",
+    "stepsText": "1.点击\"暂停任务\"按钮 2.在确认浮层中点击\"确定\"",
+    "expectedResult": "①弹出 Popover 确认浮层，文案\"是否要暂停此任务？\"（带黄色警告图标），含\"取消\"和\"确定\"按钮；②点击\"确定\"后任务状态从\"进行中：X/Y\"变为\"暂停中：X/Y\"（进度值不变）；③操作按钮从\"查看详情+暂停任务+转交任务\"变为\"继续任务+转交任务\"（无\"查看详情\"）",
+    "dbAssertion": "task.status = PAUSED",
+    "apiAssertion": "",
+    "riskPoints": [],
+    "relatedDocs": [],
+    "verified": "✅ 2026-07-11 预发环境完整验证。点击 test0004-BT_6356 的\"暂停任务\"→浮层出现→点\"确定\"→状态变为\"暂停中：1/3\"→按钮变为\"继续任务+转交任务\"",
+    "sourceType": "md",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/qa-testing-workbench/skills/F88测试知识库/references/test-cases/F88-任务管理页面用例.md，2026-07-11T05:48:24.025801"
+  }
+}

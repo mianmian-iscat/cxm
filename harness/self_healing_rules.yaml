@@ -1,0 +1,225 @@
+# self_healing_rules.yaml — 智能自愈与分级放行规则
+# 差距 2.4 补齐
+
+# 失败分类规则
+failure_classification:
+  true_bug:
+    keywords: ["业务逻辑", "功能缺陷", "数据不一致", "状态异常"]
+    description: "真实业务 Bug"
+  script_issue:
+    keywords: ["selector", "xpath", "timeout", "element not found", "no such element"]
+    description: "测试脚本问题"
+  data_invalid:
+    keywords: ["数据过期", "数据不存在", "sandbox", "数据失效", "测试数据"]
+    description: "测试数据失效"
+  env_issue:
+    keywords: ["connection refused", "502", "503", "timeout", "network", "DNS", "环境"]
+    description: "环境问题"
+
+# 自愈策略
+healing_strategies:
+  element_drift:
+    trigger: "script_issue"
+    action: "cdp_relocate"
+    description: "元素定位漂移 → CDP 重定位"
+    max_retries: 2
+  schema_change:
+    trigger: "script_issue"
+    action: "schema_regen"
+    description: "Schema 变更 → 自动 patch 步骤参数"
+    max_retries: 1
+  data_invalid:
+    trigger: "data_invalid"
+    action: "sandbox_reset"
+    description: "数据失效 → 数据自愈引擎 + 沙箱重置"
+    max_retries: 1
+  env_unavailable:
+    trigger: "env_issue"
+    action: "network_retry"
+    description: "环境不可用 → 网络层自愈（5xx 重试 / mock 降级）"
+    max_retries: 3
+    backoff_seconds: [3, 10, 30]
+  memory_fix:
+    trigger: "any"
+    action: "memory_fix"
+    description: "历史经验命中 → 直接应用已验证的修复策略"
+    max_retries: 1
+    priority: "highest"
+  iframe_shadow:
+    trigger: "script_issue"
+    action: "cdp_relocate"
+    description: "iframe/Shadow DOM 穿透 → 跨 frame 重定位"
+    max_retries: 1
+
+# 分级放行策略
+graded_release:
+  P0:
+    action: "block"
+    notify: true
+    notify_channels: ["dingtalk", "email"]
+    description: "P0 阻断 + 通知责任人"
+  P1:
+    action: "warn"
+    notify: true
+    notify_channels: ["dingtalk"]
+    description: "P1 警告 + 建议复测"
+  P2:
+    action: "skip"
+    notify: false
+    record_in_metrics: true
+    description: "P2 跳过 + 计入指标"
+
+# 熔断阈值
+circuit_breaker:
+  consecutive_failures: 3     # 连续 3 个用例失败
+  failure_rate_threshold: 0.40 # 失败率 > 40%
+  cooldown_seconds: 120       # 熔断冷却 2 分钟
+  half_open_max_cases: 1      # 半开状态最多 1 个用例
+
+# AFD 风格店铺协作平台 — 业务域特有自愈规则
+afd_collab_healing:
+  failure_classification:
+    iteration_state_invalid:
+      keywords: ["迭代状态", "状态机", "DRAFT_BRIEF", "PENDING_BRIEF", "IN_REVIEW", "ARCHIVED", "CANCELLED", "非法状态转换"]
+      description: "AFD 迭代状态机转换非法"
+    brief_validation:
+      keywords: ["Brief校验", "迭代名称", "风格定位", "对标店铺", "品类占比", "试拍商品"]
+      description: "Brief 表单字段校验失败"
+    sample_minimum_set:
+      keywords: ["最小集", "达标组数", "套图不足", "原款图缺失", "标签种类不足"]
+      description: "试拍图组最小集未满足"
+    permission_denied:
+      keywords: ["权限不足", "不可操作", "只读", "非当前处理角色"]
+      description: "角色权限校验失败"
+
+  healing_strategies:
+    iteration_state_reset:
+      trigger: "iteration_state_invalid"
+      action: "navigate_to_iteration_detail"
+      description: "迭代状态异常 → 重新加载迭代详情页获取当前状态"
+      max_retries: 1
+    brief_form_retry:
+      trigger: "brief_validation"
+      action: "clear_and_refill_form"
+      description: "Brief表单校验失败 → 清空后重新填写"
+      max_retries: 2
+    sample_group_recheck:
+      trigger: "sample_minimum_set"
+      action: "check_group_status"
+      description: "最小集未满足 → 检查图组状态并提示缺失项"
+      max_retries: 1
+    tenant_switch:
+      trigger: "permission_denied"
+      action: "switch_tenant_identity"
+      description: "权限问题 → 切换租户身份（X-AFD-Emp-Identity）"
+      max_retries: 1
+
+# ── 跨域共享组件自愈规则 ─────────────────────────────────────────────────
+shared_component_healing:
+  react_controlled_input:
+    trigger: "script_issue"
+    keywords: ["input value not set", "受控组件", "react state"]
+    action: "native_setter_dispatch"
+    description: "React 受控组件 → native setter + dispatchEvent"
+    applicable_domains: [afd-collab, f88-material]
+    max_retries: 2
+  ant_drawer_animation:
+    trigger: "script_issue"
+    keywords: ["ant-drawer", "drawer not found", "抽屉组件"]
+    action: "wait_animation_complete"
+    description: "Ant Design Drawer → 等待动画完成(500ms)"
+    applicable_domains: [afd-collab, f88-material]
+    max_retries: 1
+  sso_auth_expired:
+    trigger: "env_issue"
+    keywords: ["login.alibaba-inc.com", "SSO", "登录态失效", "BUC"]
+    action: "sso_warmup_and_retry"
+    description: "SSO 登录态失效 → 预热 + 重试"
+    applicable_domains: [afd-collab, f88-material, original-protection]
+    max_retries: 1
+
+# 双因子裁决配置
+dual_factor:
+  rule_layer:
+    enabled: true
+    description: "规则层初判"
+  llm_layer:
+    enabled: true             # 已启用 LLM 二次确认
+    description: "LLM 二次确认（规则层置信度<0.5或UNKNOWN时自动触发）"
+    cache_ttl_seconds: 300    # 同类错误 5 分钟内复用裁决结果
+    confidence_threshold: 0.5  # 规则层置信度低于此值时触发 LLM 裁决
+  conflict_resolution: "conservative"  # 不一致时偏保守（视为失败）
+
+# LLM Provider 配置
+llm_provider:
+  # provider: mock | openai | dashscope | qwen
+  # mock: 纯本地规则引擎，不调用任何 LLM（无 API key 时自动降级）
+  # openai: OpenAI Chat Completions API
+  # dashscope: 通义千问 DashScope（OpenAI 兼容模式）
+  provider: "mock"
+  # api_key: 通过环境变量 LLM_JUDGE_API_KEY 或直接配置
+  # 环境变量优先：LLM_JUDGE_API_KEY / LLM_JUDGE_BASE_URL / LLM_JUDGE_MODEL
+  api_key: ""
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  model: "qwen-plus"
+  timeout: 10          # API 调用超时秒数
+  temperature: 0.0     # LLM 温度（0.0 = 确定性最高）
+
+# ── 新增自愈维度配置 ──────────────────────────────────────────────────────
+
+# 维度1: 环境预检
+preflight_check:
+  enabled: true
+  checks:
+    - type: "cdp_alive"
+      timeout_ms: 3000
+    - type: "login_valid"
+      auto_recover: true
+    - type: "network_reachable"
+      dns_check: true
+    - type: "performance_baseline"
+      max_load_time_ms: 10000
+    - type: "api_warmup"
+      enabled: false
+
+# 维度2: DOM 快照对比
+dom_snapshot:
+  enabled: true
+  similarity_threshold: 0.6  # 相似度低于此值触发全局选择器刷新
+  auto_global_refresh: true
+
+# 维度3: 数据新鲜度
+data_freshness:
+  enabled: true
+  default_ttl_seconds: 3600
+  auto_refresh: false  # 自动刷新需要配置 data_fallback
+
+# 维度8: 性能退化自适应
+performance_adaptive:
+  enabled: true
+  degradation_multiplier: 2.0  # P95 超过基线 2x 时触发
+  max_timeout_multiplier: 4.0  # timeout 最大放大 4x
+  window_size: 10              # 滑动窗口大小
+  resource_failure_threshold: 0.2  # 资源失败率阈值
+
+# 维度10: 自愈经验记忆
+healing_memory:
+  enabled: true
+  promote_threshold: 0.7       # 晋升到知识库的置信度阈值
+  promote_min_success: 2       # 晋升所需的最小成功次数
+  consecutive_fail_limit: 3    # 连续失败次数限制
+  knowledge_file: "error-pattern-map.json"
+
+# 维度11: 失败聚类
+failure_clustering:
+  enabled: true
+  systemic_threshold: 3        # 同类失败超过此数触发系统性分析
+  smart_circuit_breaker: true  # 智能熔断（只跳过同类步骤）
+  max_clusters: 20
+
+# 维度12: 自愈效果度量
+healing_analytics:
+  enabled: true
+  roi_manual_baseline_sec: 300  # 人工修复基线时间 5 分钟
+  degraded_rate_threshold: 0.3  # 策略退化阈值
+  min_sample_size: 5           # 最小样本量

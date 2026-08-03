@@ -1,0 +1,241 @@
+{
+  "id": "f88-material-audit",
+  "description": "F88 素材生产 - 审核管理模块（已合并至 scenes/f88-test/knowledge/f88-material-audit.json）",
+  "lastUpdated": "2026-07-10",
+  "initStatus": "merged",
+  "mergedTo": "scenes/f88-test/knowledge/f88-material-audit.json",
+  "mergeNote": "此文件已合并至场景级知识文件 scenes/f88-test/knowledge/f88-material-audit.json（610行，更完整）。请直接使用场景级文件。此文件保留为向后兼容引用。",
+  "lastVerified": null,
+  "verifiedByRun": null,
+
+  "pageUrl": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+  "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+  "urlRoute": "review/personal-task-center",
+
+  "notes": [
+    "页面为 React + Ant Design 组件",
+    "搜索框为受控组件，fill 操作需设置 react: true",
+    "审核详情使用 Drawer 抽屉组件（.ant-drawer），需等动画完成",
+    "驳回原因为必填项，不填时确认按钮 disabled",
+    "素材大图预览可能使用懒加载"
+  ],
+
+  "fields": {
+    "审核状态": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "options": ["待审核", "审核通过", "审核驳回", "已撤回"],
+      "note": "单选下拉，按审核状态筛选"
+    },
+    "素材类型": {
+      "type": "selectOption",
+      "labelClass": "ant-select",
+      "options": ["主图", "详情页", "白底图", "场景图", "标题", "描述"],
+      "note": "单选下拉，按素材类型筛选"
+    },
+    "商家ID": {
+      "type": "fill",
+      "selector": "input[placeholder*='商家']",
+      "react": true,
+      "note": "React 受控组件"
+    },
+    "商品ID": {
+      "type": "fill",
+      "selector": "input[placeholder*='商品']",
+      "react": true,
+      "note": "React 受控组件"
+    }
+  },
+
+  "actions": {
+    "搜索": {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": "button[class*='searchBtn'], .ant-btn-primary",
+      "waitAfter": 3000,
+      "note": "执行搜索，等待列表刷新"
+    },
+    "重置": {
+      "type": "clickText",
+      "text": "重置",
+      "selector": "button[class*='resetBtn']",
+      "waitAfter": 500,
+      "note": "清空筛选条件"
+    }
+  },
+
+  "apis": {
+    "查询审核列表": {
+      "name": "queryMaterialAuditList",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditList",
+      "hsfService": "com.alibaba.f88.material.MaterialAuditService::queryAuditList"
+    },
+    "审核通过": {
+      "name": "approveMaterial",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.approveMaterial",
+      "hsfService": "com.alibaba.f88.material.MaterialAuditService::approveMaterial"
+    },
+    "审核驳回": {
+      "name": "rejectMaterial",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.rejectMaterial",
+      "hsfService": "com.alibaba.f88.material.MaterialAuditService::rejectMaterial"
+    },
+    "批量审核": {
+      "name": "batchAuditMaterial",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.batchAuditMaterial",
+      "hsfService": "com.alibaba.f88.material.MaterialAuditService::batchAudit"
+    },
+    "查询审核详情": {
+      "name": "queryMaterialAuditDetail",
+      "method": "POST",
+      "urlKeyword": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditDetail",
+      "hsfService": "com.alibaba.f88.material.MaterialAuditService::queryAuditDetail"
+    },
+    "创建审核节点": {
+      "name": "createReviewNode",
+      "method": "POST",
+      "urlKeyword": "/api/afd/review/node/create",
+      "note": "questionType=4为首图审核，多选多模式，不支持埋雷"
+    },
+    "任务分配": {
+      "name": "allocateMainTask",
+      "method": "POST",
+      "urlKeyword": "/api/afd/review/task/main/allocate",
+      "note": "首图审核分配含coverImageAuditContent字段"
+    },
+    "查询子任务列表": {
+      "name": "queryInspectionList",
+      "method": "POST",
+      "urlKeyword": "/api/afd/review/inspection/list",
+      "responseFields": ["imageRegenerateUrl", "imageRegenerateStatus", "imageRegenerateFailReason"]
+    },
+    "查询任务排期": {
+      "name": "queryTaskSchedule",
+      "method": "POST",
+      "urlKeyword": "/api/afd/review/task/schedule",
+      "responseFields": ["coverImageTaskCount"]
+    },
+    "图片负反馈": {
+      "name": "imageFeedback",
+      "method": "POST",
+      "urlKeyword": "/api/afd/review/inspection/image/feedback",
+      "note": "regenerateImage=true时触发重生图流程"
+    },
+    "触发重生图": {
+      "name": "regenerateMaterial",
+      "method": "POST",
+      "urlKeyword": "/api/material/regenerate",
+      "note": "异步任务，imageRegenerateStatus变为处理中"
+    },
+    "替换原图": {
+      "name": "useRegenerateImage",
+      "method": "POST",
+      "urlKeyword": "/api/material/useRegenerateImage",
+      "note": "重生图已完成后才可替换，未完成调用返回错误"
+    },
+    "取消重生图": {
+      "name": "cancelRegenerate",
+      "method": "POST",
+      "urlKeyword": "/api/material/cancelRegenerate",
+      "note": "已完成的任务不可取消"
+    }
+  },
+
+  "businessRules": {
+    "审核模式": {
+      "BATCH": "批次模式 - 固定数量任务，一次性分配",
+      "STREAM": "流式模式 - 持续追加子任务到主任务"
+    },
+    "流式主任务": {
+      "幂等规则": "名称+日期唯一，重复创建返回已存在的主任务",
+      "默认配置": "埋雷=关闭，抽检=关闭"
+    },
+    "排序规则": {
+      "批次列表": "按批次ID倒序",
+      "主任务列表": "按任务ID倒序",
+      "审核子任务": "按任务ID倒序"
+    },
+    "首图审核": {
+      "questionType": 4,
+      "mode": "多选多",
+      "mineSupport": false,
+      "note": "不支持埋雷配置"
+    }
+  },
+
+  "assertHints": {
+    "有审核列表数据": {
+      "target": "page",
+      "contains": "共",
+      "note": "验证列表有数据"
+    },
+    "审核通过成功": {
+      "target": "api",
+      "urlPattern": "approveMaterial",
+      "path": "data.success",
+      "equals": true
+    },
+    "审核驳回成功": {
+      "target": "api",
+      "urlPattern": "rejectMaterial",
+      "path": "data.success",
+      "equals": true
+    },
+    "批量审核无失败": {
+      "target": "api",
+      "urlPattern": "batchAuditMaterial",
+      "path": "data.data.failCount",
+      "equals": 0
+    }
+  },
+
+  "pages": {
+    "个人任务中心": {
+      "route": "review/personal-task-center",
+      "description": "审核员个人工作台，按状态筛选领取/处理任务"
+    },
+    "任务管理后台": {
+      "route": "review/task-management",
+      "description": "管理员视角：创建审核节点、任务分配、排期查看"
+    },
+    "任务排期": {
+      "route": "review/task-schedule",
+      "description": "查看各审核节点排期表，含coverImageTaskCount统计"
+    }
+  },
+
+  "knownIssues": [
+    "接口路径 /cobweb/api/bzb.api.fsyx_quality_guard.f88.*，captureFilter 用 'bzb.api.fsyx_quality_guard'",
+    "搜索框为 React 受控组件，fill 必须 react: true（native setter + dispatchEvent）",
+    "审核详情是 Drawer 抽屉组件（.ant-drawer），需等动画完成（~300ms）",
+    "驳回原因必填，不填时确认按钮 disabled",
+    "素材大图懒加载，截图前需等图片加载完成",
+    "水印 .wm_div_id 每次操作前清除",
+    "截图用 CDP Page.captureScreenshot",
+    "预发域名 pre-aifashion-xiaoer.alibaba-inc.com",
+    "重生图为异步流程：负反馈→触发重生→等待完成→替换/取消",
+    "重生图未完成时调用替换接口返回错误(重生图未就绪)",
+    "已完成的重生图不可取消",
+    "无效subJobId或materialId调用重生图接口返回明确错误"
+  ],
+
+  "hsfIntegration": {
+    "mavenGroupId": "com.alibaba.f88",
+    "mavenArtifactId": "f88-material-client",
+    "hsfServiceInterface": "com.alibaba.f88.material.MaterialAuditService",
+    "hsfVersion": "1.0.0"
+  },
+
+  "_meta": {
+    "initStatus": "draft",
+    "lastVerified": null,
+    "verifiedByRun": null,
+    "staleFields": [],
+    "totalRuns": 0,
+    "passRate": null
+  }
+}

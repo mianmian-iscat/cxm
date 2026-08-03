@@ -1,0 +1,132 @@
+{
+  "id": "TC-E2E-004",
+  "name": "TC-E2E-004 — Leader确认驳回→产运补拍→买手合并审核 [P1]",
+  "description": "端到端补拍流程：Leader确认驳回→产运查看结果→补拍v2→买手v1+v2合并审核",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "端到端",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "comment",
+      "text": "═══ Phase 1: RETURNED状态-产运查看驳回结果 ═══"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasReworkReason = text.includes('返修') || text.includes('驳回原因'); const defaultResultView = text.includes('结果视图') || !!document.querySelector('[class*=result-view]'); const supplementBtn = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('补充上传')); const activeStep = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const activeTab = document.querySelector('.ant-tabs-tab-active')?.textContent.trim(); return { hasReworkReason, defaultResultView, supplementBtn, activeStep, activeTab }; })()",
+      "description": "P1断言: RETURNED状态(结果视图默认展示+返修意见+补充上传按钮可用)",
+      "storeAs": "p1_returned"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 2: 批次筛选与v1冻结验证 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const filterBtns = Array.from(document.querySelectorAll('button, [class*=filter], [class*=tab], [class*=segment]')).filter(b => b.textContent.includes('全部') || b.textContent.match(/v[0-9]/i)); const text = document.body.textContent; const hasV1 = text.includes('v1'); const batchLabels = filterBtns.map(b => b.textContent.trim()); const v1Frozen = !!document.querySelector('[class*=frozen], [class*=readonly], [disabled][class*=v1]') || text.includes('冻结') || text.includes('只读'); return { batchLabels, hasV1, filterCount: filterBtns.length, v1Frozen }; })()",
+      "description": "P2断言: 批次筛选展示(v1标识)+历史v1冻结只读",
+      "storeAs": "p2_batchFilter"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-returned-state"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 3: 产运补充上传创建v2批次 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const supplementBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('补充上传') && !b.disabled); if (supplementBtn) { supplementBtn.click(); return { clicked: true }; } return { clicked: false, msg: '补充上传按钮不可用' }; })()",
+      "description": "P3操作: 点击补充上传",
+      "storeAs": "p3_supplement"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const uploadArea = !!document.querySelector('[class*=upload], input[type=file], .ant-upload'); const text = document.body.textContent; const hasV2Label = text.includes('v2'); const saveDraft = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('保存草稿')); const submitReview = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('发起评审')); return { uploadArea, hasV2Label, saveDraft, submitReview, v2BatchCreated: uploadArea || hasV2Label }; })()",
+      "description": "P3断言: 补充上传创建v2批次(上传区域展示+v2标识)",
+      "storeAs": "p3_v2Created"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const submitBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('发起评审') && !b.disabled); if (submitBtn) { submitBtn.click(); return { clicked: true }; } return { clicked: false, msg: '发起评审按钮不可用(可能试拍数据未达标)' }; })()",
+      "description": "P3操作: 发起评审(提交v2)",
+      "storeAs": "p3_submitReview"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 4: 买手合并审核v1+v2 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const activeStep = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const isInReview = activeStep?.includes('审核') || text.includes('审核视图'); const reviewView = !!document.querySelector('[class*=review-view], [class*=gallery]'); const filterBtns = Array.from(document.querySelectorAll('button, [class*=filter], [class*=tab], [class*=segment]')).filter(b => b.textContent.includes('全部') || b.textContent.match(/v[0-9]/i)); const batchLabels = filterBtns.map(b => b.textContent.trim()); const hasAll = batchLabels.some(l => l.includes('全部')); const hasV1 = batchLabels.some(l => l.includes('v1')); const hasV2 = batchLabels.some(l => l.includes('v2')); return { isInReview, activeStep, reviewView, batchLabels, hasAll, hasV1, hasV2, mergedPool: hasAll && hasV1 && hasV2 }; })()",
+      "description": "P4断言: 进入IN_REVIEW+买手合并审核视图+批次筛选全部/v1/v2",
+      "storeAs": "p4_mergedReview"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const groupNav = document.querySelector('[class*=group-nav], [class*=sidebar]'); const images = document.querySelectorAll('img, [class*=image-card], [class*=photo]'); const discardBtns = Array.from(document.querySelectorAll('button, [class*=action]')).filter(b => b.textContent.includes('弃用')); const passBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent.includes('通过') || b.textContent.includes('提交审核')) && !b.disabled); return { groupNavExists: !!groupNav, imageCount: images.length, discardAvailable: discardBtns.length > 0, passAvailable: !!passBtn, mergedImagePool: images.length > 0 }; })()",
+      "description": "P4断言: 合并图池展示(v1+v2图片混合)+弃用/通过操作可用",
+      "storeAs": "p4_imagePool"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 5: 时间线验证 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const timelineBtn = Array.from(document.querySelectorAll('button, a, [class*=timeline]')).find(b => b.textContent.includes('时间线')); if (timelineBtn) { timelineBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "P5操作: 打开时间线",
+      "storeAs": "p5_openTimeline"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer, [class*=drawer]'); const text = drawer?.textContent || ''; const hasRejectEvent = text.includes('驳回') || text.includes('确认驳回'); const hasSupplementEvent = text.includes('补充上传') || text.includes('补拍'); const hasReviewEvent = text.includes('评审') || text.includes('发起评审'); return { drawerOpen: !!drawer, hasRejectEvent, hasSupplementEvent, hasReviewEvent, fullCycleRecorded: hasRejectEvent && hasSupplementEvent && hasReviewEvent }; })()",
+      "description": "P5断言: 时间线记录驳回+补充上传+发起评审事件",
+      "storeAs": "p5_timeline"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-supplement-merged-review"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在RETURNED状态的迭代（Leader确认驳回后）",
+    "stepsText": "1. 验证产运默认看到结果视图+返修意见\n2. 验证批次筛选v1+v1冻结只读\n3. 补充上传创建v2+发起评审→IN_REVIEW\n4. 买手合并审核v1+v2图池+批次筛选全部/v1/v2\n5. 时间线记录完整",
+    "expectedResult": "1. 产运默认进入结果视图看到返修意见\n2. 补充上传创建v2批次\n3. 历史v1作为冻结区只读\n4. 提交后买手以v1+v2合并图池审核\n5. 批次筛选展示全部/v1/v2\n6. 时间线记录驳回和补充上传事件",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/端到端",
+    "stateTransitions": ["RETURNED→IN_REVIEW"]
+  }
+}

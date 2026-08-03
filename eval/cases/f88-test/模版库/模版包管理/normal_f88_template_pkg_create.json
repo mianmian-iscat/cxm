@@ -1,0 +1,195 @@
+{
+  "id": "normal_f88_template_pkg_create",
+  "name": "模版包管理 - 新建模板包3步向导完整流程",
+  "description": "进入店铺详情，点击'新建模版包'，完成3步向导：Step1基础信息(模板包名称≤30字/应用环节[搭配/视觉/套图]/应用场景[主图素材/种草素材]/描述≤300字) → Step2选择模版图 → Step3配置确认。实测确认：下一步按钮在必填字段未填时disabled。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template",
+    "CRUD",
+    "create"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "打开模版包管理页面（店铺卡片列表）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待店铺卡片列表加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard]'); for(const c of cards) { if(c.innerText?.includes('F88测试店铺')) { c.querySelector('button')?.click(); return 'F88测试店铺'; } } for(const c of cards) { const cnt = c.querySelector('[class*=templateCount]'); if(cnt && parseInt(cnt.innerText) > 0) { c.querySelector('button')?.click(); return c.innerText?.substring(0,40); } } return false; })()",
+      "description": "进入F88测试店铺详情（或第一个有包的店铺）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待模板包卡片列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-pkg-pkg-list",
+      "description": "截图-模板包列表"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|package|create",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "新建模版包",
+      "description": "点击'新建模版包'按钮（实测确认：按钮文本为'新建模版包'而非'新建模板包'）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待新建向导Step1渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-pkg-step1",
+      "description": "截图-Step1基础信息"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const steps = Array.from(document.querySelectorAll('.ant-steps-item')); return steps.map(s => ({ text: s.innerText?.trim()?.substring(0,15), status: s.classList.toString().match(/process|finish|wait/)?.[0] })); })()",
+      "description": "采集向导进度条（预期: Step1=process, Step2=wait, Step3=wait）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "基础信息",
+      "description": "验证当前为Step1基础信息"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入模版包名称']",
+      "value": "auto_test_0710",
+      "react": true,
+      "description": "Step1-填写模板包名称（max 30字符）"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "description": "展开'应用环节'Select"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待下拉"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content')).map(o => o.innerText?.trim()).filter(Boolean)",
+      "description": "采集应用环节选项（实测: [搭配, 视觉, 套图]）"
+    },
+    {
+      "type": "clickText",
+      "text": "套图",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "fallback": {
+        "type": "evaluate",
+        "expression": "document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')?.click()"
+      },
+      "description": "选择应用环节=套图"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "description": "展开'应用场景'Select"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content')).map(o => o.innerText?.trim()).filter(Boolean)",
+      "description": "采集应用场景选项（实测: [主图素材, 种草素材]）"
+    },
+    {
+      "type": "clickText",
+      "text": "主图素材",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "fallback": {
+        "type": "evaluate",
+        "expression": "document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')?.click()"
+      },
+      "description": "选择应用场景=主图素材"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "fill",
+      "selector": "textarea[placeholder*='模版包用途'], textarea",
+      "value": "自动化测试描述",
+      "react": true,
+      "description": "填写描述（可选，max 300字符）"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-pkg-step1-filled",
+      "description": "截图-Step1填写完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('button')).find(b => b.innerText?.includes('下一步'))?.disabled",
+      "description": "检查'下一步'按钮是否可用（实测: 必填完成后才可用）"
+    },
+    {
+      "type": "clickText",
+      "text": "下一步",
+      "within": "button",
+      "description": "点击'下一步'进入Step2"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待Step2加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-pkg-step2",
+      "description": "截图-Step2选择模版图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.body.innerText.substring(0, 1000)",
+      "description": "采集Step2页面内容"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-pkg-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "实测2026-07-09: 新建为3步向导(ant-steps)，Step1基础信息字段: 模板包名称(input max30)/应用环节(Select: 搭配/视觉/套图)/应用场景(Select: 主图素材/种草素材)/描述(textarea max300)。下一步按钮必填未完成时disabled。按钮文本'新建模版包'(模版非模板)。无file upload在Step1。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，存在有模板包的店铺"
+}

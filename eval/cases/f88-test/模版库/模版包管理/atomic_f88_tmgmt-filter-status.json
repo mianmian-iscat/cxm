@@ -1,0 +1,73 @@
+{
+  "id": "atomic-f88-tmgmt-filter-status",
+  "name": "UI：模版包管理-使用状态筛选验证(AntD Select)",
+  "description": "选择使用状态进行筛选",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "selectOption",
+      "label": "使用状态",
+      "option": "使用中",
+      "description": "筛选使用中"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmgmt-filter-status",
+      "description": "使用状态筛选"
+    },
+    {
+      "type": "selectOption",
+      "label": "使用状态",
+      "option": "全部",
+      "description": "重置"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模版包数据",
+    "realDomNotes": "使用状态AntD Select: 全部/使用中/未使用",
+    "riskPoints": []
+  }
+}

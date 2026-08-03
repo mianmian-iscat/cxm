@@ -1,0 +1,53 @@
+{
+  "id": "TC-PM-001",
+  "name": "TC-PM-001 — 5类角色权限差异验证 [P0]",
+  "description": "验证5类角色（买手/产运/Leader/管理员/其他人）在各页面的操作权限差异",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "权限与状态机",
+  "page": "全局",
+  "priority": "P0",
+  "category": "permission",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const addShop = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('添加风格店')); const sortMode = !!Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('调整排序') || b.textContent.includes('排序')); const viewSwitch = !!document.querySelector('[class*=view-switch]'); return { addShop, sortMode, viewSwitch, canViewList: text.length > 100 }; })()",
+      "description": "检查当前角色可见操作",
+      "storeAs": "currentRoleActions"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tbody tr'); const actions = []; for (let i = 0; i < Math.min(rows.length, 3); i++) { const row = rows[i]; const btns = Array.from(row.querySelectorAll('button, a')).map(b => b.textContent.trim()).filter(t => t.length > 0); actions.push({ row: i, actions: btns }); } return { actions }; })()",
+      "description": "检查前3行的操作按钮",
+      "storeAs": "rowActions"
+    },
+    {
+      "type": "screenshot",
+      "label": "role-permissions"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "使用不同角色账号登录验证",
+    "stepsText": "1. 买手登录：验证可为负责店铺新增视觉/修改买手/终止\n2. 产运登录：验证不可新增视觉/终止\n3. Leader登录：验证可调整排序/终止\n4. 管理员：验证可添加风格店/所有操作\n5. 其他人：验证只读",
+    "expectedResult": "1. 买手：可新增视觉(负责店铺)、修改买手(负责店铺)、终止(负责店铺)\n2. 产运：不可终止、不可添加风格店(精简版权限)\n3. Leader：可调整排序、可修改买手(跨店铺)、可终止\n4. 管理员：可添加风格店、所有操作\n5. 其他人：只读查看",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/权限与状态机"
+  }
+}

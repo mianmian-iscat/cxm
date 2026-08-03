@@ -1,0 +1,268 @@
+{
+  "id": "normal_f88_template_library_filter",
+  "name": "淘内资源池 - 筛选专项(4筛选+7标签+重置)",
+  "description": "覆盖淘内资源池全部筛选功能：4个基础筛选(Seller ID/店铺名称/Item ID/图片ID)逐个填充验证+7维度标签点击筛选+标签选中/取消+重置按钮清空验证+筛选结果数量对比。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template-library",
+    "filter",
+    "regression"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 4000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "description": "打开淘内资源池页面"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待图片资源加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "验证租户身份"
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder], input.ant-input'); const labels = document.querySelectorAll('label, .ant-form-item-label, [class*=label]'); const btns = document.querySelectorAll('button, .ant-btn'); return { inputCount: inputs.length, inputs: Array.from(inputs).map(i=>({placeholder:i.placeholder,type:i.type})), labels: Array.from(labels).map(l=>l.textContent.trim()).filter(Boolean).slice(0,15), hasReset: Array.from(btns).some(b=>/重置/.test(b.textContent)) }; })()",
+      "description": "探查全部筛选组件: Input/Label/重置按钮"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|library|filter|search",
+      "description": "开始网络抓包-监控筛选API"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('img[src*=aifashion], img[src*=template], img[src*=oss]'); const cards = document.querySelectorAll('[class*=card], [class*=thumb], [class*=item]'); return { initialImgCount: imgs.length, initialCardCount: cards.length }; })()",
+      "description": "记录初始图片/卡片数量(筛选前基准)"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='Seller'], input[placeholder*='seller']",
+      "value": "2219662018344",
+      "react": true,
+      "data-test-target": "filter-seller-id",
+      "description": "填充Seller ID筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-seller-id",
+      "description": "截图-Seller ID筛选后",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('img[src*=aifashion], img[src*=template], img[src*=oss]'); return { countAfterSellerFilter: imgs.length }; })()",
+      "description": "统计Seller ID筛选后图片数量",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "data-test-target": "reset-btn",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='店铺名称'], input[placeholder*='店铺']",
+      "value": "F88测试",
+      "react": true,
+      "data-test-target": "filter-shop-name",
+      "description": "填充店铺名称筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-shop-name",
+      "description": "截图-店铺名称筛选后",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('img[src*=aifashion], img[src*=template], img[src*=oss]'); return { countAfterShopFilter: imgs.length }; })()",
+      "description": "统计店铺名称筛选后图片数量",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='Item'], input[placeholder*='item']",
+      "value": "12345",
+      "react": true,
+      "data-test-target": "filter-item-id",
+      "description": "填充Item ID筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-item-id",
+      "description": "截图-Item ID筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='图片ID'], input[placeholder*='图片'], input[placeholder*='Image']",
+      "value": "67890",
+      "react": true,
+      "data-test-target": "filter-image-id",
+      "description": "填充图片ID筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果",
+      "optional": true
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-image-id",
+      "description": "截图-图片ID筛选后",
+      "optional": true
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder]'); const hasValue = Array.from(inputs).some(i => i.value && i.value.trim()); return { allCleared: !hasValue, inputValues: Array.from(inputs).map(i=>({placeholder:i.placeholder,value:i.value})) }; })()",
+      "description": "验证重置后所有筛选条件已清空"
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-after-reset",
+      "description": "截图-重置后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dims = ['设计','搭配','拍摄','场景','光影','构图','视觉']; return dims.map(d => { const els = Array.from(document.querySelectorAll('[class*=tag], .ant-tag, [class*=label], [class*=dimension]')).filter(el => el.textContent.includes(d)); return { dimension: d, found: els.length > 0, count: els.length }; }); })()",
+      "description": "检查7个标签维度是否全部渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-tags",
+      "description": "截图-标签维度区域"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tags = document.querySelectorAll('[class*=tag], .ant-tag, [class*=dimension]'); if(tags.length) { tags[0].click(); return { clicked: true, text: tags[0].textContent.trim(), class: tags[0].className?.substring(0,60) }; } return { clicked: false }; })()",
+      "data-test-target": "tag-filter-click",
+      "description": "点击第一个标签维度"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待标签筛选触发"
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-tag-selected",
+      "description": "截图-标签选中后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('img[src*=aifashion], img[src*=template], img[src*=oss]'); const active = document.querySelectorAll('[class*=active], [class*=checked], [class*=selected]'); return { countAfterTagFilter: imgs.length, activeTagCount: active.length }; })()",
+      "description": "验证标签筛选效果: 图片数量变化+选中标签"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const active = document.querySelector('[class*=tag][class*=active], .ant-tag-checkable-checked, [class*=selected]'); if(active) { active.click(); return { unclicked: true }; } return { unclicked: false }; })()",
+      "data-test-target": "tag-filter-cancel",
+      "description": "再次点击取消标签筛选",
+      "optional": true
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待取消",
+      "optional": true
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('img[src*=aifashion], img[src*=template], img[src*=oss]'); return { countAfterCancel: imgs.length }; })()",
+      "description": "验证取消标签后图片数量恢复",
+      "optional": true
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "filter-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "淘内资源池筛选专项: ①4个Input筛选(Seller ID/店铺名称/Item ID/图片ID, react:true) ②7维度标签点击筛选(设计/搭配/拍摄/场景/光影/构图/视觉) ③标签选中/取消 ④重置按钮清空所有筛选 ⑤每次筛选后对比图片数量验证效果。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，资源池存在模板数据"
+}

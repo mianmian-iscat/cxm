@@ -1,0 +1,87 @@
+{
+  "id": "atomic-f88-mc-pagination",
+  "name": "UI：店铺信息配置-分页功能验证",
+  "description": "验证分页组件存在且可翻页",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const pagination = document.querySelector('.ant-pagination'); const total = pagination?.querySelector('.ant-pagination-total-text')?.textContent?.trim() || ''; const items = pagination?.querySelectorAll('.ant-pagination-item')?.length || 0; const nextBtn = pagination?.querySelector('.ant-pagination-next'); return { hasPagination: !!pagination, totalText: total, pageCount: items, hasNext: !!nextBtn, nextDisabled: nextBtn?.classList?.contains('ant-pagination-disabled') }; })()",
+      "description": "获取分页信息",
+      "storeAs": "pageInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageInfo",
+      "path": "hasPagination",
+      "equals": true,
+      "description": "分页组件存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageInfo",
+      "path": "pageCount",
+      "gte": 2,
+      "description": "至少2页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const page2 = document.querySelector('.ant-pagination-item[title=\"2\"]'); if(page2) { page2.click(); return 'clicked page 2'; } return 'no page 2'; })()",
+      "description": "点击第2页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待翻页加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const active = document.querySelector('.ant-pagination-item-active'); return { activePage: active?.getAttribute('title') || active?.textContent?.trim() || '' }; })()",
+      "description": "验证当前页码",
+      "storeAs": "pageAfter"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-pagination",
+      "description": "翻页后"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在超过10条店铺配置",
+    "realDomNotes": "63条记录, 7页, 10条/页",
+    "riskPoints": []
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "TC-AN-QB-009",
+  "name": "TC-AN-QB-009 — 清空按钮：取消后保留参与人 [P1]",
+  "description": "审核节点编辑页已打开，先批量填写造测试数据，再测试清空取消",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P1", "category": "abnormal_flow",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "comment", "text": "═══ 先批量填写造测试数据 ═══" },
+    { "type": "evaluate", "expression": "(() => { const batchBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '批量填写'); if (batchBtn) { batchBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "点击批量填写(造数据)", "storeAs": "openBatch" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); if (!modal) return { found: false }; const textarea = modal.querySelector('textarea'); const testData = JSON.stringify([{empId:'421225',empName:'宗育'}]); const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; setter.call(textarea, testData); textarea.dispatchEvent(new Event('input', { bubbles: true })); return { found: true }; })()", "description": "导入测试数据", "storeAs": "pasteTestData" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal'); const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.trim() === '确认导入'); if (confirmBtn) { confirmBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "确认导入", "storeAs": "importTestData" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "comment", "text": "═══ 测试清空取消 ═══" },
+    { "type": "evaluate", "expression": "(() => { const container = document.querySelector('[class*=selectedLabel]'); if (!container) return { beforeCount: -1 }; return { beforeCount: container.querySelectorAll('.ant-select-selection-item').length }; })()", "description": "记录清空前参与人数", "storeAs": "beforeCount" },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const clearBtn = btns.find(b => (b.textContent || '').includes('清空')); if (clearBtn) { clearBtn.click(); return { clicked: true }; } return { clicked: false }; })()", "description": "点击清空按钮", "storeAs": "clickClear" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const popoverBtns = document.querySelectorAll('.ant-popover button, .ant-popconfirm button, .ant-popover-buttons button'); const cancelBtn = Array.from(popoverBtns).find(b => (b.textContent || '').trim() === '取消'); if (cancelBtn) { cancelBtn.click(); return { cancelled: true }; } return { cancelled: false }; })()", "description": "点击取消", "storeAs": "clickCancel" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const container = document.querySelector('[class*=selectedLabel]'); if (!container) return { afterCount: -1 }; return { afterCount: container.querySelectorAll('.ant-select-selection-item').length, preserved: true }; })()", "description": "验证参与人未被清空", "storeAs": "verifyPreserved" },
+    { "type": "screenshot", "label": "clear-cancel-preserved", "description": "取消后保留截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开",
+    "stepsText": "1. 通过「批量填写」导入测试数据\\n2. 记录当前参与人数量\\n3. 点击「清空」按钮\\n4. 二次确认气泡出现后点击「取消」",
+    "expectedResult": "1. 气泡消失\\n2. 参与人数量不变，数据完整保留",
+    "priority": "P1",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

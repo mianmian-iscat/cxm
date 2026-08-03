@@ -1,0 +1,34 @@
+{
+  "id": "TC-AN-QB-003",
+  "name": "TC-AN-QB-003 — 批量填写：合法JSON全部导入成功 [P0]",
+  "description": "审核节点编辑页已打开，已选参与人区域可编辑",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮",
+  "page": "审核节点编辑页",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle", "description": "打开审核节点管理页" },
+    { "type": "wait", "ms": 3000, "description": "等待页面加载" },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑进入节点编辑页", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000, "description": "等待编辑页加载" },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const batchBtn = btns.find(b => (b.textContent || '').includes('批量填写') || (b.textContent || '').includes('批量导入')); if (!batchBtn) return { clicked: false, error: '未找到批量填写按钮' }; batchBtn.click(); return { clicked: true, btnText: batchBtn.textContent.trim() }; })()", "description": "点击批量填写按钮", "storeAs": "clickBatch" },
+    { "type": "wait", "ms": 1000, "description": "等待弹窗出现" },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); if (!modal) return { found: false, error: '弹窗未出现' }; const textarea = modal.querySelector('textarea, .ant-input'); if (!textarea) return { found: false, error: '弹窗内无输入框' }; const validJson = JSON.stringify([{empId:'421225',empName:'宗育'},{empId:'320729',empName:'澜蓝'}]); const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set; nativeInputValueSetter.call(textarea, validJson); textarea.dispatchEvent(new Event('input', { bubbles: true })); textarea.dispatchEvent(new Event('change', { bubbles: true })); return { found: true, inputted: validJson }; })()", "description": "在弹窗内粘贴合法JSON数组", "storeAs": "pasteJson" },
+    { "type": "wait", "ms": 500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); if (!modal) return { clicked: false }; const confirmBtn = Array.from(modal.querySelectorAll('button')).find(b => (b.textContent || '').includes('确认导入') || (b.textContent || '').includes('确认') || (b.textContent || '').includes('确定')); if (!confirmBtn) return { clicked: false, error: '未找到确认按钮' }; confirmBtn.click(); return { clicked: true }; })()", "description": "点击确认导入", "storeAs": "confirmImport" },
+    { "type": "wait", "ms": 2000, "description": "等待导入处理和toast" },
+    { "type": "evaluate", "expression": "(() => { const toasts = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); const hasResult = toastTexts.some(t => t.includes('总计') && t.includes('成功')); const modalClosed = !document.querySelector('.ant-modal:not([style*=display\\\\:\\\\ none]), .ant-drawer:not([style*=display\\\\:\\\\ none])'); return { toasts: toastTexts, hasResult, modalClosed }; })()", "description": "验证toast统计信息和弹窗关闭", "storeAs": "verifyResult" },
+    { "type": "screenshot", "label": "batch-fill-success", "description": "批量填写成功截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开，已选参与人区域可编辑",
+    "stepsText": "1. 点击「批量填写」按钮\\n2. 弹窗内粘贴合法JSON: [{empId:'421225',empName:'宗育'},{empId:'320729',empName:'澜蓝'}]\\n3. 点击「确认导入」",
+    "expectedResult": "1. 校验通过，弹窗关闭，输入框清空\\n2. 合法项与已有参与人合并去重写入表单\\n3. toast展示10秒:「总计 N 条，成功 N 条，实际新增 M 位」",
+    "priority": "P0",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

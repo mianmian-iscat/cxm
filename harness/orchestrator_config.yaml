@@ -1,0 +1,80 @@
+# orchestrator_config.yaml — 主Agent控制面配置
+# 差距 2.2 补齐 + OKF 改造集成
+
+# ── 记忆系统（借鉴 cloth-test-memory L0/L1/L2 分层）──
+memory:
+  l0_iron_rules:
+    enabled: true
+    path: memory/L0/
+    load_on_start: true       # 每次会话强制加载
+    files:
+      - 01-data-safety.md
+      - 02-multi-skill-verification.md
+      - 03-no-att-report.md
+      - 04-tenant-isolation.md
+  l1_context:
+    enabled: true
+    path: memory/L1/
+    load_on_demand: true      # 按业务域按需加载
+  l2_history:
+    enabled: true
+    path: memory/L2/
+    load_on_demand: true      # 需要时检索
+
+# ── OKF 知识库集成 ──
+knowledge:
+  okf_bundle:
+    enabled: true
+    path: knowledge/okf/
+    index_file: INDEX.md
+    governance_file: GOVERNANCE.md
+    layers:
+      features: knowledge/okf/features/
+      execution: knowledge/okf/execution/
+      infra: knowledge/okf/infra/
+      learnings: knowledge/okf/learnings/
+      regression: knowledge/okf/regression/
+  # 知识晋升链：失败 → 分类 → 提取 → 写入 learnings
+  promotion_chain:
+    enabled: true
+    trigger: on_finalize       # 在 finalize_flow 中触发
+    min_failure_count: 2       # 同一 pattern 失败 >= 2 次才沉淀
+
+# ── Phase Gate 门禁 ──
+phase_gates:
+  enabled: true
+  config_file: harness/phase_gates.yaml
+  # 门禁未通过时是否等待人工确认
+  wait_for_human: true
+  # 门禁超时（分钟）
+  timeout_minutes: 30
+
+# Token 预算控制
+budget:
+  max_tokens: 1000000        # 单次会话 Token 上限（1M）
+  warning_threshold: 0.8     # 80% 时告警
+  degrade_mode: "plan"       # 超额时降级为 Plan 模式
+  per_step_limit: 100000     # 单步骤 Token 上限
+
+# 并发控制
+concurrency:
+  max_parallel_agents: 5     # 最大并行 Agent 数
+  queue_timeout_seconds: 30  # 排队超时（秒）
+  max_retries: 3             # 最大重试次数
+
+# 复杂度判断阈值
+complexity:
+  simple:
+    max_steps: 3             # 步骤数 <= 3 视为简单
+    max_systems: 1           # 涉及系统数 <= 1
+  medium:
+    max_steps: 8             # 步骤数 <= 8 视为中等
+    max_systems: 3           # 涉及系统数 <= 3
+  # 超过 medium 阈值视为复杂
+
+# 熔断器配置
+circuit_breaker:
+  consecutive_failures: 3    # 连续失败次数触发熔断
+  failure_rate_threshold: 0.4 # 失败率超过 40% 触发熔断
+  cooldown_seconds: 60       # 熔断冷却时间（秒）
+  half_open_max_requests: 1  # 半开状态最大请求数

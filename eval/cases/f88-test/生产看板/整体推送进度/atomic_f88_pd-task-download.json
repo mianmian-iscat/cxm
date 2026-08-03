@@ -1,0 +1,90 @@
+{
+  "id": "atomic-f88-pd-task-download",
+  "name": "UI：生产看板-任务下载功能验证",
+  "description": "验证看板中任务下载按钮",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim().includes('下载')); return { count: btns.length, texts: btns.map(b => b.textContent.trim()) }; })()",
+      "description": "查找下载按钮",
+      "storeAs": "dlBtns"
+    },
+    {
+      "type": "assertStore",
+      "key": "dlBtns",
+      "path": "found",
+      "equals": true,
+      "description": "验证 查找下载按钮 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生产",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "点击下载按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作响应"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-click-dlBtns",
+      "description": "点击下载后截图"
+    },
+    {
+      "type": "screenshot",
+      "label": "pd-task-download",
+      "description": "任务下载按钮"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在生产数据",
+    "realDomNotes": "",
+    "riskPoints": []
+  }
+}

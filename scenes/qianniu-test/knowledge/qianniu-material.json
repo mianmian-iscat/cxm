@@ -1,0 +1,126 @@
+{
+  "id": "qianniu-material",
+  "description": "千牛商家工作台 - 素材管理页面（搜推素材/搭配创建编辑）",
+  "lastUpdated": "2026-04-22",
+
+  "pages": {
+    "materialMgmt": {
+      "name": "素材管理",
+      "url": "https://qn.wapa.taobao.com/home.htm/material-center/material-management",
+      "urlPattern": "qn.wapa.taobao.com",
+      "urlRoute": "material-center/material-management",
+      "tabParams": {
+        "搜推素材-搭配": "?tab=recommend&subTab=SCU",
+        "搜推素材-单品": "?tab=recommend&subTab=singleProduct",
+        "基础素材": "?tab=basic",
+        "活动素材": "?tab=activity"
+      }
+    },
+    "collocationEdit": {
+      "name": "搭配编辑页",
+      "urlPattern": "qn.wapa.taobao.com",
+      "urlRoute": "material-center/collocation-edit",
+      "note": "SPA 路由跳转，不新开 tab"
+    }
+  },
+
+  "uiFramework": "@alifd/next（class 前缀 next-）",
+
+  "pageZones": {
+    "note": "素材管理页分三个竖向区域",
+    "zone1": {
+      "name": "搜推素材质量诊断",
+      "type": "只读展示",
+      "content": "每周一更新的经营情况周报，无可交互操作"
+    },
+    "zone2": {
+      "name": "搜推素材拿量效果",
+      "type": "数据面板",
+      "filters": ["消费场域", "素材类型", "统计时间"],
+      "filterSelector": "class 前缀 ContentFilter_filter-content-item__，active 后缀为选中态",
+      "expandTrend": "点击「展开数据趋势」按钮"
+    },
+    "zone3": {
+      "name": "素材管理列表",
+      "type": "列表操作区",
+      "actions": ["查看商品及预览", "编辑搭配", "创建图文搭配", "删除搭配", "批量操作"]
+    }
+  },
+
+  "selectors": {
+    "filterItem": "[class*='ContentFilter_filter-content-item__']",
+    "filterItemActive": "[class*='ContentFilter_filter-content-item__'][class*='active']",
+    "dialog": "[class*='next-dialog-']",
+    "sucaiSelectorIframe": "iframe[src*='sucai-selector']",
+    "sucaiSelectorUrl": "market.m.taobao.com/app/crs-qn/sucai-selector-ng/index",
+    "notifyPanel": "[class*='notify_bg'], [class*='notify_body']",
+    "guideTour": "button（text='下一个' 或 '关闭'）",
+    "titleTextarea": "textarea#title",
+    "descTextarea": "textarea#description"
+  },
+
+  "collocationCreateFlow": {
+    "entry": "区域三 → 「创建图文搭配」按钮",
+    "steps": [
+      "进入创建页后循环关闭引导弹窗（下一个 → 关闭）",
+      "步骤一：上传图片（点「添加搭配图」→ 素材选择器 iframe → 本地上传 → 选图 → 裁剪 → 确定）",
+      "步骤二：添加商品（裁剪确定后自动弹出锚点弹窗 → 添加商品 → 切「按商品ID」→ 搜索 → 勾选 → 确认）",
+      "步骤三：填写标题和正文（textarea#title + textarea#description，React setter 写入）",
+      "步骤四：保存草稿 或 发布内容"
+    ],
+    "saveReturnsToList": true
+  },
+
+  "fileUploadFlow": {
+    "note": "没有标准 input[type='file']，必须通过素材选择器 iframe",
+    "steps": [
+      "清除遮挡（notify_bg 等）",
+      "点「添加搭配图」按钮",
+      "等待素材选择器 iframe 出现（url 含 sucai-selector）",
+      "在 iframe 内点「本地上传」",
+      "用 page.waitForFileChooser() 拦截文件选择器，上传文件",
+      "等待图片显示在 iframe 中",
+      "点 checkbox 选中图片（⚠️ checkbox 仅 hover 时可见，先 mouse.move 再 click）",
+      "点「确定」进入裁剪",
+      "点裁剪确认（⚠️ 裁剪是必须步骤，否则保存按钮永远 disabled）",
+      "⚠️ 裁剪确定后 iframe detach，不要再操作 selectorFrame"
+    ],
+    "imageConstraints": "3:4 比例，≥750×1000px，JPG/PNG，<5MB，最多 9 张"
+  },
+
+  "productSelectFlow": {
+    "note": "锚点弹窗内的商品搜索",
+    "steps": [
+      "点「添加商品」",
+      "点搜索类型下拉，切换到「按商品ID」（默认是按商品名）",
+      "填入商品 ID（⚠️ 必须用 React setter + dispatchEvent，不能用 page.type()）",
+      "点搜索",
+      "勾选目标商品",
+      "点「确认」"
+    ]
+  },
+
+  "knownIssues": [
+    "SPA 导航：编辑/创建通过路由跳转，不新开 tab，返回列表需 page.goto()",
+    "React controlled input：textarea/input 必须用 native setter + dispatchEvent，page.type() 会卡死",
+    "文件上传没有标准 input[type='file']，必须走素材选择器 iframe → 本地上传路径",
+    "checkbox 仅 hover 时可见，必须先 mouse.move 到坐标再 click",
+    "裁剪是必须步骤，无论图片比例是否已满足，否则保存按钮永远 disabled",
+    "裁剪确定后 iframe 会 detach，后续不能操作原 selectorFrame 引用",
+    "引导弹窗（guide tour）在进入新页面后可能出现，需循环关闭（下一个 → 关闭）",
+    "notify_bg 通知面板会遮挡上传按钮，操作前必须先隐藏",
+    "操作按钮前用 document.elementFromPoint() 检测遮挡，循环隐藏遮挡元素",
+    "裁剪确定后自动弹出「添加宝贝和锚点」弹窗，不需要额外触发",
+    "商品选择弹窗默认「按商品名」搜索，需先切换到「按商品ID」",
+    "截图用 CDP Page.captureScreenshot，不用 page.screenshot()（viewport 不匹配时只截部分）",
+    "登录态过期：跳转到 loginmyseller.taobao.com 需重新登录",
+    "预发域名 qn.wapa.taobao.com，不是线上 qn.taobao.com"
+  ],
+
+  "assertHints": {
+    "素材列表加载完成": "页面出现「条」或「共」文字",
+    "搭配创建成功": "跳回列表页，列表中出现新建的搭配标题",
+    "图片上传成功": "素材选择器 iframe 内图片缩略图可见",
+    "商品添加成功": "锚点弹窗内出现商品名或 ID"
+  }
+}

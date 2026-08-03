@@ -1,0 +1,29 @@
+{
+  "id": "TC-AN-QB-007",
+  "name": "TC-AN-QB-007 — 批量填写：空输入 [P2]",
+  "description": "审核节点编辑页已打开",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P2", "category": "edge_case",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row'); if (rows.length > 0) { const editBtn = rows[0].querySelector('a[href*=edit], button'); if (editBtn) { editBtn.click(); return { clicked: true }; } } return { clicked: false }; })()", "description": "点击编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const batchBtn = btns.find(b => (b.textContent || '').includes('批量填写')); if (!batchBtn) return { clicked: false }; batchBtn.click(); return { clicked: true }; })()", "description": "点击批量填写", "storeAs": "clickBatch" },
+    { "type": "wait", "ms": 1000 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); const confirmBtn = modal ? Array.from(modal.querySelectorAll('button')).find(b => (b.textContent || '').includes('确认')) : null; if (confirmBtn) { confirmBtn.click(); return { clicked: true, note: '输入框为空直接点确认' }; } return { clicked: false }; })()", "description": "输入框为空，直接点击确认导入", "storeAs": "confirmEmpty" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "evaluate", "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); const modalStillOpen = !!modal && modal.offsetParent !== null; const toasts = document.querySelectorAll('.ant-message-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); return { modalStillOpen, toastTexts }; })()", "description": "验证空输入时的行为", "storeAs": "verifyEmpty" },
+    { "type": "screenshot", "label": "batch-fill-empty-input", "description": "空输入截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开",
+    "stepsText": "1. 点击「批量填写」\\n2. 不输入任何内容\\n3. 点击确认导入",
+    "expectedResult": "弹窗保持打开，提示输入不能为空",
+    "priority": "P2",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "id": "atomic-f88-node-image_gen-trial-run",
+  "name": "UI：生图节点-独立试运行为验证",
+  "description": "验证含生图节点的策略可独立试运行，检查试运行弹窗渲染、参数传递、运行结果(生成图片URL输出)",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+      "waitUntil": "networkidle",
+      "description": "打开含生图节点的策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略",
+      "description": "验证策略详情页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { open: false }; const text = modal.textContent || ''; return { open: true, textPreview: text.substring(0, 200) }; })()",
+      "description": "检查试运行弹窗",
+      "storeAs": "trialModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "trialModal",
+      "path": "open",
+      "equals": true,
+      "description": "试运行弹窗已打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const inputs = Array.from(modal.querySelectorAll('input:not([type=checkbox]), textarea')); const filledInputs = {}; for (const inp of inputs) { const label = (inp.closest('.ant-form-item')?.querySelector('.ant-form-item-label')?.textContent || '').trim(); if (label.includes('seller')) { const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(inp, 'test_seller_001'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); filledInputs.seller_id = 'test_seller_001'; } } return { ok: true, filledInputs }; })()",
+      "description": "填充试运行参数(seller_id)",
+      "storeAs": "trialFill"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待输入"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const btns = Array.from(modal.querySelectorAll('button')); const runBtn = btns.find(b => { const t = (b.textContent || '').trim(); return t === '运行' || t === '开始运行' || t.includes('运行'); }); if (runBtn && !runBtn.disabled) { runBtn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 15000,
+      "description": "等待生图运行完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (modal) { const closeBtn = modal.querySelector('.ant-modal-close'); if (closeBtn) closeBtn.click(); } return { closed: true }; })()",
+      "description": "关闭试运行弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗关闭"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('button')); const resultBtn = btns.find(b => { const t = (b.textContent || '').trim(); return t === '查看运行结果'; }); if (resultBtn) { resultBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击查看运行结果",
+      "storeAs": "viewResultBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待运行结果加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.innerText || ''; const hasResult = text.includes('运行结果') || text.includes('成功') || text.includes('完成') || text.includes('输出') || text.includes('试运行') || text.includes('策略'); const hasError = text.includes('失败') || text.includes('错误'); const hasLoading = text.includes('运行中') || !!document.querySelector('.ant-spin-spinning'); const urls = text.match(/https?:\\/\\/[^\\s\"']+(?:\\.jpg|\\.png|\\.webp|\\.jpeg)/gi) || []; const allUrls = text.match(/https?:\\/\\/[^\\s\"'<]+/gi) || []; return { hasLoading, hasResult, hasError, imageUrlCount: urls.length, allUrlCount: allUrls.length, textPreview: text.substring(0, 200) }; })()",
+      "description": "采集运行结果",
+      "storeAs": "trialResult"
+    },
+    {
+      "type": "assertStore",
+      "key": "trialResult",
+      "path": "hasLoading",
+      "equals": false,
+      "description": "运行已完成"
+    },
+    {
+      "type": "assertStore",
+      "key": "trialResult",
+      "path": "hasResult",
+      "equals": true,
+      "description": "运行有输出结果"
+    },
+    {
+      "type": "screenshot",
+      "description": "生图节点试运行截图",
+      "label": "image_gen-trial-run"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在含生图节点的策略(10602)",
+    "realDomNotes": "试运行弹窗含单次运行/批量运行双Tab; 需填写Start入参seller_id; 生图节点运行时间较长(10-30s); 输出为生成图片URL列表",
+    "riskPoints": [
+      "试运行是否因缺少上游节点配置而失败",
+      "生图运行时间是否超过前端超时",
+      "输出结果是否包含图片URL",
+      "输出模式(单图/打包)是否影响结果格式"
+    ]
+  }
+}

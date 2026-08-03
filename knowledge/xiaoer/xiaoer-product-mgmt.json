@@ -1,0 +1,243 @@
+{
+  "id": "xiaoer-product-mgmt",
+  "description": "品质联盟运营工作台 - 平台商品管理（含 SKU 详情与上下架）",
+  "uiFramework": "tbd-formily",
+  "captureFilter": "/cobweb/api/",
+  "lastUpdated": "2026-04-22",
+
+  "pageUrl": "https://xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management?opGroupId=2.61036.61036.0.61036",
+  "pageUrlPre": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management?opGroupId=2.61036.61036.0.61036",
+  "urlPattern": "xiaoer.alibaba-inc.com",
+  "urlRoute": "quality-pulse/product-management",
+
+  "notes": [
+    "筛选栏默认折叠，买手/类目等字段需要先点「展开」才可见",
+    "「仅看我的」默认勾选，搜索全量数据时需先取消",
+    "重置按钮会重新勾上「仅看我的」，需要在重置后再次取消",
+    "表格加载完成标志：页面出现「总共 N 个 SKC」文字",
+    "UI 框架为 tbd（非标准 antd），按钮类名前缀为 tbd-btn，组件类名前缀为 tbd-"
+  ],
+
+  "statusTabs": {
+    "note": "点击顶部 Tab 可按状态筛选商品",
+    "tabs": ["全部", "待可售", "出售中", "仓库中", "已淘汰", "核价中", "调价中",
+             "样品流程中", "库存未生效", "商品上标异常", "调价异常",
+             "商品信息变更待审核", "平台品信息更新异常", "仓发超卖预警", "仓发补货待上架"],
+    "clickCode": "Array.from(document.querySelectorAll('*')).find(el => el.offsetParent !== null && el.innerText?.trim().startsWith(tabText))?.click()"
+  },
+
+  "fields": {
+    "供给商品ID": {
+      "type": "fill",
+      "selector": "input[placeholder='多个ID以英文逗号分隔']",
+      "selectorIndex": 0,
+      "note": "两个相同 placeholder 的输入框，第 0 个是供给商品ID"
+    },
+    "平台商品标题": {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "selectorIndex": 0
+    },
+    "平台商品ID": {
+      "type": "fill",
+      "selector": "input[placeholder='多个ID以英文逗号分隔']",
+      "selectorIndex": 1,
+      "note": "两个相同 placeholder 的输入框，第 1 个是平台商品ID"
+    },
+    "买手": {
+      "type": "selectOption",
+      "labelClass": "tbd-formily-item-label",
+      "requiresExpand": true,
+      "note": "需要先点「展开」，下拉使用坐标点击，选项用 TreeWalker 定位",
+      "knownOptions": [
+        "刘志龙(奕心)", "李杨(伯庭)", "王芳(嘉鹤)", "葛蓉(宁固)", "严皓亮(皓亮)",
+        "连勇", "周文静(灵雎)", "蒲宇(半苇)", "高猛(千家)", "余彤(明米)"
+      ]
+    },
+    "仅看我的": {
+      "type": "uncheckCheckbox",
+      "firstChecked": true,
+      "note": "默认勾选，搜索全量时需取消；重置后会重新勾上"
+    },
+    "商品类目": {
+      "type": "selectOption",
+      "labelClass": "tbd-formily-item-label",
+      "note": "展开后可见，级联选择"
+    },
+    "商品标签": {
+      "type": "selectOption",
+      "labelClass": "tbd-formily-item-label",
+      "note": "展开后可见"
+    }
+  },
+
+  "actions": {
+    "重置": { "type": "clickText", "text": "重置", "waitAfter": 600 },
+    "搜索": { "type": "clickText", "text": "搜索", "waitAfter": 3000, "note": "点击后等待 searchSkcV2 接口返回" },
+    "展开筛选": { "type": "clickText", "text": "展开", "optional": true, "note": "买手/类目等字段在折叠状态下不可见，需先展开" },
+    "导出": { "type": "clickText", "text": "导出" }
+  },
+
+  "rowActions": {
+    "note": "每行操作按钮组。按商品ID或标题定位行，再按钮文本点击。部分按钮在「更多」下拉菜单中。",
+    "mainButtons": {
+      "查看详情": "打开商品运营周期 Modal（不是 SKU 详情！）",
+      "试销完成": "标记试销阶段完成",
+      "查看商品信息": "查看平台商品信息面板",
+      "商品下架": "对整个商品执行下架（SKC 级别）",
+      "查看库存": "展开 SKU 级库存面板"
+    },
+    "moreMenuItems": {
+      "note": "点击「更多」按钮后出现下拉菜单，以下操作在菜单中",
+      "查看sku详情": "打开 SKU 详情 Modal，可查看/切换每个 SKU 的上下架状态",
+      "提报价调价": "修改提报价",
+      "日销价调价": "修改日销价，触发 checkTriggerApprove + startAdjustdailySellPrice 接口",
+      "开启复色": "开启复色操作",
+      "淘汰": "标记商品淘汰"
+    },
+    "locateRowCode": "Array.from(document.querySelectorAll('[class*=\"tbd-table-row\"]')).find(row => row.innerText?.includes(identifier))",
+    "clickMoreMenu": {
+      "step1": "找到目标行的「更多」button，坐标点击（button.getBoundingClientRect()）",
+      "step2": "等待 1s，菜单出现",
+      "step3": "找到 li[text=目标选项]，坐标点击（li 坐标，不是 0,0）",
+      "pitfall": "li.getBoundingClientRect() 返回 (0,0) 时说明菜单还未渲染，需等待后重新获取坐标"
+    }
+  },
+
+  "skuDetailModal": {
+    "note": "「更多」→「查看sku详情」打开的 Modal，不会导致页面跳转",
+    "trigger": "更多 → 查看sku详情",
+    "selector": "[role=\"dialog\"]",
+    "structure": {
+      "skcFilter": "顶部有「SKC」下拉筛选器，默认显示全部 SKC 的全部 SKU",
+      "columns": ["SKC信息", "SKU信息", "库存", "价格信息", "发布状态", "是否上架"],
+      "shelfSwitch": {
+        "component": "tbd-switch（button[class*='tbd-switch']）",
+        "onState": "aria-checked='true'，class 含 tbd-switch-checked，inner-checked 文字为「上架」",
+        "offState": "aria-checked='false'，class 不含 tbd-switch-checked，旁边显示「下架」文字",
+        "toggle": "点击整个 switch button 切换，不要点子 span",
+        "locateBySkuName": "用 TreeWalker 找到 SKU 名文本节点，取 getBoundingClientRect().y，再找 y 差值 < 60 的 switch"
+      }
+    },
+    "submitFlow": {
+      "step1": "切换目标 SKU 的 switch（aria-checked 变化即生效）",
+      "step2": "点击弹窗底部「提交」button",
+      "step3": "等待 toast「SKU上下架操作成功」",
+      "submitApi": "fsShopItem.submitSkuShelf，POST，200 代表成功"
+    },
+    "verifyFlow": {
+      "note": "提交后关闭弹窗，重新通过「更多→查看sku详情」打开",
+      "assert": "目标 SKU 对应 switch 的 aria-checked 值 + shelfTexts 旁显示文字"
+    }
+  },
+
+  "apis": {
+    "搜索商品列表": {
+      "name": "searchSkcV2",
+      "method": "POST",
+      "urlKeyword": "fsShopItem.searchSkcV2",
+      "requestFields": {
+        "供给商品ID": "query.reportTaoItemIds[]",
+        "平台商品ID": "query.taoItemIds[]",
+        "买手工号": "query.buyerWorkNos[]",
+        "仅看我的": "query.selfViewOnly",
+        "分页": "pageQuery.pageNo / pageQuery.pageSize"
+      },
+      "responseFields": {
+        "总数": "data.data.totalElements",
+        "商品列表": "data.data.content[]",
+        "商品标题": "content[].itemTitle",
+        "买手名": "content[].buyerName",
+        "买手工号": "content[].buyerWorkNo",
+        "库存状态": "content[].inventoryStatus",
+        "SKC列表": "content[].skcList[]"
+      }
+    },
+    "统计SKC数量": {
+      "name": "countSkcItemV2",
+      "method": "POST",
+      "urlKeyword": "fsShopItem.countSkcItemV2",
+      "responseFields": {
+        "SKC总数": "data.data.skcCount",
+        "商品总数": "data.data.itemCount"
+      }
+    },
+    "调价审批校验": {
+      "name": "checkTriggerApprove",
+      "method": "POST",
+      "urlKeyword": "adjustPrice.checkTriggerApprove",
+      "requestFields": {
+        "平台商品ID": "itemId",
+        "SKU列表": "contentDTO[].skuId + offerPrice + dailySellTargetPrice"
+      },
+      "responseFields": {
+        "是否需要审批": "data.data.needApprove"
+      }
+    },
+    "提交日销价调价": {
+      "name": "startAdjustdailySellPrice",
+      "method": "POST",
+      "urlKeyword": "adjustPrice.startAdjustdailySellPrice",
+      "requestFields": {
+        "平台商品ID": "itemId",
+        "SKU调价列表": "contentDTO[].skuId + contentDTO[].dailySellTargetPrice"
+      },
+      "responseFields": {
+        "调价任务ID": "data.data.data"
+      }
+    },
+    "SKU上下架提交": {
+      "name": "submitSkuShelf",
+      "method": "POST",
+      "urlKeyword": "fsShopItem.submitSkuShelf",
+      "responseFields": {
+        "结果": "HTTP 200 即成功，页面 toast 显示「SKU上下架操作成功」"
+      }
+    }
+  },
+
+  "assertHints": {
+    "有搜索结果": {
+      "target": "page",
+      "contains": "总共",
+      "note": "仅验证页面有结果，不验证具体字段值"
+    },
+    "无结果": {
+      "target": "page",
+      "contains": "暂无"
+    },
+    "验证买手名": {
+      "target": "api",
+      "urlPattern": "searchSkcV2",
+      "path": "data.data.content[0].buyerName",
+      "note": "必须用 API 断言，不能用 target=page（商品标题可能含买手名导致误判）"
+    },
+    "验证SKU下架状态": {
+      "target": "dom",
+      "method": "重新打开SKU详情Modal，找目标SKU行的switch，aria-checked=false 且 shelfTexts 含「下架」"
+    },
+    "验证调价成功": {
+      "target": "api",
+      "urlPattern": "startAdjustdailySellPrice",
+      "path": "data.data.data",
+      "note": "响应中 data.data 为调价任务ID（数字），有值即成功"
+    }
+  },
+
+  "assertBestPractice": [
+    "验证字段值（如 buyerName）必须用 target=api，不要用 target=page",
+    "target=page 只适合验证页面级状态（「总共」「暂无」），不适合验证具体数据字段",
+    "教训（2026-04-22）：商品标题可能含用户名关键字，导致 target=page 断言买手名时误判 PASS",
+    "SKU上下架状态验证：提交后需重新打开弹窗，不能依赖提交前的 DOM 状态"
+  ],
+
+  "knownIssues": [
+    "两个输入框 placeholder 均为「多个ID以英文逗号分隔」，必须用 selectorIndex 区分：0=供给商品ID，1=平台商品ID",
+    "买手下拉选项在折叠状态下不渲染，必须先展开再选择",
+    "水印 .wm_div_id 会覆盖交互元素，每次操作前需清除",
+    "「更多」菜单 li 的 getBoundingClientRect() 在菜单未完全渲染时返回 (0,0)，需等待 800-1000ms 后再取坐标",
+    "「查看详情」按钮打开的是商品运营周期 Modal，不是 SKU 详情，容易混淆",
+    "SKU 详情 Modal 的 switch 必须通过坐标或 TreeWalker 定位，不能靠文本匹配（「上架」「下架」在所有行都有）",
+    "fill selectorIndex 曾缺失支持（已于 2026-04-22 修复）：缺 selectorIndex 时默认取第 0 个输入框"
+  ]
+}

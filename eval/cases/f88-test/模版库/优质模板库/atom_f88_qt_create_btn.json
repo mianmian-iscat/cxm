@@ -1,0 +1,98 @@
+{
+  "id": "atom-f88-qt-create-btn",
+  "name": "原子：优质模板库-创建任务按钮文案验证",
+  "description": "验证'创建任务'按钮文案正确",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/selfTemplateLibrary_f88",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('创建任务')); return { found: !!btn }; })()",
+      "description": "验证创建任务按钮",
+      "storeAs": "qtCreateBtn"
+    },
+    {
+      "type": "assertStore",
+      "key": "qtCreateBtn",
+      "path": "found",
+      "equals": true,
+      "description": "验证 验证创建任务按钮 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "qtCreateBtn",
+      "path": "found",
+      "equals": true
+    },
+    {
+      "type": "clickText",
+      "text": "新增",
+      "description": "点击新增按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待操作响应"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-click-action",
+      "description": "点击新增后截图"
+    },
+    {
+      "type": "screenshot",
+      "label": "qt-create-btn",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "uncheckCheckbox",
+  "version": "1.0.0",
+  "description": "取消勾选复选框",
+  "triggers": ["取消勾选", "取消选中", "uncheck"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "uncheckCheckbox" },
+      "labelText": { "type": "string", "description": "复选框标签文本" },
+      "firstChecked": { "type": "boolean", "default": false },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "unchecked": { "type": "boolean" } } },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 500 }
+}

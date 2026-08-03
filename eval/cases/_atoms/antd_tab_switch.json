@@ -1,0 +1,15 @@
+{
+  "id": "antd_tab_switch",
+  "description": "点击 Ant Design Tabs 指定文本的 tab 并返回切换后状态。",
+  "params": [
+    { "name": "tabText",  "type": "string", "required": true, "desc": "目标 tab 文本" },
+    { "name": "storeAs",  "type": "string", "default": "tabSwitchState", "desc": "Store 键名" }
+  ],
+  "steps": [
+    {
+      "type": "evaluate",
+      "expression": "(() => { const target = '{{tabText}}'; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')); for (const tab of tabs) { const t = (tab.textContent || '').trim(); if (t === target) { tab.click(); const active = document.querySelector('.ant-tabs-tab-active'); return { ok: true, clicked: t, activeAfter: (active?.textContent || '').trim() }; } } return { ok: false, error: 'tab_not_found', target, available: tabs.slice(0, 15).map(t => (t.textContent || '').trim()) }; })()",
+      "storeAs": "{{storeAs}}"
+    }
+  ]
+}

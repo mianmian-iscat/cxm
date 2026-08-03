@@ -1,0 +1,87 @@
+{
+  "id": "m1-审核数据如何出现",
+  "name": "审核数据如何出现？",
+  "description": "",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "F88-平台全模块用例",
+  "page": "",
+  "testScope": "",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "qoderwork/F88-平台全模块用例",
+  "sourceIds": [
+    "F88-平台全模块用例/m1-审核数据如何出现"
+  ],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "found",
+      "equals": true,
+      "description": "验证 页面DOM探测 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "列表",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "stepsText": "",
+    "expectedResult": "",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": [],
+    "relatedDocs": [],
+    "verified": "",
+    "sourceType": "md",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/qa-testing-workbench/skills/F88测试知识库/references/test-cases/F88-平台全模块用例.md，2026-07-11T06:03:44.333446"
+  }
+}

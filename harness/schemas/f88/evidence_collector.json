@@ -1,0 +1,47 @@
+{
+  "name": "f88_evidence_collector",
+  "version": "1.0.0",
+  "description": "F88 测试证据采集器：采集审核操作前后的截图、API响应、DB状态作为证据",
+  "triggers": ["证据", "截图", "采集", "验证"],
+  "parameters": {
+    "type": "object",
+    "required": ["case_id", "evidence_type"],
+    "properties": {
+      "case_id": {
+        "type": "string",
+        "description": "用例ID（如tc06、E2E-01）"
+      },
+      "evidence_type": {
+        "type": "string",
+        "enum": ["screenshot", "api_response", "db_state", "dom_snapshot", "network_capture"],
+        "description": "证据类型"
+      },
+      "step_id": {
+        "type": "string",
+        "description": "步骤ID"
+      },
+      "label": {
+        "type": "string",
+        "description": "证据标签（用于截图文件名）"
+      },
+      "api_pattern": {
+        "type": "string",
+        "description": "API URL 匹配模式（evidence_type=api_response时）"
+      },
+      "sql_query": {
+        "type": "string",
+        "description": "SQL查询（evidence_type=db_state时）"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "collected": { "type": "boolean" },
+      "artifact_path": { "type": "string" },
+      "data": { "type": "object" },
+      "timestamp": { "type": "string" }
+    }
+  },
+  "timeout_ms": 15000
+}

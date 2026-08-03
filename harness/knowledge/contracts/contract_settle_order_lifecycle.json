@@ -1,0 +1,16 @@
+{
+  "id": "contract_settle_order_lifecycle",
+  "category": "contracts",
+  "title": "结算单生命周期契约",
+  "content": "{\"states\": [\"TO_DO\", \"PROCESSING\", \"FINISH\"], \"transitions\": {\"TO_DO\": [\"PROCESSING\"], \"PROCESSING\": [\"FINISH\"], \"FINISH\": []}, \"auto_transition\": \"TO_DO -> DONE by scheduled task (~50 min)\", \"settle_order_source\": \"yc_right_settle_order table\", \"not_from\": \"yc_service_trade_record\", \"refund_states\": [\"完结待退款\", \"完结无需退款\", \"完结退款中\", \"完结已退款\", \"待确收\", \"已确收\", \"已取消\"], \"concurrent_lock\": \"per seller_id, select unlinked subscribe order with balance=500\", \"hsf_tools\": [\"RightSettleToolHsfService::getSettleOrderByApplyId\", \"RightSettleToolHsfService::updateInitAllowanceStartTimeWithApplyId\", \"RightSettleToolHsfService::updateSettleStatus\", \"RightSettleToolHsfService::updateTotalAmount\"]}",
+  "tags": [
+    "结算单",
+    "生命周期",
+    "契约",
+    "P1"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783394362.29197
+}

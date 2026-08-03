@@ -1,0 +1,28 @@
+{
+  "id": "TC-AN-QB-014",
+  "name": "TC-AN-QB-014 — 清空按钮：无参与人时点击清空 [P2]",
+  "description": "审核节点编辑页已打开，已选参与人区域为空（前置条件：选择无参与人的节点，不清空存量数据）",
+  "businessType": "f88_material", "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮", "page": "审核节点编辑页",
+  "priority": "P2", "category": "edge_case",
+  "context": { "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "auth": "buc" },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "evaluate", "expression": "(() => { /* 寻找无参与人的节点 */ const rows = document.querySelectorAll('.ant-table-row'); for (let i = 0; i < rows.length; i++) { const text = rows[i].innerText; const cells = text.split('\\t'); const hasNoParticipant = cells.some(c => c.trim() === '-' || c.trim() === '—'); if (hasNoParticipant) { const editBtn = Array.from(rows[i].querySelectorAll('button')).find(b => b.textContent.trim() === '编辑'); if (editBtn) { editBtn.click(); return { clicked: true, rowIndex: i }; } } } const editBtn = rows[0]?.querySelector('button'); if (editBtn) { editBtn.click(); return { clicked: true, rowIndex: 0 }; } return { clicked: false }; })()", "description": "选择无参与人的节点编辑", "storeAs": "openEdit" },
+    { "type": "wait", "ms": 2000 },
+    { "type": "evaluate", "expression": "(() => { const container = document.querySelector('[class*=selectedLabel]'); const count = container ? container.querySelectorAll('.ant-select-selection-item').length : -1; return { participantCount: count }; })()", "description": "验证当前无参与人", "storeAs": "checkEmpty" },
+    { "type": "evaluate", "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const clearBtn = btns.find(b => b.textContent.trim() === '清空'); if (!clearBtn) return { hasClearBtn: false }; clearBtn.click(); return { hasClearBtn: true, clicked: true }; })()", "description": "无参与人时点击清空", "storeAs": "clickClearEmpty" },
+    { "type": "wait", "ms": 1000 },
+    { "type": "evaluate", "expression": "(() => { const popconfirm = document.querySelector('.ant-popconfirm'); const toasts = document.querySelectorAll('.ant-message-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); const container = document.querySelector('[class*=selectedLabel]'); const stillEmpty = container ? container.querySelectorAll('.ant-select-selection-item').length === 0 : false; return { hasPopconfirm: !!popconfirm, popText: popconfirm ? popconfirm.textContent.trim().slice(0, 100) : null, toastTexts, stillEmpty }; })()", "description": "验证无参与人时清空的行为", "storeAs": "verifyClearEmpty" },
+    { "type": "screenshot", "label": "clear-btn-when-empty", "description": "无参与人时点击清空截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开，已选参与人区域为空（选择无参与人的节点，不清空存量数据）",
+    "stepsText": "1. 选择一个无参与人的审核节点\\n2. 进入编辑页\\n3. 点击「清空」按钮",
+    "expectedResult": "1. 不报错、不崩溃\\n2. 可能弹出确认气泡或直接提示无数据\\n3. 页面状态保持不变",
+    "priority": "P2",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

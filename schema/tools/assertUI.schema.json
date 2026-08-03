@@ -1,0 +1,129 @@
+{
+  "name": "assertUI",
+  "version": "1.0.0",
+  "description": "原生 UI 属性断言（visible/disabled/text/count/attribute/css），替代手写 JS 兜底",
+  "triggers": ["断言UI", "assertUI", "验证元素", "UI断言", "元素状态"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "selector"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "assertUI" },
+      "selector": {
+        "type": "string",
+        "description": "CSS 选择器（如 .ant-btn-primary, button[data-testid=submit]）",
+        "maxLength": 1000
+      },
+      "visible": {
+        "type": "boolean",
+        "description": "true=至少一个匹配元素可见（offsetWidth/Height>0 且非 display:none）"
+      },
+      "hidden": {
+        "type": "boolean",
+        "description": "true=所有匹配元素都不可见"
+      },
+      "disabled": {
+        "type": "boolean",
+        "description": "true=第一个匹配元素带 disabled 属性或 aria-disabled=true"
+      },
+      "enabled": {
+        "type": "boolean",
+        "description": "true=第一个匹配元素可交互（非 disabled）"
+      },
+      "text": {
+        "type": "string",
+        "description": "第一个匹配元素的 textContent 完全等于（默认 trim 后比较）"
+      },
+      "textContains": {
+        "type": "string",
+        "description": "第一个匹配元素的 textContent 包含（默认 trim 后比较）"
+      },
+      "textMatches": {
+        "type": "string",
+        "description": "正则表达式字符串，匹配第一个元素的 textContent（默认 trim 后比较）"
+      },
+      "textTrim": {
+        "type": "boolean",
+        "default": true,
+        "description": "文本比较前是否 trim（默认 true）"
+      },
+      "count": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "匹配元素个数断言"
+      },
+      "minCount": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "匹配元素个数下限"
+      },
+      "maxCount": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "匹配元素个数上限"
+      },
+      "attribute": {
+        "type": "object",
+        "description": "属性断言：{name, equals|contains|exists}",
+        "properties": {
+          "name": { "type": "string" },
+          "equals": {},
+          "contains": { "type": "string" },
+          "exists": { "type": "boolean" }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      },
+      "cssProperty": {
+        "type": "object",
+        "description": "CSS 属性断言：{name, equals}",
+        "properties": {
+          "name": { "type": "string" },
+          "equals": { "type": "string" }
+        },
+        "required": ["name", "equals"],
+        "additionalProperties": false
+      },
+      "allMatch": {
+        "type": "object",
+        "description": "对所有匹配元素做统一检查：{text, textContains, textMatches, visible}",
+        "properties": {
+          "text": { "type": "string" },
+          "textContains": { "type": "string" },
+          "textMatches": { "type": "string" },
+          "visible": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      },
+      "soft": {
+        "type": "boolean",
+        "default": false,
+        "description": "true 时断言失败不中断步骤链，累积到 _softFailures"
+      },
+      "timeoutMs": {
+        "type": "integer",
+        "default": 5000,
+        "minimum": 0,
+        "maximum": 30000,
+        "description": "等待元素出现的超时毫秒（默认 5000）"
+      },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "selector": { "type": "string" },
+      "checked": { "type": "object" },
+      "pass": { "type": "boolean" },
+      "failures": { "type": "array" },
+      "matchCount": { "type": "integer" },
+      "firstElementText": { "type": "string" },
+      "domSnippet": { "type": "string" }
+    }
+  },
+  "timeout_ms": 15000,
+  "retry_policy": { "max_retries": 0 }
+}

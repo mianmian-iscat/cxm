@@ -1,0 +1,15 @@
+{
+  "id": "pat_f88_drawer_animation",
+  "category": "patterns",
+  "title": "F88审核详情Drawer动画未完成就操作",
+  "content": "{\"error\": \"Drawer弹出后立即点击按钮, 元素不可交互\", \"root_cause\": \".ant-drawer动画~300ms, 需等待动画完成\", \"fix\": \"waitForSelector('.ant-drawer-body') 后再操作\"}",
+  "tags": [
+    "F88",
+    "Drawer",
+    "动画等待"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.0135622
+}

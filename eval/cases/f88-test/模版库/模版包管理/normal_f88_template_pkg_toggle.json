@@ -1,0 +1,141 @@
+{
+  "id": "normal_f88_template_pkg_toggle",
+  "name": "模版包管理 - 立即使用/置为闲置 + 状态一致性验证",
+  "description": "进入店铺详情，对模板包执行立即使用（IDLE→IN_USE，API: setValid）和置为闲置（IN_USE→IDLE，API: setIdle），验证无确认弹窗直接执行+toast提示+状态标签切换。实测2026-07-09确认：两个操作均无Popconfirm/Modal，直接调用API后显示ant-message toast。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template",
+    "CRUD",
+    "status",
+    "risk-15"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "打开模版包管理页面（店铺卡片列表）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待店铺卡片列表加载完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "toggle-shop-list",
+      "description": "截图-店铺卡片列表"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard]'); for(const c of cards) { const cnt = c.querySelector('[class*=templateCount]'); if(cnt && parseInt(cnt.innerText) > 0) { c.querySelector('button')?.click(); return c.innerText?.substring(0,60); } } return false; })()",
+      "description": "进入有模板包的店铺详情（点击第一个有包的店铺'查看详情'）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待模板包卡片列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "toggle-initial",
+      "description": "截图-模板包列表初始状态"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard], .ant-card'); let inUse=0, idle=0; for(const c of cards) { if(c.innerText?.includes('使用中')) inUse++; if(c.innerText?.includes('闲置中')) idle++; } return {total:cards.length, inUse, idle}; })()",
+      "description": "统计使用中/闲置中数量"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "setValid|setIdle|package",
+      "description": "开始网络抓包-监控setValid/setIdle接口"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === '立即使用' && b.offsetHeight > 0); if(btn) { const r = btn.getBoundingClientRect(); return {x: Math.round(r.x + r.width/2), y: Math.round(r.y + r.height/2)}; } return null; })()",
+      "description": "定位'立即使用'按钮坐标",
+      "storeAs": "useBtnPos"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": "button",
+      "description": "点击'立即使用'按钮（实测：无确认弹窗，直接调用setValid API + toast '已设置为使用中'）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待setValid API返回+toast"
+    },
+    {
+      "type": "screenshot",
+      "label": "toggle-use-immediately",
+      "description": "截图-立即使用后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-message')?.innerText?.trim() || 'no toast'",
+      "description": "获取toast消息文本（预期: '已设置为使用中'）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "使用中",
+      "description": "验证toast或状态标签包含'使用中'"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.trim() === '置为闲置' && b.offsetHeight > 0); if(btn) { const r = btn.getBoundingClientRect(); return {x: Math.round(r.x + r.width/2), y: Math.round(r.y + r.height/2)}; } return null; })()",
+      "description": "定位'置为闲置'按钮坐标"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": "button",
+      "description": "点击'置为闲置'按钮（实测：无确认弹窗，直接调用setIdle API + toast '已设置为闲置中'）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待setIdle API返回+toast"
+    },
+    {
+      "type": "screenshot",
+      "label": "toggle-set-idle",
+      "description": "截图-置为闲置后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-message')?.innerText?.trim() || 'no toast'",
+      "description": "获取toast消息文本（预期: '已设置为闲置中'）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "闲置中",
+      "description": "验证toast或状态标签包含'闲置中'"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "toggle-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "实测2026-07-09: 页面两级结构-店铺卡片列表→点击查看详情→模板包卡片列表。'立即使用'按钮调用POST /api/template/package/setValid，'置为闲置'调用POST /api/template/package/setIdle，两者均无Popconfirm/Modal确认弹窗，直接执行后显示ant-message toast。CSS前缀ShopList--。按钮文本: '立即使用'(闲置中→使用中) / '置为闲置'(使用中→闲置中)。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在一个店铺有模板包"
+}

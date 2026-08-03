@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "p9": {
+      "source": "bachi/skills",
+      "sourceType": "internal",
+      "computedHash": "95bc27aa6f3b08ce0c810bdb430cbc78e21dad218823e24bf6383bf34efeb570",
+      "commitHash": "f40af43d010d26fdd8652d6fe4c589dd76347f08",
+      "skillPath": "skills/p9"
+    }
+  }
+}

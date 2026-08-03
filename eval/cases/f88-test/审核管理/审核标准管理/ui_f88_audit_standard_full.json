@@ -1,0 +1,140 @@
+{
+  "id": "ui-f88-audit-standard-full",
+  "name": "UI：审核标准管理-页面加载/新增/编辑/启用禁用全功能验证",
+  "description": "验证审核标准管理页面：表格列名/新增标准弹窗/编辑/启用禁用切换，数据一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/standard-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核标准管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核标准管理",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')).map(th => th.textContent.trim()); return { headers, count: headers.length }; })()",
+      "description": "记录表格列名",
+      "storeAs": "stdHeaders"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-std-page",
+      "description": "审核标准管理页面"
+    },
+    {
+      "type": "clickText",
+      "text": "新增标准",
+      "description": "点击新增标准"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待新增弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); return { hasModal: !!modal, title: modal ? modal.querySelector('.ant-modal-title')?.textContent?.trim() : null }; })()",
+      "description": "验证新增弹窗",
+      "storeAs": "addModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "addModal",
+      "path": "hasModal",
+      "equals": true,
+      "description": "断言新增弹窗出现"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-std-add-modal",
+      "description": "新增标准弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close'); if(closeBtn) closeBtn.click(); return 'closed'; })()",
+      "description": "关闭新增弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const editBtns = Array.from(document.querySelectorAll('a, button')).filter(el => el.textContent.trim() === '编辑'); if(editBtns.length > 0) { editBtns[0].click(); return 'clicked edit'; } return 'no edit btn'; })()",
+      "description": "点击第一条编辑"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-std-edit",
+      "description": "编辑标准"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const closeBtn = document.querySelector('.ant-modal-close'); if(closeBtn) closeBtn.click(); return 'closed'; })()",
+      "description": "关闭编辑弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const toggleBtns = Array.from(document.querySelectorAll('a, button, .ant-switch')).filter(el => { const t = el.textContent.trim(); return t.includes('启用') || t.includes('禁用') || el.classList.contains('ant-switch'); }); return { count: toggleBtns.length, firstText: toggleBtns[0] ? toggleBtns[0].textContent.trim() : 'none' }; })()",
+      "description": "查找启用/禁用按钮",
+      "storeAs": "toggleBtns"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-std-toggle",
+      "description": "启用禁用按钮"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在审核标准数据。",
+    "realDomNotes": "表格列：标准名称/创建人/创建时间/使用次数/状态/操作。操作：编辑/启用/禁用。新增标准弹窗含表单字段。",
+    "riskPoints": [
+      "启用/禁用需确认弹窗",
+      "启用/禁用可能为Switch组件"
+    ]
+  }
+}

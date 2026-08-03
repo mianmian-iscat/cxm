@@ -1,0 +1,87 @@
+{
+  "id": "boundary-empty-search-result",
+  "name": "边界条件：搜索无结果时的空状态处理",
+  "description": "输入不存在的商品ID搜索，验证空结果页面渲染和API响应结构",
+  "businessType": "product_management",
+  "scene": "xiaoer",
+  "priority": "P1",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/cobweb/skcList",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/cobweb/skcList",
+      "waitUntil": "networkidle",
+      "description": "打开商品列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待初始加载"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='多个ID以英文逗号分隔']",
+      "selectorIndex": 1,
+      "value": "9999999999999",
+      "description": "输入不存在的商品ID"
+    },
+    {
+      "type": "clickText",
+      "text": "搜索",
+      "selector": "button.ant-btn-primary",
+      "description": "点击搜索"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "countSkcItemV2",
+      "timeout": 10000,
+      "description": "等待搜索API"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "empty-result",
+      "description": "截图 - 空结果状态"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "countSkcItemV2",
+      "contains": "skcCount",
+      "description": "【接口契约】即使无结果，API仍应返回 skcCount 字段（值为0）"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "/cobweb/api/",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "环境可访问，使用不存在的商品ID",
+    "riskPoints": [
+      "空结果时页面白屏",
+      "API返回异常结构",
+      "分页组件在0条时显示异常"
+    ],
+    "boundaryType": "empty_data"
+  },
+  "source": null,
+  "sourceIds": null
+}

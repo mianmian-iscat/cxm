@@ -1,0 +1,250 @@
+{
+  "id": "f88-audit-tc20",
+  "name": "TC20 - 高清化操作场景：CopyURL / 下载 / Excel导出 / API验证",
+  "description": "高清化后需「编辑后 + ✅ 确认」流程，验证高清化后CopyURL/下载/导出是否返回高清化后的新图URL。对应知识库模块I-C（NEW-I15~I21）。",
+  "businessType": "f88_material",
+  "relatedCases": ["NEW-I15", "NEW-I16", "NEW-I17", "NEW-I18", "NEW-I19", "NEW-I20", "NEW-I21"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== NEW-I15: 单图审核(qt=1) 高清化 + CopyURL ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_hd_i15",
+      "description": "NEW-I15: 记录高清化前原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "高清化",
+      "selector": "button, [class*='action'], [class*='toolbar']",
+      "description": "NEW-I15: 点击高清化按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待高清化处理完成"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "[class*='tab'], [role='tab']",
+      "description": "NEW-I15: 切换到编辑后Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "NEW-I15: 点击确认按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "Copy URL",
+      "selector": "button, [class*='toolbar'], [data-testid='copy-url']",
+      "description": "NEW-I15: 点击Copy URL"
+    },
+    {
+      "type": "assert",
+      "target": "clipboard",
+      "notEquals": "${originalUrl_hd_i15}",
+      "description": "NEW-I15: 剪贴板为高清化后新图URL，非原始URL"
+    },
+    {
+      "type": "screenshot",
+      "label": "hd-copyurl-qt1",
+      "description": "截图 - 单图审核高清化后CopyURL"
+    },
+
+    {
+      "_comment": "=== NEW-I16: 套图审核(qt=2) 高清化一张 + CopyURL ===",
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center?ptcTab=spotCheck",
+      "waitUntil": "networkidle",
+      "description": "NEW-I16: 进入套图审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "高清化",
+      "selector": "button, [class*='action']",
+      "description": "NEW-I16: 对套图中一张图高清化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "[class*='tab'], [role='tab']",
+      "description": "NEW-I16: 切换到编辑后Tab"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "NEW-I16: 确认"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "Copy URL",
+      "selector": "button, [data-testid='copy-url']",
+      "description": "NEW-I16: CopyURL"
+    },
+    {
+      "type": "assert",
+      "target": "clipboard",
+      "contains": "http",
+      "description": "NEW-I16: 被高清化图为新图URL"
+    },
+
+    {
+      "_comment": "=== NEW-I17: 封面图审核(qt=4) 高清化封面图 + CopyURL ===",
+      "type": "clickText",
+      "text": "高清化",
+      "selector": "button, [class*='action']",
+      "description": "NEW-I17: 封面图高清化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "[class*='tab'], [role='tab']",
+      "description": "NEW-I17: 编辑后Tab"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "NEW-I17: 确认"
+    },
+    {
+      "type": "clickText",
+      "text": "Copy URL",
+      "selector": "button, [data-testid='copy-url']",
+      "description": "NEW-I17: CopyURL"
+    },
+    {
+      "type": "assert",
+      "target": "clipboard",
+      "contains": "http",
+      "description": "NEW-I17: 剪贴板为高清化后新图URL"
+    },
+
+    {
+      "_comment": "=== NEW-I18: 高清化→确认→下载 (qt=1/2/4) ===",
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='toolbar'], [class*='download']",
+      "description": "NEW-I18: 点击下载按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "download",
+      "description": "NEW-I18: 下载图片为高清化后新图"
+    },
+
+    {
+      "_comment": "=== NEW-I19: 高清化→确认→导出Excel ===",
+      "type": "clickText",
+      "text": "导出",
+      "selector": "button, [class*='export']",
+      "description": "NEW-I19: 导出Excel"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "download",
+      "fileType": "xlsx",
+      "description": "NEW-I19: Excel中URL列为高清化后新图URL"
+    },
+
+    {
+      "_comment": "=== NEW-I20: 高清化→确认→API查询material实体 ===",
+      "type": "eval",
+      "expression": "(() => { return document.querySelector('[class*=task-id]')?.textContent || ''; })()",
+      "storeAs": "taskId_hd_i20",
+      "description": "NEW-I20: 获取当前任务ID"
+    },
+    {
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/material?taskId=${taskId_hd_i20}",
+      "description": "NEW-I20: API查询material实体"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.material.url",
+      "contains": "http",
+      "description": "NEW-I20: material.url=高清化后URL"
+    },
+
+    {
+      "_comment": "=== NEW-I21: 高清化→确认→刷新页面→API查询 ===",
+      "type": "navigate",
+      "url": "reload",
+      "description": "NEW-I21: 刷新页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/material?taskId=${taskId_hd_i20}",
+      "description": "NEW-I21: 刷新后API查询"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.material.url",
+      "contains": "http",
+      "description": "NEW-I21: url仍为高清化后URL（数据已持久化）"
+    }
+  ]
+}

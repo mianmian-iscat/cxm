@@ -1,0 +1,98 @@
+{
+  "id": "ui-f88-sd-node-editor-drawer",
+  "name": "UI：策略详情-节点编辑器抽屉全字段",
+  "description": "打开含LLM文本生成节点的策略，点击节点edit按钮，验证编辑器抽屉包含模型类型、User Prompt、输出格式、字符数限制等全字段。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排');\n        if (!titleEl) return { ok: false, reason: 'no title' };\n        const card = titleEl.closest('.ant-card');\n        const body = card?.querySelector('.ant-card-body');\n        if (!body) return { ok: false, reason: 'no body' };\n        const items = body.querySelectorAll('[class*=\"innerNode\"], [class*=\"InnerNode\"]');\n        for (const item of items) {\n          if (item.textContent.includes('LLM')) {\n            const editBtn = item.querySelector('button');\n            if (editBtn) { editBtn.click(); return { ok: true }; }\n          }\n        }\n        return { ok: false, itemCount: items.length };\n      })()",
+      "description": "点击LLM文本生成节点打开编辑抽屉"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const drawer = document.querySelector('.ant-drawer-open');\n        if (!drawer) return { hasDrawer: false };\n        const text = drawer.innerText;\n        const checks = {\n          hasTitle: text.includes('节点编辑'),\n          hasNodeType: text.includes('LLM文本生成'),\n          hasModelType: text.includes('模型类型'),\n          hasUserPrompt: text.includes('User Prompt'),\n          hasImageInput: text.includes('输入图片/视频') || text.includes('添加图片'),\n          hasOutputFormat: text.includes('输出格式'),\n          hasPlainText: text.includes('纯文本'),\n          hasJSON: text.includes('JSON'),\n          hasMinChars: text.includes('最小字符数'),\n          hasMaxChars: text.includes('最大字符数'),\n          hasRunTest: text.includes('运行测试'),\n          hasSaveBtn: text.includes('保') && text.includes('存'),\n          hasCancelBtn: text.includes('取') && text.includes('消'),\n        };\n        return { hasDrawer: true, checks, passCount: Object.values(checks).filter(Boolean).length };\n      })()",
+      "storeAs": "drawerChecks",
+      "description": "验证LLM节点编辑抽屉全字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "llm-node-drawer",
+      "description": "截图-LLM节点编辑抽屉"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭抽屉"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待关闭"
+    }
+  ]
+}

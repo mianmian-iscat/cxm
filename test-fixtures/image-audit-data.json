@@ -1,0 +1,213 @@
+{
+  "pipeline": "【zy测试】主图生成链路",
+  "pipelineLifecycle": "实验",
+  "description": "图片审核测试数据 - 覆盖单图(qt=1)/套图(qt=2)/封面图(qt=4)三种审核类型",
+  "lastUpdated": "2026-06-30",
+
+  "commonParams": {
+    "tenant": "F88",
+    "env": "预发",
+    "baseUrl": "https://pre-aifashion-xiaoer.alibaba-inc.com",
+    "taskCenter": "/review/personal-task-center"
+  },
+
+  "qt1_singleImage": {
+    "auditType": "单图审核",
+    "qt": 1,
+    "component": "SingleImageReview",
+    "taskNamePattern": "首图审核-人工审核",
+    "samples": {
+      "pending_review": {
+        "description": "待审核的单图素材",
+        "materialId": "880100012345",
+        "merchantId": "21567890",
+        "merchantName": "测试商家A",
+        "imageUrl": "https://img.alicdn.com/imgextra/i1/test/O1CN01mock001_800x800.jpg",
+        "auditStatus": "待审核",
+        "imageType": "主图",
+        "requirements": {
+          "resolution": "≥800×800px",
+          "ratio": "1:1",
+          "background": "白底或场景图",
+          "noWatermark": true,
+          "noNpxBan": true
+        },
+        "testActions": ["通过", "驳回", "高清化", "裁剪", "替换", "局部修改", "负反馈", "复位", "复制URL"]
+      },
+      "for_replace_test": {
+        "description": "用于替换+CopyURL测试的素材(RP-01,RP-07)",
+        "materialId": "880100012346",
+        "imageUrl": "https://img.alicdn.com/imgextra/i2/test/O1CN01mock002_800x800.jpg",
+        "replacementImageUrl": "test-fixtures/images/replacement-main.jpg",
+        "expectedAfterReplace": "material.url = 替换后URL, material.originUrl = 原始URL不变",
+        "testCases": ["RP-01", "RP-07", "RP-10", "RP-16", "RP-D01"]
+      },
+      "for_crop_test": {
+        "description": "用于裁剪测试的素材(RP-C01)",
+        "materialId": "880100012347",
+        "imageUrl": "https://img.alicdn.com/imgextra/i3/test/O1CN01mock003_1200x1200.jpg",
+        "cropArea": { "x": 0, "y": 0, "width": 800, "height": 800 },
+        "testCases": ["RP-C01", "RP-C04", "RP-C05", "RP-C07", "RP-D04"]
+      },
+      "for_hd_test": {
+        "description": "用于高清化测试的低分辨率素材(RP-15)",
+        "materialId": "880100012348",
+        "imageUrl": "https://img.alicdn.com/imgextra/i4/test/O1CN01mock004_400x400.jpg",
+        "resolution": "400×400px（低于阈值，触发高清化建议）",
+        "testCases": ["RP-15"]
+      },
+      "for_reject_test": {
+        "description": "用于驳回测试的不合规素材",
+        "materialId": "880100012349",
+        "imageUrl": "https://img.alicdn.com/imgextra/i5/test/O1CN01mock005_blur_600x600.jpg",
+        "violationType": "包含水印/清晰度不足",
+        "rejectReason": "图片模糊/清晰度不足",
+        "rejectCategory": "图片质量",
+        "testCases": ["TC05驳回流程"]
+      }
+    }
+  },
+
+  "qt2_setImage": {
+    "auditType": "套图审核",
+    "qt": 2,
+    "component": "SetImageReview",
+    "taskNamePattern": "套图审核-人工审核",
+    "samples": {
+      "pending_review": {
+        "description": "待审核的套图素材（含多张图片）",
+        "materialId": "880200034567",
+        "imageCount": 5,
+        "imageUrls": [
+          "https://img.alicdn.com/imgextra/i1/test/O1CN01set001_800x800.jpg",
+          "https://img.alicdn.com/imgextra/i2/test/O1CN01set002_800x800.jpg",
+          "https://img.alicdn.com/imgextra/i3/test/O1CN01set003_800x800.jpg",
+          "https://img.alicdn.com/imgextra/i4/test/O1CN01set004_800x800.jpg",
+          "https://img.alicdn.com/imgextra/i5/test/O1CN01set005_800x800.jpg"
+        ],
+        "auditStatus": "待审核",
+        "testActions": ["全部通过", "部分通过部分驳回", "替换其中一张", "裁剪其中一张"]
+      },
+      "for_replace_one": {
+        "description": "用于套图中替换单张图测试(RP-02,RP-08)",
+        "materialId": "880200034568",
+        "replaceIndex": 0,
+        "originalUrl": "https://img.alicdn.com/imgextra/i1/test/O1CN01set001_800x800.jpg",
+        "replacementImageUrl": "test-fixtures/images/replacement-set.jpg",
+        "expectedAfterReplace": "被替换的图URL为新URL，其余图URL不变",
+        "testCases": ["RP-02", "RP-08", "RP-25", "RP-D02", "RP-D11"]
+      },
+      "for_crop_one": {
+        "description": "用于套图中裁剪单张图测试(RP-C02)",
+        "materialId": "880200034569",
+        "cropIndex": 1,
+        "originalUrl": "https://img.alicdn.com/imgextra/i2/test/O1CN01set002_800x800.jpg",
+        "cropArea": { "x": 0, "y": 0, "width": 750, "height": 750 },
+        "testCases": ["RP-C02", "RP-C11", "RP-D05"]
+      }
+    }
+  },
+
+  "qt4_coverImage": {
+    "auditType": "封面图审核",
+    "qt": 4,
+    "component": "CoverImageReview",
+    "taskNamePattern": "封面图审核-人工审核",
+    "samples": {
+      "pending_review": {
+        "description": "待审核的封面图素材",
+        "materialId": "880400056789",
+        "imageUrl": "https://img.alicdn.com/imgextra/i1/test/O1CN01cover001_800x800.jpg",
+        "auditStatus": "待审核",
+        "imageType": "封面图",
+        "requirements": {
+          "resolution": "≥800×800px",
+          "background": "白底",
+          "noWatermark": true
+        }
+      },
+      "for_replace_test": {
+        "description": "用于封面图替换测试(RP-03,RP-09)",
+        "materialId": "880400056790",
+        "imageUrl": "https://img.alicdn.com/imgextra/i2/test/O1CN01cover002_800x800.jpg",
+        "replacementImageUrl": "test-fixtures/images/replacement-cover.jpg",
+        "testCases": ["RP-03", "RP-09", "RP-D03", "RP-D06"]
+      },
+      "for_reject_regenerate": {
+        "description": "用于驳回重生测试(RP-27~36)",
+        "materialId": "880400056791",
+        "imageUrl": "https://img.alicdn.com/imgextra/i3/test/O1CN01cover003_lowq_800x800.jpg",
+        "rejectReason": "封面图不符合规范，需重新生成",
+        "rejectCategory": "图片质量",
+        "expectedBehavior": {
+          "afterReject": "系统触发重生(reGen)，inRegenerateMode=true",
+          "duringRegen": "toolbar隐藏，shouldShowTab=false",
+          "afterRegen": "新封面图进入审核，URL与原图不同",
+          "regenFail": "任务状态应变为FAIL或触发重试"
+        },
+        "testCases": ["RP-27", "RP-28", "RP-29", "RP-32", "RP-33", "RP-34", "RP-36", "RP-D14"]
+      },
+      "for_partial_pass": {
+        "description": "用于部分通过测试(RP-D12)",
+        "materialId": "880400056792",
+        "imageCount": 3,
+        "passImages": [0, 1],
+        "rejectImages": [2],
+        "expectedOutput": {
+          "passedImg": "图0+图1的URL",
+          "notPassImgUrl": "图2的URL"
+        },
+        "testCases": ["RP-D12"]
+      }
+    }
+  },
+
+  "editOperations": {
+    "description": "所有编辑操作的通用测试参数",
+    "commonFlow": {
+      "step1": "执行编辑操作（替换/裁剪/高清化/局部修改）",
+      "step2": "点击「编辑后」查看效果",
+      "step3": "点击 ✅ 确认",
+      "step4": "验证 toolbar 可见（CopyURL/下载按钮）",
+      "step5": "验证 material.url 已更新，material.originUrl 不变"
+    },
+    "frontendLogic": "handleCopyUrl(img.originUrl || img.url)，originUrl 优先",
+    "confirmMechanism": {
+      "beforeConfirm": {
+        "url": "原始URL",
+        "localAdjustUrl": "编辑后URL",
+        "localAdjustStatus": "≠0"
+      },
+      "afterConfirm": {
+        "url": "编辑后URL（从localAdjustUrl写入）",
+        "localAdjustUrl": "编辑后URL",
+        "localAdjustStatus": "0"
+      }
+    },
+    "toolbarVisibility": "编辑操作后必须经过「编辑后+✅确认」才显示toolbar，否则CopyURL/下载不可操作"
+  },
+
+  "downstreamVerification": {
+    "description": "审核通过后的下游数据链路验证参数",
+    "dataChain": "审核确认 → output_json(passedImg) → common_variable → 下游input_data",
+    "dmsQueries": {
+      "queryOutputJson": "SELECT output_json FROM workflow_record_log WHERE material_id = :materialId AND node_name = '人工审核' ORDER BY id DESC LIMIT 1",
+      "queryCommonVariable": "SELECT common_variable FROM g_workflow_instance WHERE id IN (SELECT workflow_instance_id FROM workflow_record_log WHERE material_id = :materialId) LIMIT 1",
+      "queryDownstreamInput": "SELECT input_data FROM workflow_record_log WHERE material_id = :materialId AND node_name IN ('算法过滤', '套图生产') ORDER BY id",
+      "queryMaterialUrl": "SELECT url, origin_url FROM material WHERE id = :materialId"
+    },
+    "expectedResults": {
+      "afterReplace": "下游所有节点的input_data中图片URL为替换后的新URL",
+      "afterCrop": "下游所有节点的input_data中图片URL为裁剪后的新URL",
+      "afterRegenerate": "下游所有节点的input_data中图片URL为重生后的新URL",
+      "partialPass": "passedImg仅含通过图的URL，notPassImgUrl含被驳回图URL"
+    }
+  },
+
+  "_todo": [
+    "通过【zy测试】主图生成链路实际生成测试素材，填入真实的materialId和imageUrl",
+    "确认链路生成的素材能在个人任务中心的审核任务Tab中出现",
+    "验证替换用的replacement图片文件已放入test-fixtures/images/目录",
+    "确认封面图审核驳回后确实触发重生流程"
+  ]
+}

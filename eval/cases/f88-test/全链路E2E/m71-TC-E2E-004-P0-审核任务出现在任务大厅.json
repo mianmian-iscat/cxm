@@ -1,0 +1,75 @@
+{
+  "id": "m71-TC-E2E-004-P0-审核任务出现在任务大厅",
+  "name": "TC-E2E-004 — 【P0】审核任务出现在任务大厅 [P0]",
+  "description": "链路试运行已生成审核任务",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "F88-平台全模块用例",
+  "page": "",
+  "testScope": "",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "qoderwork/F88-平台全模块用例",
+  "sourceIds": [
+    "F88-平台全模块用例/m71-TC-E2E-004-P0-审核任务出现在任务大厅"
+  ],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开目标页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const buttons = Array.from(document.querySelectorAll('button,a,[role=button]')).slice(0, 15).map(b => b.textContent.trim()); const tables = document.querySelectorAll('table,.ant-table').length; const forms = document.querySelectorAll('form,.ant-form').length; const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()); const selects = document.querySelectorAll('.ant-select').length; return { pageLoaded: true, textLength: text.length, textPreview: text.substring(0, 500), buttons, tables, forms, tabs, selects }; })()",
+      "description": "页面DOM探测",
+      "storeAs": "pageProbe"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageProbe",
+      "path": "pageLoaded",
+      "equals": true,
+      "description": "页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent || ''; const checks = [\"待开始\", \"0/X\"]; const results = checks.map(c => ({ check: c, found: text.includes(c) })); const passCount = results.filter(r => r.found).length; return { totalChecks: checks.length, passCount, results, pageTextPreview: text.substring(0, 300) }; })()",
+      "description": "验证预期结果",
+      "storeAs": "resultCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "batch-probe-result",
+      "description": "探测结果截图"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "链路试运行已生成审核任务",
+    "stepsText": "1.进入审核管理→任务管理→任务大厅 2.点击\"策略平台-测试\"tab",
+    "expectedResult": "表格中出现新生成的审核任务，任务名称与链路/策略名称关联，审核状态为\"待开始\"，审核进度显示\"0/X\"",
+    "dbAssertion": "task_management.name = link_name；task_management.auditStatus = 'PENDING'",
+    "apiAssertion": "",
+    "riskPoints": [],
+    "relatedDocs": [],
+    "verified": "",
+    "sourceType": "md",
+    "syncNote": "自动同步自 qoderwork /Users/caoxuemei/.qoderwork/plugins-custom/qa-testing-workbench/skills/F88测试知识库/references/test-cases/F88-平台全模块用例.md，2026-07-11T06:03:44.345086"
+  }
+}

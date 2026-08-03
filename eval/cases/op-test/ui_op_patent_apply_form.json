@@ -1,0 +1,44 @@
+{
+  "id": "ui-op-patent-apply-form",
+  "name": "UI：原创保护商家端-专利申请表单结构验证（PatentApply）",
+  "description": "进入商家端首页，点击新增专利申请，验证 PatentApply 组件加载（三种模式切换：9类/非9类/童装）及内容安全相关表单字段。",
+  "businessType": "xiaoer_original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开原创保护商家端首页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待商家端加载" },
+    { "type": "assert", "target": "page", "contains": "原创保护", "description": "验证商家端首页内容" },
+    { "type": "screenshot", "label": "seller-home", "description": "截图-商家端首页" },
+    {
+      "type": "clickText",
+      "text": "申请",
+      "description": "点击新增/申请专利按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待PatentApply表单/弹窗渲染" },
+    { "type": "assert", "target": "page", "contains": "申请", "description": "验证申请表单已打开" },
+    { "type": "screenshot", "label": "patent-apply-form", "description": "截图-申请表单" },
+    { "type": "clickText", "text": "取消", "description": "取消申请，不提交" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "isv测试账号2213249110271已登录商家端pre-fsyc.taobao.com。",
+    "realDomNotes": "PatentApply组件：三种模式切换（9类/非9类/童装童鞋）、内容安全、6角度图上传；PatentDetail：5阶段时间轴、证书下载/预览；BindProductModal：两个Tab过滤、批量选择。",
+    "riskPoints": ["isv账号主营类目影响申请表单模式", "申请入口文案可能不是精确的'申请'，需探查真实文案"]
+  }
+}

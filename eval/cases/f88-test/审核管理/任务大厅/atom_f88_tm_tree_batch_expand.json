@@ -1,0 +1,76 @@
+{
+  "id": "atom-f88-tm-tree-batch-expand",
+  "name": "原子：任务管理-树形批次节点展开验证",
+  "description": "验证第二层批次节点可展开，展开后显示审核节点",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); arrows.forEach(a => a.click()); return `expanded ${arrows.length}`; })()",
+      "description": "展开所有节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const nodes = document.querySelectorAll('.ant-tree-treenode'); const texts = Array.from(nodes).map(n => n.textContent.trim().substring(0, 40)); return { count: nodes.length, texts: texts.slice(0, 8) }; })()",
+      "description": "记录展开后所有节点",
+      "storeAs": "allNodes"
+    },
+    {
+      "type": "assertStore",
+      "key": "allNodes",
+      "path": "count",
+      "greaterThanOrEqual": 2,
+      "description": "断言至少2层节点"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-tree-batch-expand",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "id": "e2e-f88-node-image_gen-single-output",
+  "name": "E2E：生图节点-单图输出模式端到端验证",
+  "description": "配置生图节点输出模式为'拆分成单图给下游'，保存后试运行，验证输出结果为独立图片URL列表（每张图一个URL）",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10602",
+      "waitUntil": "networkidle",
+      "description": "打开含生图节点的策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略",
+      "description": "验证生图详情页已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const allEls = document.querySelectorAll('*'); for (const el of allEls) { const t = (el.textContent || '').trim(); if (t === '生图' && el.children.length === 0) { const rect = el.getBoundingClientRect(); if (rect.width > 0 && rect.height > 0) { el.click(); return { clicked: true }; } } } return { clicked: false }; })()",
+      "description": "点击生图节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const radios = Array.from(drawer.querySelectorAll('.ant-radio-wrapper')); const radioInfo = radios.map(r => ({ label: (r.textContent || '').trim(), checked: !!r.querySelector('input[type=radio]:checked') })); const checked = radioInfo.find(r => r.checked); return { open: true, radios: radioInfo, currentMode: checked ? checked.label : null, isSingleMode: checked ? checked.label.includes('拆分') || checked.label.includes('单图') : false }; })()",
+      "description": "检查当前输出模式",
+      "storeAs": "modeBefore"
+    },
+    {
+      "type": "assertStore",
+      "key": "modeBefore",
+      "path": "open",
+      "equals": true,
+      "description": "编辑抽屉已打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { skipped: true }; const radios = Array.from(drawer.querySelectorAll('.ant-radio-wrapper')); const checked = radios.find(r => !!r.querySelector('input[type=radio]:checked')); if (checked && (checked.textContent || '').includes('拆分')) return { alreadySingle: true, skipped: false }; const singleRadio = radios.find(r => { const t = (r.textContent || '').trim(); return t.includes('拆分') || t.includes('单图'); }); if (singleRadio) { const inp = singleRadio.querySelector('input[type=radio]'); if (inp) { inp.click(); return { switched: true, to: (singleRadio.textContent || '').trim() }; } } return { noSingleRadio: true }; })()",
+      "description": "确保输出模式为'拆分成单图给下游'",
+      "storeAs": "setSingleMode"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待模式切换生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const radios = Array.from(drawer.querySelectorAll('.ant-radio-wrapper')); const checked = radios.find(r => !!r.querySelector('input[type=radio]:checked')); const modelSelect = drawer.querySelector('.ant-select'); const modelValue = modelSelect ? (modelSelect.querySelector('.ant-select-selection-item')?.textContent || '').trim() : ''; return { confirmedMode: checked ? (checked.textContent || '').trim() : 'unknown', modelValue, isSingle: checked ? (checked.textContent || '').includes('拆分') : false }; })()",
+      "description": "确认输出模式已设为单图模式",
+      "storeAs": "confirmMode"
+    },
+    {
+      "type": "assertStore",
+      "key": "confirmMode",
+      "path": "isSingle",
+      "equals": true,
+      "description": "输出模式已切换为'拆分成单图给下游'"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-single-mode-config",
+      "description": "单图模式配置截图"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "保存节点配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待保存完成"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待试运行弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { open: false }; const inputs = Array.from(modal.querySelectorAll('input:not([type=checkbox]), textarea')); const filledInputs = {}; for (const inp of inputs) { const label = (inp.closest('.ant-form-item')?.querySelector('.ant-form-item-label')?.textContent || '').trim(); if (label.includes('seller')) { const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(inp, 'test_seller_001'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); filledInputs.seller_id = 'test_seller_001'; } } return { open: true, filledInputs }; })()",
+      "description": "填充试运行参数(seller_id)",
+      "storeAs": "fillResult"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待输入生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const btns = Array.from(modal.querySelectorAll('button')); const runBtn = btns.find(b => { const t = (b.textContent || '').trim(); return t === '运行' || t === '开始运行' || t.includes('运行'); }); if (runBtn && !runBtn.disabled) { runBtn.click(); return { ok: true, buttonText: (runBtn.textContent || '').trim() }; } return { ok: false, disabled: runBtn?.disabled }; })()",
+      "description": "点击运行"
+    },
+    {
+      "type": "wait",
+      "ms": 15000,
+      "description": "等待生图运行完成(可能耗时较长)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (modal) { const closeBtn = modal.querySelector('.ant-modal-close'); if (closeBtn) closeBtn.click(); } return { closed: true }; })()",
+      "description": "关闭试运行弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗关闭和状态更新"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('button')); const resultBtn = btns.find(b => { const t = (b.textContent || '').trim(); return t === '查看运行结果'; }); if (resultBtn) { resultBtn.click(); return { clicked: true, text: '查看运行结果' }; } const allBtns = btns.map(b => (b.textContent||'').trim()).filter(Boolean); return { clicked: false, buttonLabels: allBtns.slice(0, 15) }; })()",
+      "description": "点击查看运行结果按钮",
+      "storeAs": "viewResultBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待运行结果页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const text = document.body.innerText || ''; const urls = text.match(/https?:\\/\\/[^\\s\"']+(?:\\.jpg|\\.png|\\.webp|\\.jpeg)/gi) || []; const allHttpUrls = text.match(/https?:\\/\\/[^\\s\"'<]+/gi) || []; const hasResult = text.includes('运行结果') || text.includes('成功') || text.includes('完成') || text.includes('输出') || text.includes('试运行') || text.includes('策略'); const hasError = text.includes('失败') || text.includes('错误'); const hasLoading = text.includes('运行中') || !!document.querySelector('.ant-spin-spinning'); const hasViewBtn = text.includes('查看运行结果'); return { hasLoading, hasResult, hasError, hasViewBtn, imageUrlCount: urls.length, imageUrls: urls.slice(0, 10), allUrlCount: allHttpUrls.length, allUrls: allHttpUrls.slice(0, 15) }; })()",
+      "description": "采集运行结果(singleRunResult)",
+      "storeAs": "singleRunResult"
+    },
+    {
+      "type": "assertStore",
+      "key": "singleRunResult",
+      "path": "hasLoading",
+      "equals": false,
+      "description": "运行已完成(非loading状态)"
+    },
+    {
+      "type": "assertStore",
+      "key": "singleRunResult",
+      "path": "hasResult",
+      "equals": true,
+      "description": "运行有输出结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-single-mode-result",
+      "description": "单图模式试运行结果截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；策略10602含生图节点且配置完整(模型类型/Prompt/输入图片)",
+    "realDomNotes": "单图模式: 每张图片输出独立的URL; 输出格式为数组/列表，每个元素为一张图片URL",
+    "riskPoints": [
+      "单图模式输出是否为多张独立图片URL",
+      "每张图片URL是否可正常访问",
+      "输出结果是否包含图片格式标识(jpg/png/webp)",
+      "运行是否超时(生图耗时可能10-30s)"
+    ],
+    "validationRule": "imageUrlCount >= 1 且各URL独立(非打包格式)"
+  }
+}

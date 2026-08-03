@@ -1,0 +1,244 @@
+{
+  "id": "xiaoer-original-protection",
+  "description": "原创保护平台 - 签约入驻/权利申请/结算管理/维权保护（品质联盟小二工作台）",
+  "uiFramework": "react-antd",
+  "captureFilter": "fsyx_quality_guard|yc",
+  "lastUpdated": "2026-07-07",
+  "initStatus": "enriched",
+  "lastVerified": "2026-07-07",
+
+  "pageUrl": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+  "urlPattern": "pre-xiaoer.alibaba-inc.com",
+  "urlRoute": "bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+  "merchantPageUrl": "https://pre-fsyc.taobao.com/",
+  "urlNote": "运营端小二工作台(BUC)=pageUrl；商家端(淘宝登录)=merchantPageUrl。旧 quality-pulse/original-protection 路由未注册，功能聚合于这两个真实页面（2026-07-07 UI回归验证）",
+
+  "notes": [
+    "页面为 React + Ant Design 组件",
+    "小二工作台入口(运营端,BUC): https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "商家端入口(淘宝登录): https://pre-fsyc.taobao.com/ ；亦可千牛'商品-商品运营-服饰原创保护'（需TTYCBH白名单标签）",
+    "结算涉及资损风险，金额计算需严格验证",
+    "签约为BUC登录（小二视角）或淘宝登录（商家千牛视角）",
+    "非9类商家（含童装童鞋）签约流程与9类一致"
+  ],
+
+  "pages": {
+    "签约入驻": {
+      "route": "https://pre-fsyc.taobao.com/ (商家端「新增专利申请」)",
+      "description": "商家签约/申请入口，点「新增专利申请」开申请表单（在商家端，非小二端）",
+      "merchantEntry": "商家端 pre-fsyc.taobao.com，或千牛 > 商品 > 商品运营 > 服饰原创保护",
+      "whitelistTag": "TTYCBH",
+      "verified": "2026-07-07；原 quality-pulse/original-protection 未注册"
+    },
+    "商品管理": {
+      "route": "quality-pulse/product-management",
+      "description": "平台商品管理（SKU搜索/上下架/首发标签/调价），路由有效",
+      "knowledgeFile": "knowledge/xiaoer-product-mgmt.json",
+      "verified": "2026-07-07 product_search 用例通过"
+    },
+    "权利申请": {
+      "route": "bzb/noone/taotian-apparel-original-protection-xiaoer/list (运营端申请列表)",
+      "description": "运营端申请列表页，含申请列表/发起快审/是否首发列",
+      "statusFlow": "申请中 → 审核中 → 保护中 → 到期/终止",
+      "verified": "2026-07-07 apply_list/quick_audit/first_publish 通过；原 apply-management 未注册"
+    },
+    "结算管理": {
+      "route": "quality-pulse/settlement-manage (页面未加载,疑失效)",
+      "description": "结算金额计算属 API/DB 层逻辑，不走页面UI；真实结算页入口待确认",
+      "filters": ["商家类型(9类/非9类)", "结算状态", "时间范围"],
+      "verified": "2026-07-07 该路由页 assert 未过，已从UI回归移出"
+    },
+    "维权保护": {
+      "route": "bzb/noone/taotian-apparel-original-protection-xiaoer/list 行级「查看维权记录」",
+      "description": "维权功能聚合于运营端列表行级「查看维权记录」，打开维权记录弹层",
+      "functions": ["添加线索", "URL解析", "提交维权", "巡检记录"],
+      "verified": "2026-07-07 tort 用例通过；原 quality-pulse/tort-protection 未注册"
+    }
+  },
+
+  "apis": {
+    "商家签约": {
+      "name": "sellerSign",
+      "topApi": "taobao.industry.yc.seller.sign",
+      "method": "POST",
+      "hsfService": "SellerEnterToolService",
+      "dbTable": "yc_seller_enter_info",
+      "note": "签约幂等，重复签约不报错"
+    },
+    "权利申请": {
+      "name": "rightApply",
+      "topApi": "taobao.industry.yc.right.apply",
+      "method": "POST",
+      "hsfService": "RightApplyToolHsfService",
+      "dbTable": "yc_right_apply"
+    },
+    "取消申请": {
+      "name": "rightApplyCancel",
+      "topApi": "taobao.industry.yc.right.apply.cancel",
+      "method": "POST",
+      "note": "申请中状态可取消"
+    },
+    "终止保护": {
+      "name": "rightApplyTerminate",
+      "topApi": "taobao.industry.yc.right.apply.terminate",
+      "method": "POST",
+      "note": "保护中状态可终止"
+    },
+    "查询申请详情": {
+      "name": "rightApplyGet",
+      "topApi": "taobao.industry.yc.right.apply.get",
+      "method": "POST"
+    },
+    "查询类目列表": {
+      "name": "rightCategoryList",
+      "topApi": "taobao.industry.yc.right.category.list",
+      "method": "POST"
+    },
+    "查询保护商品": {
+      "name": "rightItemPage",
+      "topApi": "taobao.industry.yc.right.item.page",
+      "method": "POST"
+    },
+    "提交维权": {
+      "name": "rightProtectSubmit",
+      "topApi": "taobao.industry.yc.right.protect.submit",
+      "method": "POST"
+    },
+    "添加侵权线索": {
+      "name": "tortAdd",
+      "topApi": "taobao.industry.yc.tort.add",
+      "method": "POST",
+      "supportedPlatforms": ["淘宝", "天猫", "抖音", "小红书", "拼多多", "京东"],
+      "requiredFields": ["店铺名", "平台", "商品URL", "店铺链接"]
+    },
+    "巡检记录": {
+      "name": "tortPage",
+      "topApi": "taobao.industry.yc.tort.page",
+      "method": "POST"
+    },
+    "URL解析": {
+      "name": "parseItemInfoByUrl",
+      "path": "/api/common/parseItemInfoByUrl",
+      "method": "POST",
+      "note": "自动解析商品URL获取商品信息"
+    },
+    "签约申请提交": {
+      "name": "submitToRegular",
+      "path": "/api/seller/apply/submitToRegular",
+      "method": "POST"
+    }
+  },
+
+  "hsfServices": {
+    "RightSettleToolHsfService": {
+      "description": "结算工具服务",
+      "relatedTables": ["yc_right_settle_order", "service_trade_record", "refund_apply_order"]
+    },
+    "RightApplyToolHsfService": {
+      "description": "权利申请工具服务",
+      "relatedTables": ["yc_right_apply", "yc_right_apply_op_record", "yc_right"]
+    },
+    "RightToolHsfService": {
+      "description": "权利管理工具服务",
+      "relatedTables": ["yc_right", "yc_inspect_whitelist"]
+    },
+    "SellerEnterToolService": {
+      "description": "商家入驻工具服务",
+      "relatedTables": ["yc_seller_enter_info", "yc_seller_contract_info"]
+    },
+    "ServiceTradeToolService": {
+      "description": "交易服务工具",
+      "relatedTables": ["service_trade_record", "yc_service_trade_record"]
+    }
+  },
+
+  "dbTables": {
+    "yc_seller_enter_info": "商家入驻信息（签约状态、白名单标签）",
+    "yc_seller_contract_info": "商家合同信息",
+    "yc_right": "权利主表（保护状态、有效期）",
+    "yc_right_apply": "权利申请记录",
+    "yc_right_apply_op_record": "申请操作记录",
+    "yc_right_settle_order": "结算订单（金额、状态）",
+    "yc_inspect_whitelist": "巡检白名单",
+    "yc_service_trade_record": "服务交易记录",
+    "service_trade_record": "交易流水",
+    "refund_apply_order": "退款申请单"
+  },
+
+  "businessRules": {
+    "签约入驻": {
+      "9类商家": "标准签约流程，含补贴和官费",
+      "非9类商家(含童装童鞋)": "签约流程与9类一致，白名单/权益上限等规则不变",
+      "白名单": "千牛标签TTYCBH",
+      "幂等": "重复签约不报错，返回已签约状态"
+    },
+    "结算规则-9类商家": {
+      "下架率>=70%": "付供应商335元/SKU",
+      "首发+下架率<70%": "退商家33元 (500-302-165=33)",
+      "非首发+下架率>=70%": "付供应商335元/SKU",
+      "非首发+下架率<70%": "退商家133元 (500-202-165=133)",
+      "资损风险": "金额计算错误为P0级Bug"
+    },
+    "结算规则-非9类商家": {
+      "规则": "无补贴无官费",
+      "到期退款": "500×剩余次数",
+      "note": "到期自动退款，无需人工触发"
+    },
+    "维权流程": {
+      "与9类一致": "维权流程无特殊规则",
+      "支持平台": ["淘宝", "天猫", "抖音", "小红书", "拼多多", "京东"],
+      "线索来源": ["手动添加", "URL自动解析", "系统巡检"]
+    },
+    "申请状态流转": {
+      "正向": "申请中 → 审核中 → 保护中 → 到期",
+      "取消": "申请中 → 已取消",
+      "终止": "保护中 → 已终止",
+      "note": "只有申请中可取消，保护中可终止"
+    }
+  },
+
+  "assertHints": {
+    "签约成功": {
+      "target": "api",
+      "urlPattern": "yc.seller.sign|seller/sign",
+      "path": "data.success",
+      "equals": true
+    },
+    "结算列表有数据": {
+      "target": "page",
+      "contains": "结算金额"
+    },
+    "维权线索添加成功": {
+      "target": "api",
+      "urlPattern": "yc.tort.add|tort/add",
+      "path": "data.success",
+      "equals": true
+    },
+    "URL解析成功": {
+      "target": "api",
+      "urlPattern": "parseItemInfoByUrl",
+      "path": "data.success",
+      "equals": true
+    }
+  },
+
+  "knownIssues": [
+    "签约协议使用Drawer抽屉组件，需等动画完成(~300ms)",
+    "结算金额为Decimal精度，页面展示需注意小数位",
+    "维权URL解析支持6个平台，但不同平台返回字段不同",
+    "巡检记录分页展示，默认按时间倒序",
+    "非9类商家结算无补贴无官费，页面不应展示官费字段",
+    "权利申请状态流转严格，不可跳过中间状态",
+    "首发标签管理在商品管理页（非独立页面）"
+  ],
+
+  "_meta": {
+    "initStatus": "enriched",
+    "lastVerified": null,
+    "verifiedByRun": null,
+    "staleFields": [],
+    "totalRuns": 0,
+    "passRate": null,
+    "source": "qoderwork/yc-child-shoes-testcases (test_01~08.py)"
+  }
+}

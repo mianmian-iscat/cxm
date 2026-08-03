@@ -1,0 +1,72 @@
+{
+  "name": "afd_permission_checker",
+  "version": "1.0.0",
+  "description": "AFD 角色权限校验工具：验证不同角色在不同迭代状态下的操作可见性",
+  "triggers": ["权限", "角色", "可见性", "按钮状态", "permission"],
+  "parameters": {
+    "type": "object",
+    "required": ["iteration_id", "role", "expected_actions"],
+    "properties": {
+      "iteration_id": {
+        "type": "string",
+        "description": "视觉迭代ID"
+      },
+      "role": {
+        "type": "string",
+        "enum": ["buyer", "operator", "leader", "admin", "viewer"],
+        "description": "当前用户角色（5类角色）"
+      },
+      "shop_id": {
+        "type": "string",
+        "description": "店铺ID（buyer 角色需要，用于判断是否为负责店铺的买手）"
+      },
+      "is_responsible_shop": {
+        "type": "boolean",
+        "default": true,
+        "description": "当前用户是否为该店铺的负责买手（buyer 角色时有意义）"
+      },
+      "expected_actions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "action_name": { "type": "string", "description": "操作名称" },
+            "should_be_visible": { "type": "boolean", "description": "是否应该可见" },
+            "should_be_enabled": { "type": "boolean", "description": "是否应该可点击（默认同 visible）" }
+          },
+          "required": ["action_name", "should_be_visible"]
+        },
+        "description": "期望的操作可见性列表"
+      },
+      "page_context": {
+        "type": "string",
+        "enum": ["shop_list", "iteration_detail_brief", "iteration_detail_sample", "iteration_detail_archive"],
+        "description": "当前页面上下文"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "role": { "type": "string" },
+      "current_state": { "type": "string" },
+      "action_results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "action_name": { "type": "string" },
+            "expected_visible": { "type": "boolean" },
+            "actual_visible": { "type": "boolean" },
+            "match": { "type": "boolean" },
+            "button_state": { "type": "string", "enum": ["enabled", "disabled", "hidden"] }
+          }
+        }
+      },
+      "all_match": { "type": "boolean", "description": "所有操作是否符合预期" },
+      "mismatches": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff": "fixed" }
+}

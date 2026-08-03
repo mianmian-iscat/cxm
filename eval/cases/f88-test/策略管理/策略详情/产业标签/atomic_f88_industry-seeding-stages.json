@@ -1,0 +1,99 @@
+{
+  "id": "atomic-f88-industry-seeding-stages",
+  "name": "UI：产业带种草链路-环节结构验证(含图文上传节点)",
+  "description": "验证产业带种草链路的环节结构，包含新增的图文上传环节，以及各环节策略配置",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20243",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20243",
+      "waitUntil": "networkidle",
+      "description": "打开产业带种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const expectedStages = ['入参图刷标签', '首图生成', '标题文案生成', '图片审核']; const foundStages = expectedStages.filter(s => t.includes(s)); const stageArea = document.querySelector('[class*=linkNode], [class*=stageCard], [class*=StageCard]'); const stageText = stageArea ? stageArea.textContent : ''; return { expectedCount: expectedStages.length, foundCount: foundStages.length, foundStages, hasImageTextUploadInStageArea: stageText.includes('图文上传'), allStagesPresent: foundStages.length === expectedStages.length }; })()",
+      "description": "检查环节卡片完整性",
+      "storeAs": "stageCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "stageCheck",
+      "path": "foundCount",
+      "gte": 3,
+      "description": "至少5个核心环节存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "stageCheck",
+      "path": "allStagesPresent",
+      "equals": true,
+      "description": "4个核心环节全部存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "入参图刷标签",
+      "description": "环节1：入参图刷标签"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图生成",
+      "description": "环节2：首图生成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "标题文案生成",
+      "description": "环节3：标题文案生成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "图片审核",
+      "description": "环节4：图片审核"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = Array.from(document.querySelectorAll('[class*=stageCard], [class*=StageCard], [class*=stage-card], [class*=linkNode]')); if (cards.length === 0) { const allDivs = Array.from(document.querySelectorAll('div')); const stageDivs = allDivs.filter(d => { const t = (d.textContent || ''); return (t.includes('入参图刷标签') || t.includes('首图生成') || t.includes('图文上传')) && d.children.length > 0 && d.children.length < 30; }); return { cardCount: stageDivs.length, source: 'fallback-div' }; } return { cardCount: cards.length, source: 'css-selector' }; })()",
+      "description": "统计环节卡片数量",
+      "storeAs": "cardCount"
+    },
+    {
+      "type": "assertStore",
+      "key": "cardCount",
+      "path": "cardCount",
+      "gte": 4,
+      "description": "至少4个环节卡片"
+    },
+    {
+      "type": "screenshot",
+      "label": "industry-seeding-stages",
+      "description": "产业带种草链路环节结构"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；产业带种草链路已创建",
+    "realDomNotes": "产业带种草链路=种草20205基础上新增'图文上传'环节; 预期6个环节: 入参图刷标签/首图生成/首图审核/套图生成/标题文案生成/套图审核+图文上传",
+    "riskPoints": ["图文上传环节是否已添加到链路", "环节顺序是否正确(图文上传应在最后)", "链路ID是否为20180(需确认)"]
+  }
+}

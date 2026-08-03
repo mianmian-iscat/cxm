@@ -1,0 +1,39 @@
+{
+  "id": "ui-f88-strategy-list",
+  "name": "UI：F88 策略列表页结构验证",
+  "description": "打开策略列表页，验证页面加载、表格列（策略名称/策略阶段/环节等）、筛选项与新建策略入口。基于预发真实路由 /strategy/list。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待策略列表表格加载" },
+    { "type": "assert", "target": "page", "contains": "策略列表", "description": "验证策略列表页已加载" },
+    { "type": "assert", "target": "page", "contains": "新建策略", "description": "验证存在新建策略入口" },
+    { "type": "assert", "target": "page", "contains": "策略名称", "description": "验证表格含策略名称列" },
+    { "type": "assert", "target": "page", "contains": "策略阶段", "description": "验证表格含策略阶段列" },
+    { "type": "assert", "target": "page", "contains": "环节", "description": "验证表格含环节列" },
+    { "type": "screenshot", "label": "strategy-list", "description": "截图-策略列表页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /strategy/list；表格列：策略名称/策略阶段/环节/创建时间/更新时间/提交人/操作；按钮：新建策略/打开/复制；筛选：策略名称、策略阶段、环节。操作列为'打开'非'编辑'。",
+    "riskPoints": ["表格数据为空时仅表头存在"]
+  }
+}

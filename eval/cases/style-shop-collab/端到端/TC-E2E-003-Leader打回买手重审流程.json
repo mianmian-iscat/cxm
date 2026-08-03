@@ -1,0 +1,132 @@
+{
+  "id": "TC-E2E-003",
+  "name": "TC-E2E-003 — Leader打回买手→重审→Leader复核流程 [P1]",
+  "description": "端到端打回流程：买手审核→Leader打回→买手重审→再次提交→Leader复核",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "端到端",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "comment",
+      "text": "═══ Phase 1: RETURNED_TO_BUYER状态验证 ═══"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasLeaderOpinion = text.includes('调整意见') || text.includes('打回'); const leaderOpinionBlock = !!document.querySelector('[class*=opinion], [class*=leader-feedback], .ant-alert'); const hasPrevVerdict = text.includes('买手判定') || text.includes('上一轮'); const activeStep = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const activeTab = document.querySelector('.ant-tabs-tab-active')?.textContent.trim(); return { hasLeaderOpinion, leaderOpinionBlock, hasPrevVerdict, activeStep, activeTab, isReviewTab: activeTab?.includes('试拍') || activeTab?.includes('评审') }; })()",
+      "description": "P1断言: RETURNED_TO_BUYER状态(Leader调整意见展示+上一轮买手结论+试拍评审tab激活)",
+      "storeAs": "p1_returned"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 2: 审核视图与评审记录组件验证 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const defaultReviewView = text.includes('审核视图') || !!document.querySelector('[class*=review-view], [class*=gallery]'); const hasReviewRecord = text.includes('评审记录') || text.includes('打回买手'); const hasStandard = text.includes('判定标准') || text.includes('单组'); const hasGuide = text.includes('操作指引') || text.includes('重新调整'); const groupNav = !!document.querySelector('[class*=group-nav], [class*=sidebar]'); return { defaultReviewView, hasReviewRecord, hasStandard, hasGuide, groupNav }; })()",
+      "description": "P2断言: 默认进入审核视图+评审记录组件展示打回记录+判定标准",
+      "storeAs": "p2_reviewRecord"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-leader-return-state"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 3: 买手重新审核并提交 → PENDING_LEADER ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const submitBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent.includes('提交审核') || b.textContent.includes('完成审核') || b.textContent.includes('重新提交')) && !b.disabled); if (submitBtn) { submitBtn.click(); return { clicked: true, btnText: submitBtn.textContent.trim() }; } return { clicked: false, msg: '提交按钮不可用' }; })()",
+      "description": "P3操作: 买手重新完成审核并提交",
+      "storeAs": "p3_resubmit"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const activeStep = document.querySelector('.ant-steps-item-process')?.textContent.trim(); const isPendingLeader = activeStep?.includes('Leader') || activeStep?.includes('复核') || text.includes('待Leader'); const resultViewVisible = text.includes('结果视图') || text.includes('通过图片'); const leaderOpinionGone = !text.includes('调整意见'); return { isPendingLeader, activeStep, resultViewVisible, leaderOpinionGone }; })()",
+      "description": "P3断言: 状态流转到PENDING_LEADER(步骤条高亮Leader复核+结果视图+调整意见消失)",
+      "storeAs": "p3_pendingLeader"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 4: Leader复核操作 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const confirmPassBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('确认通过') && !b.disabled); const returnBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('打回') && !b.disabled); const rejectBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('确认驳回') && !b.disabled); return { hasConfirmPass: !!confirmPassBtn, hasReturn: !!returnBtn, hasReject: !!rejectBtn, leaderActionsAvailable: !!confirmPassBtn || !!returnBtn || !!rejectBtn }; })()",
+      "description": "P4断言: Leader复核按钮可用(确认通过/打回买手/确认驳回)",
+      "storeAs": "p4_leaderActions"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const confirmPassBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('确认通过') && !b.disabled); if (confirmPassBtn) { confirmPassBtn.click(); return { clicked: true }; } return { clicked: false, msg: '确认通过按钮不可用' }; })()",
+      "description": "P4操作: Leader确认通过",
+      "storeAs": "p4_confirmPass"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const activeStep = document.querySelector('.ant-steps-item-process, .ant-steps-item-finish')?.textContent.trim(); const isArchived = text.includes('归档') || text.includes('基准包'); const archiveTab = document.querySelector('.ant-tabs-tab-active')?.textContent.trim(); const readOnly = !Array.from(document.querySelectorAll('button')).some(b => !b.disabled && (b.textContent.includes('编辑') || b.textContent.includes('提交') || b.textContent.includes('打回'))); return { isArchived, activeStep, archiveTab, readOnly }; })()",
+      "description": "P4断言: Leader确认后进入ARCHIVED(归档tab+只读)",
+      "storeAs": "p4_archived"
+    },
+    {
+      "type": "comment",
+      "text": "═══ Phase 5: 时间线验证 ═══"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const timelineBtn = Array.from(document.querySelectorAll('button, a, [class*=timeline]')).find(b => b.textContent.includes('时间线')); if (timelineBtn) { timelineBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "P5操作: 打开时间线",
+      "storeAs": "p5_openTimeline"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer, [class*=drawer]'); const text = drawer?.textContent || ''; const hasReturnEvent = text.includes('打回'); const hasResubmitEvent = text.includes('重新提交') || text.includes('提交审核'); const hasLeaderConfirm = text.includes('确认通过') || text.includes('归档'); return { drawerOpen: !!drawer, hasReturnEvent, hasResubmitEvent, hasLeaderConfirm, fullCycleRecorded: hasReturnEvent && hasResubmitEvent && hasLeaderConfirm }; })()",
+      "description": "P5断言: 时间线记录打回+重新提交+Leader确认事件",
+      "storeAs": "p5_timeline"
+    },
+    {
+      "type": "screenshot",
+      "label": "e2e-leader-return-complete"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在RETURNED_TO_BUYER状态的迭代",
+    "stepsText": "1. 验证买手看到Leader调整意见\n2. 验证默认进入审核视图+评审记录组件\n3. 买手重新提交→PENDING_LEADER\n4. Leader复核按钮验证+确认通过→ARCHIVED\n5. 时间线记录完整",
+    "expectedResult": "1. 展示Leader调整意见和上一轮买手结论\n2. 默认进入审核视图，评审记录展示打回记录和判定标准\n3. 买手重新提交后进入PENDING_LEADER，调整意见消失\n4. Leader确认通过后进入ARCHIVED\n5. 时间线记录打回和重新提交事件",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/端到端",
+    "stateTransitions": ["RETURNED_TO_BUYER→PENDING_LEADER", "PENDING_LEADER→ARCHIVED"]
+  }
+}

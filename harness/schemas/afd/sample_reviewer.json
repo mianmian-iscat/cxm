@@ -1,0 +1,110 @@
+{
+  "name": "afd_sample_reviewer",
+  "version": "1.0.0",
+  "description": "AFD 试拍评审工具：上传/导入/校验/买手审核/Leader复核全流程",
+  "triggers": ["试拍", "评审", "上传图组", "买手审核", "Leader复核", "最小集"],
+  "parameters": {
+    "type": "object",
+    "required": ["iteration_id", "action"],
+    "properties": {
+      "iteration_id": {
+        "type": "string",
+        "description": "视觉迭代ID"
+      },
+      "action": {
+        "type": "string",
+        "enum": [
+          "upload_sample", "import_excel", "validate_minimum_set",
+          "save_draft", "submit_review",
+          "buyer_review_group", "buyer_discard_image", "buyer_undo_discard",
+          "buyer_submit_verdict",
+          "leader_confirm_pass", "leader_confirm_reject", "leader_return_buyer"
+        ],
+        "description": "试拍评审操作类型"
+      },
+      "sample_groups": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "group_id": { "type": "string" },
+            "item_id": { "type": "string", "description": "商品 Item ID" },
+            "original_image": { "type": "string", "description": "原款图 URL（1张）" },
+            "template_image": { "type": "string", "description": "视觉模板图 URL（≥1张）" },
+            "hero_image": { "type": "string", "description": "首图 URL（1张）" },
+            "suite_images": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "套图 URL 列表（≥5张）"
+            },
+            "tags": {
+              "type": "object",
+              "properties": {
+                "composition": { "type": "string", "description": "构图" },
+                "pose": { "type": "string", "description": "姿势" },
+                "angle": { "type": "string", "description": "角度" }
+              }
+            }
+          }
+        }
+      },
+      "excel_file_path": {
+        "type": "string",
+        "description": "Excel 导入文件路径（action=import_excel 时使用）"
+      },
+      "minimum_set_rules": {
+        "type": "object",
+        "properties": {
+          "min_groups": { "type": "number", "default": 5, "description": "最少达标组数" },
+          "min_suite_images": { "type": "number", "default": 5, "description": "每组最少套图数" },
+          "min_tags": { "type": "number", "default": 3, "description": "最少标签种类数" }
+        }
+      },
+      "group_id": {
+        "type": "string",
+        "description": "操作的图组ID（逐组审核时使用）"
+      },
+      "discard_reason": {
+        "type": "string",
+        "enum": ["穿搭穿法", "模特长相", "AI感强", "其他"],
+        "description": "弃用原因"
+      },
+      "leader_note": {
+        "type": "string",
+        "description": "Leader 调整意见（10-500字，打回买手时必填）"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "success": { "type": "boolean" },
+      "minimum_set_valid": { "type": "boolean", "description": "最小集校验是否通过" },
+      "minimum_set_detail": {
+        "type": "object",
+        "properties": {
+          "total_groups": { "type": "number" },
+          "valid_groups": { "type": "number" },
+          "missing": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "verdict": {
+        "type": "string",
+        "enum": ["pass", "reject"],
+        "description": "审核结论"
+      },
+      "verdict_detail": {
+        "type": "object",
+        "properties": {
+          "total_groups": { "type": "number" },
+          "passed_groups": { "type": "number" },
+          "total_images": { "type": "number" },
+          "discarded_images": { "type": "number" }
+        }
+      },
+      "new_state": { "type": "string" }
+    }
+  },
+  "timeout_ms": 20000,
+  "retry_policy": { "max_retries": 1, "backoff": "fixed" }
+}

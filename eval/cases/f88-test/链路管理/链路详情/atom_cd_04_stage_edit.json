@@ -1,0 +1,65 @@
+{
+  "id": "atom-cd-04-stage-edit",
+  "name": "原子：环节编辑按钮",
+  "description": "点击刷标签环节的edit按钮，验证弹出编辑弹窗，查看弹窗内容",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const strongs = document.querySelectorAll('strong'); let stageEl = null; for (const s of strongs) { if (s.textContent.trim() === '刷标签') { stageEl = s; break; } } if (!stageEl) return { ok: false, msg: 'stage not found' }; const container = stageEl.closest('div[class]'); const parent = container?.parentElement; const editBtn = parent?.querySelector('button'); if (!editBtn) return { ok: false, msg: 'edit btn not found' }; editBtn.click(); return { ok: true }; })()"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-edit-dialog"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer-open'); const target = modal || drawer; if (!target) return { type: 'none', text: '' }; const inputs = target.querySelectorAll('input, select, textarea'); const btns = target.querySelectorAll('button'); return { type: modal ? 'modal' : 'drawer', inputCount: inputs.length, buttonCount: btns.length, text: target.innerText.substring(0, 400) }; })()",
+      "storeAs": "editDialog"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    }
+  ]
+}

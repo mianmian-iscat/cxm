@@ -1,0 +1,80 @@
+# evaluation_weights.yaml — 五维评估权重与评级阈值
+# 差距 2.6 补齐
+
+# 五维权重配置（总和 = 1.0）
+weights:
+  功能正确性: 0.30     # 通过率、断言覆盖率
+  业务价值性: 0.30     # 提效比、覆盖域、交付时长
+  执行稳定性: 0.20     # 重试率、自愈率、波动率
+  性能效率: 0.10       # 平均耗时、P95 耗时
+  可扩展性: 0.10       # 模块复用率、配置化程度
+
+# 满分阈值（达到此值记为 100 分）
+thresholds:
+  pass_rate: 0.95            # 通过率
+  assertion_coverage: 0.90   # 断言覆盖率
+  efficiency_ratio: 5.0      # 提效比（AI vs 人工耗时比）
+  coverage_domain: 1.0       # 覆盖域（0-1）
+  delivery_hours: 4          # 交付时长（小时）
+  retry_rate: 0.05           # 重试率（越低越好）
+  self_heal_rate: 0.80       # 自愈率
+  fluctuation_rate: 0.02     # 波动率（越低越好）
+  avg_duration_ms: 2000      # 平均耗时（ms，越低越好）
+  p95_duration_ms: 5000      # P95 耗时（ms，越低越好）
+  module_reuse_rate: 0.80    # 模块复用率
+  config_ratio: 0.90         # 配置化程度
+
+# 上线评级阈值
+rating:
+  A:
+    min_score: 85
+    description: "全部达标，直接上线"
+  B:
+    min_score: 70
+    description: "基本达标，灰度上线"
+  C:
+    min_score: 50
+    description: "部分达标，限场景上线"
+  D:
+    min_score: 0
+    description: "未达标，拒绝上线"
+
+# ── 业务域差异化权重 ─────────────────────────────────────────────────────
+# 各域在通用 weights 基础上可按此覆盖，未指定的权继承通用配置
+domain_weights:
+  afd-collab:
+    description: "AFD 风格店铺协作平台（重功能正确性 + 业务价值）"
+    weights_override:
+      功能正确性: 0.35     # 迭代状态机 + Brief流程 + 权限矩阵
+      业务价值性: 0.30
+      执行稳定性: 0.15
+      性能效率: 0.10
+      可扩展性: 0.10
+    thresholds_override:
+      pass_rate: 0.90          # 迭代流程用例通过率
+      assertion_coverage: 0.85  # 状态机 + 权限矩阵断言覆盖
+
+  f88-material:
+    description: "F88 素材生产审核（重执行稳定性 + 功能正确性）"
+    weights_override:
+      功能正确性: 0.25
+      业务价值性: 0.25
+      执行稳定性: 0.30     # 105+条回归用例稳定性
+      性能效率: 0.10
+      可扩展性: 0.10
+    thresholds_override:
+      pass_rate: 0.95          # 素材生产高通过率要求
+      assertion_coverage: 0.90
+
+  original-protection:
+    description: "原创保护（重业务价值 + 功能正确性）"
+    weights_override:
+      功能正确性: 0.30
+      业务价值性: 0.35     # 结算 + 维权业务价值高
+      执行稳定性: 0.15
+      性能效率: 0.10
+      可扩展性: 0.10
+    thresholds_override:
+      pass_rate: 0.90
+      assertion_coverage: 0.85
+

@@ -1,0 +1,95 @@
+{
+  "id": "regression-op-tort-protection",
+  "name": "回归：原创保护维权记录查看（运营端）",
+  "description": "在原创保护运营端申请列表页，通过行级「查看维权记录」入口验证维权记录查看功能",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/yc-child-shoes-testcases/test_08_tort.py",
+  "sourceIds": [
+    "TC_TORT_006"
+  ],
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+      "description": "打开原创保护运营端申请列表页（维权功能聚合于此）"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "累计维权次数",
+      "description": "验证运营端原创保护页已加载（含维权相关列）"
+    },
+    {
+      "type": "screenshot",
+      "label": "tort-list",
+      "description": "截图-原创保护运营端列表（含维权入口）"
+    },
+    {
+      "type": "clickText",
+      "text": "查看维权记录",
+      "description": "【TC_TORT_006】点击行级「查看维权记录」入口"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待维权记录弹层/详情加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "tort-record",
+      "description": "截图-维权记录查看结果"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": ".tbd-modal, .tbd-drawer, .ant-modal, .ant-drawer, [role='dialog']",
+      "visible": true,
+      "description": "验证维权记录弹层已打开"
+    },
+    {
+      "type": "assert",
+      "assertion": "tortConsistency",
+      "expected": "运营端维权弹层概览统计 vs 维权记录列表一致",
+      "description": "【数值一致性】校验维权弹层概览（疑似侵权共计等）与下方维权记录列表状态数量一致"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "yc.tort|tort|yc.right",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "测试小二BUC登录态有效，原创保护运营端列表页可访问且至少有一行数据",
+    "riskPoints": [
+      "「查看维权记录」入口可能为弹窗/抽屉/新页，断言用宽泛弹层选择器",
+      "无数据行时无「查看维权记录」入口"
+    ],
+    "erratum": "原用例假设的独立路由 quality-pulse/tort-protection 未注册于本站点；维权功能实际聚合在运营端 taotian-apparel-original-protection-xiaoer/list 的行级「查看维权记录」，据真实页面重新定位",
+    "qoderworkRef": "test_08_tort.py TC_TORT_006"
+  }
+}

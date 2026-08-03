@@ -1,0 +1,23 @@
+{
+  "name": "emulateFullscreen",
+  "version": "1.0.0",
+  "description": "通过 CDP Emulation 域模拟全屏",
+  "triggers": ["全屏", "fullscreen"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "emulateFullscreen" },
+      "width": { "type": "integer" },
+      "height": { "type": "integer" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "fullscreen": { "type": "boolean" } } },
+  "timeout_ms": 5000,
+  "retry_policy": { "max_retries": 0 }
+}

@@ -1,0 +1,244 @@
+{
+  "id": "e2e-f88-image-action-hd-enhance",
+  "name": "端到端：F88 图片高清化 → 确认 → URL/状态一致性校验",
+  "description": "进入图片审核详情，勾选素材→hover主图→点击hd图标→高清化处理→确定→验证编辑前/后切换及URL变化→CopyURL/下载验证→点击确认完成审核→自动流转下一任务。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "dataSetup",
+      "kind": "f88-audit-task",
+      "params": { "questionType": 4, "rows": 1 },
+      "storeAs": "setupTask",
+      "description": "[造数] 自动创建待审核首图审核任务（数据自愈，解决无待审核数据阻塞）"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待任务列表"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; return row ? { taskId: row.getAttribute('data-row-key') } : null; })()",
+      "storeAs": "firstTask",
+      "description": "读取首行任务ID"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "打开第一条待审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待审核详情Drawer打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw') && i.getBoundingClientRect().width > 100); const materialImg = imgs.find(i => i.src.includes('/llm/')); return materialImg ? { originUrl: materialImg.src.substring(0, 120) } : null; })()",
+      "storeAs": "originImage",
+      "description": "记录原始图片URL(llm路径)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cb = document.querySelector('[class*=MaterialSlider] input[type=checkbox]'); if(cb && !cb.checked) cb.click(); return 'checked'; })()",
+      "description": "勾选素材图(如未勾选)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(async () => { await page.mouse.move(900, 350); await page.waitForTimeout(1000); const icon = await page.locator('[aria-label=\"hd\"]').last(); const box = await icon.boundingBox(); if(box) { await page.mouse.click(box.x+box.width/2, box.y+box.height/2); return 'clicked hd'; } return 'not found'; })()",
+      "description": "hover主图→点击hd图标触发高清化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待高清化处理"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => /确\\\\s*定/.test(b.textContent) && !b.disabled); if(btn){btn.click();return 'clicked';} return 'no btn'; })()",
+      "description": "点击确定提交高清化"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "submitLocalAdjust|material/write|hdEnhance",
+      "timeout": 20000,
+      "description": "等待高清化提交API"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待高清化结果渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const radios = Array.from(document.querySelectorAll('[role=radio], input[type=radio]')); const labels = radios.map(r => ({label: r.parentElement?.textContent?.trim()?.substring(0,10), checked: r.checked || r.getAttribute('aria-checked')==='true'})); const editedImg = Array.from(document.querySelectorAll('img')).find(i => i.src && i.src.includes('/localUpload/')); return { hasToggle: radios.length >= 2, labels, editedUrl: editedImg ? editedImg.src.substring(0, 120) : null }; })()",
+      "storeAs": "editResult",
+      "description": "验证编辑前/后切换及高清化后URL(localUpload路径)"
+    },
+    {
+      "type": "assertStore",
+      "key": "editResult",
+      "path": "editedUrl",
+      "notEmpty": true,
+      "description": "断言高清化后URL存在(localUpload路径)"
+    },
+    {
+      "type": "assertStore",
+      "key": "editResult",
+      "path": "hasToggle",
+      "equals": "true",
+      "description": "断言编辑前/后切换存在"
+    },
+    {
+      "_comment": "========== postConfirmVerify: 确认CopyURL/下载得到的是高清化后数据 ==========",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw')); const img = imgs.find(i => i.getBoundingClientRect().width > 100); return img ? { currentUrl: img.src.substring(0, 120) } : null; })()",
+      "storeAs": "afterEdit",
+      "description": "【postConfirmVerify】获取高清化后图片URL"
+    },
+    {
+      "type": "assert",
+      "target": "store.afterEdit.currentUrl",
+      "notEquals": "${store.originImage.originUrl}",
+      "description": "【postConfirmVerify-CopyURL】高清化后图片URL必须≠原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "复制",
+      "description": "【postConfirmVerify-CopyURL】点击复制URL按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待复制操作完成"
+    },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【postConfirmVerify-下载】点击下载按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待下载完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-高清化-postconfirm-verify",
+      "description": "截图-高清化确认后CopyURL/下载验证"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btn = Array.from(document.querySelectorAll('button')).find(b => /确\\\\s*认/.test(b.textContent) && b.className && b.className.includes('primary')); if(btn){btn.click();return 'clicked confirm';} return 'no btn'; })()",
+      "description": "点击顶部工具栏'确认'按钮完成审核"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "approveMaterial|audit/approve|confirm",
+      "timeout": 15000,
+      "description": "等待审核通过API"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待自动流转下一任务"
+    },
+    {
+      "type": "apiCall",
+      "api": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditDetail",
+      "v": "1.0",
+      "data": {
+        "taskId": "${store.firstTask.taskId}"
+      },
+      "storeAs": "auditDetail",
+      "description": "调用审核详情API"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.auditStatus",
+      "equals": "APPROVED",
+      "description": "API断言审核状态为已通过"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, url, local_adjust_url, status FROM material WHERE task_id = '${store.firstTask.taskId}' ORDER BY id DESC LIMIT 1",
+      "storeAs": "materialDb",
+      "description": "DB查询素材记录"
+    },
+    {
+      "type": "assertDbResult",
+      "expectations": [
+        {
+          "field": "status",
+          "equals": "APPROVED"
+        },
+        {
+          "field": "url",
+          "notEmpty": true
+        },
+        {
+          "field": "local_adjust_url",
+          "notEmpty": true
+        }
+      ],
+      "description": "DB断言状态与URL字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "f88-hd-e2e-done",
+      "description": "截图-高清化端到端完成"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核图片任务。",
+    "realDomNotes": "hd图标触发高清化处理→确定→编辑前/后Radio切换→确认→自动流转。URL从llm/变为localUpload/。高清化可能异步处理较慢。",
+    "riskPoints": [
+      "无待审核任务时无法进入详情",
+      "hd图标需hover主图才出现",
+      "高清化可能异步处理较慢"
+    ]
+  }
+}

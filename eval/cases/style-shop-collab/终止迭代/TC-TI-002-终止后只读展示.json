@@ -1,0 +1,47 @@
+{
+  "id": "TC-TI-002",
+  "name": "TC-TI-002 — 终止后迭代只读展示 [P1]",
+  "description": "验证CANCELLED状态迭代只读展示，不展示主流程action，店铺释放名额",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "终止迭代",
+  "page": "迭代详情",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasTerminateInfo = text.includes('已终止') || text.includes('CANCELLED') || text.includes('终止'); const noMainAction = !document.querySelector('[class*=bottom-action] button, [class*=main-action] button'); const steps = Array.from(document.querySelectorAll('[class*=step-item]')).map(s => s.textContent.trim()); return { hasTerminateInfo, noMainAction, steps }; })()",
+      "description": "验证终止后展示",
+      "storeAs": "terminatedView"
+    },
+    {
+      "type": "screenshot",
+      "label": "terminated-iteration"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在CANCELLED状态的迭代",
+    "stepsText": "1. 进入已终止迭代详情\n2. 验证展示终止信息\n3. 验证不展示主流程action\n4. 验证内容只读",
+    "expectedResult": "1. 展示已终止状态\n2. 不展示Brief提交/确认/上传/审核/复核/归档等action\n3. 内容只读可查看历史\n4. 时间线展示终止事件",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/终止迭代"
+  }
+}

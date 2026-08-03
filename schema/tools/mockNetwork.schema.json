@@ -1,0 +1,29 @@
+{
+  "name": "mockNetwork",
+  "version": "1.0.0",
+  "description": "网络异常模拟 + API Mock（断网/限速/Mock响应）",
+  "triggers": ["模拟网络", "断网", "限速", "mock", "network mock"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "mockNetwork" },
+      "mode": { "type": "string", "enum": ["offline", "throttle", "mock", "reset"], "default": "reset" },
+      "offline": { "type": "boolean", "default": false },
+      "latency": { "type": "integer", "default": 0 },
+      "downloadKbps": { "type": "integer", "default": -1 },
+      "uploadKbps": { "type": "integer", "default": -1 },
+      "urlPattern": { "type": "string" },
+      "mockStatus": { "type": "integer", "default": 500 },
+      "mockBody": { "type": "string" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "mode": { "type": "string" } } },
+  "timeout_ms": 5000,
+  "retry_policy": { "max_retries": 0 }
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "../schema/input.schema.json",
+  "id": "optimized-example-001",
+  "name": "优化配置示例 - 日销价调价流程",
+  "description": "展示如何配置 contextOptimization 来减少上下文消耗",
+  
+  "context": {
+    "urlPattern": "xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 2000
+  },
+
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://xiaoer.alibaba-inc.com/product/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "导航到商品列表页"
+    },
+    {
+      "type": "click",
+      "text": "搜索",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "/cobweb/api/product/search",
+      "timeout": 10000,
+      "description": "等待搜索接口完成"
+    },
+    {
+      "type": "click",
+      "text": "调价",
+      "screenshot": true,
+      "description": "点击调价按钮"
+    },
+    {
+      "type": "fill",
+      "selector": "#price-input",
+      "value": "99.00",
+      "description": "填写新价格"
+    },
+    {
+      "type": "click",
+      "text": "提交",
+      "screenshot": true,
+      "description": "提交调价"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "startAdjustdailySellPrice",
+      "timeout": 15000,
+      "description": "等待调价接口完成"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "contains": "\"success\":true",
+      "description": "验证调价成功"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "调价成功",
+      "screenshot": true,
+      "description": "验证页面提示"
+    }
+  ],
+
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  },
+
+  "capture": {
+    "enabled": true,
+    "filter": "/cobweb/api/|startAdjustdailySellPrice",
+    "captureBody": true,
+    "exportHAR": false
+  },
+
+  "screenshot": {
+    "onEachStep": false,
+    "onError": true
+  },
+
+  "checkpoint": {
+    "enabled": false,
+    "segmentSize": 8,
+    "outputSizeLimitKb": 200
+  }
+}

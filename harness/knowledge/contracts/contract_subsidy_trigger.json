@@ -1,0 +1,16 @@
+{
+  "id": "contract_subsidy_trigger",
+  "category": "contracts",
+  "title": "补贴触发契约",
+  "content": "{\"trigger_condition\": \"init_allowance_start_time IS NOT NULL\", \"non_trigger_condition\": \"init_allowance_start_time IS NULL\", \"timing_order\": \"MUST set allowance_start_time BEFORE protect_expired_time\", \"wrong_order_result\": \"subsidy NOT triggered\", \"allowance_amount\": {\"first_publish\": 6, \"non_first_publish\": 4, \"note\": \"test environment values; prod = 302/202\"}, \"total_amount_note\": \"total_amount is base settlement fee (test=10, prod=50000), NOT subsidy amount\", \"subsidy_timing\": \"T+4 after first publish tag confirmed\", \"no_subsidy_cases\": [\"no first publish tag\", \"order reversed (refund then re-order)\", \"service expired before first publish tag\"]}",
+  "tags": [
+    "补贴",
+    "时序",
+    "契约",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783394362.29196
+}

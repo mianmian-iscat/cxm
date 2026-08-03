@@ -1,0 +1,62 @@
+{
+  "id": "ui-op-xiaoer-apply-detail",
+  "name": "UI：原创保护小二端-申请详情Drawer结构验证（专利申请表单）",
+  "description": "从小二端列表点击「查看申请详情」，打开专利申请表单Drawer，基于真实页面操作验证：顶部提示条（专利申请注意事项）、设计人信息区（第一设计人/姓名/国籍/身份证号码/身份证图片正反面）、联系人信息（姓名/手机号码）、产品信息（产品名称/产品用途/原创描述/设计要点要素/设计要点视图）、产品图片上传区（立体图/主视图/后视图/左视图/右视图/俯视图/仰视图）、预计上架日期、其他补充材料。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list", "waitUntil": "networkidle", "description": "打开小二端列表页" },
+    { "type": "wait", "ms": 4000, "description": "等待列表加载" },
+    { "type": "assert", "target": "page", "contains": "查看申请详情", "description": "验证列表已加载（含查看申请详情入口）" },
+    { "type": "clickText", "text": "查看申请详情", "description": "点击第一条记录的查看申请详情" },
+    { "type": "wait", "ms": 4000, "description": "等待申请详情Drawer渲染" },
+    { "type": "assert", "assertion": "elementVisible", "selector": ".tbd-drawer, .ant-drawer", "description": "【Drawer】验证Drawer组件已展开" },
+    { "type": "screenshot", "label": "xiaoer-apply-detail-drawer", "description": "截图-申请详情Drawer" },
+
+    { "type": "assert", "target": "page", "contains": "专利申请", "description": "【顶部提示】验证含专利申请注意事项提示" },
+    { "type": "assert", "target": "page", "contains": "设计人", "description": "【设计人区】验证含设计人区域" },
+    { "type": "assert", "target": "page", "contains": "第一设计人身份信息", "description": "【设计人区】验证含第一设计人身份信息" },
+    { "type": "assert", "target": "page", "contains": "姓名", "description": "【设计人区】验证含姓名输入" },
+    { "type": "assert", "target": "page", "contains": "国籍", "description": "【设计人区】验证含国籍选择" },
+    { "type": "assert", "target": "page", "contains": "身份证图片", "description": "【设计人区】验证含身份证图片上传" },
+
+    { "type": "assert", "target": "page", "contains": "联系人", "description": "【联系人区】验证含联系人区域" },
+    { "type": "assert", "target": "page", "contains": "手机号码", "description": "【联系人区】验证含手机号码" },
+
+    { "type": "assert", "target": "page", "contains": "产品名称", "description": "【产品信息】验证含产品名称" },
+    { "type": "assert", "target": "page", "contains": "产品用途", "description": "【产品信息】验证含产品用途" },
+    { "type": "assert", "target": "page", "contains": "原创描述", "description": "【产品信息】验证含原创描述" },
+    { "type": "assert", "target": "page", "contains": "设计要点是哪个要素", "description": "【设计要点】验证含设计要点要素选择" },
+    { "type": "assert", "target": "page", "contains": "设计要点在下列哪个视图", "description": "【设计要点】验证含设计要点视图选择" },
+
+    { "type": "assert", "target": "page", "contains": "产品图片", "description": "【图片上传区】验证含产品图片区域" },
+    { "type": "assert", "target": "page", "contains": "立体图", "description": "【图片上传区】验证含立体图上传位" },
+    { "type": "assert", "target": "page", "contains": "主视图", "description": "【图片上传区】验证含主视图上传位" },
+
+    { "type": "assert", "target": "page", "contains": "预计上架日期", "description": "【其他】验证含预计上架日期" },
+    { "type": "assert", "target": "page", "contains": "其他补充材料", "description": "【其他】验证含其他补充材料" },
+
+    { "type": "screenshot", "label": "xiaoer-apply-detail-full", "description": "截图-申请详情完整结构" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "BUC已登录小二端；列表有至少一条记录。",
+    "realDomNotes": "基于2026-07-07真实页面操作验证：小二端「查看申请详情」打开的是专利申请表单Drawer（非时间轴概览），包含设计人信息/联系人/产品信息/设计要点/产品图片上传/预计上架日期等字段。sellerId/申请编号/时间轴等字段在列表主页面展示而非此Drawer内。",
+    "riskPoints": [
+      "Drawer打开的是申请表单而非详情概览，sellerId/时间轴等不在Drawer内",
+      "产品设计要点涉及多个选项（形状/图案/结合等），断言只需匹配标题文案",
+      "图片上传区含7个视图位（立体图/主视图/后视图/左视图/右视图/俯视图/仰视图）",
+      "Drawer关闭用X图标按钮而非文字按钮"
+    ]
+  }
+}

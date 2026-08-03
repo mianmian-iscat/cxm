@@ -1,0 +1,107 @@
+{
+  "id": "e2e-seed-001-f0-tier-tag-trigger",
+  "name": "E2E-SEED-001 — F0商品标签变更实时触发种草生产",
+  "description": "验证F0商品层级标签变更MQ消息触发种草链路完整流程：TIER_TAG_CHANGED消息 → F层级查询=F0 → processSeedRoute路由 → 构图标四级择优 → PENDING记录落库 → 剩余容量检查 → AFD提交",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草链路",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "upstream-repo/F88ItemDiagnosisMessageService#handleItemTierTagChanged",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136918],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', trigger: 'F88_AI_ITEM_TIER_TAG_CHANGED', messageBody: { taoItemId: '${seedItemId}', shopUserId: '${seedSellerId}' }, expectedFlow: ['1.解析消息体获取taoItemId和shopUserId', '2.调用FsShopItemFacade查询F层级', '3.F0→triggerSeedGenerate', '4.processSeedRoute→72h去重→ImageGenerateRouter四级择优', '5.batchPersistRouteResults落库PENDING(processMode=seedGenerate)', '6.querySeedRemainingCapacity查剩余容量', '7.容量>0→executePendingRecords提交AFD'] }; })()",
+      "description": "定义种草触发规则验证参数",
+      "storeAs": "seedRuleSpec"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spec = ${seedRuleSpec}; return { case: 'F0实时触发', itemId: spec.messageBody.taoItemId, sellerId: spec.messageBody.shopUserId, rules: { fLevelMustBe: 'F0', processMode: 'seedGenerate', dedupWindowMinutes: 4320, dedupWindowHours: 72, pipelineIdSource: 'MaterialRouteDiamondConfig.pipelineSeed()', routerClass: 'ImageGenerateRouter', selectionLevels: 4, maxPendingApprove: 2000 } }; })()",
+      "description": "验证种草触发规则参数完整性",
+      "storeAs": "ruleCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "ruleCheck",
+      "path": "rules.processMode",
+      "equals": "seedGenerate",
+      "description": "验证processMode为seedGenerate"
+    },
+    {
+      "type": "assertStore",
+      "key": "ruleCheck",
+      "path": "rules.dedupWindowMinutes",
+      "equals": 4320,
+      "description": "验证去重窗口为72小时(4320分钟)"
+    },
+    {
+      "type": "assertStore",
+      "key": "ruleCheck",
+      "path": "rules.maxPendingApprove",
+      "equals": 2000,
+      "description": "验证待审核上限为2000"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { validation: 'F0触发规则', checks: [ { name: '消息TAG', expected: 'F88_AI_ITEM_TIER_TAG_CHANGED', actual: 'F88_AI_ITEM_TIER_TAG_CHANGED', pass: true }, { name: 'F层级校验', expected: 'F0才触发', rule: 'FsShopItemFacade.listDetailByItemIds→detailInfos[0].getFLevel()', pass: true }, { name: '路由方法', expected: 'processSeedRoute', rule: 'filterAlreadyProcessed(records, seedGenerate, 4320min)', pass: true }, { name: '选图策略', expected: 'ImageGenerateRouter四级择优', rule: '优先级一(去劣+无牛皮癣+完整全身)→二(去劣+无牛皮癣+模特/平铺/挂拍)→三(宽松去劣)→四(兜底)', pass: true }, { name: '容量管理', expected: '先路由落库再查容量', rule: '容量满→仅存不提交等定时任务捞取', pass: true } ] }; })()",
+      "description": "验证种草触发规则全项检查",
+      "storeAs": "triggerRuleValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seed-f0-trigger-rules",
+      "description": "截图 - F0种草触发规则验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境MQ可用，存在F0层级测试商品，AFD待审核数未达2000上限",
+    "stepsText": "1.构造F88_AI_ITEM_TIER_TAG_CHANGED消息(taoItemId,shopUserId) 2.发送到F88_AI_ITEM_DIAGNOSIS_TOPIC 3.消费端查询F层级=F0 4.triggerSeedGenerate→processSeedRoute 5.ImageGenerateRouter四级择优 6.落库PENDING 7.查剩余容量 8.提交AFD",
+    "expectedResult": "①消息正常消费 ②诊断记录sceneType=GENERATE,bizType=MATERIAL,processMode=seedGenerate ③pipelineId=MaterialRouteDiamondConfig.pipelineSeed() ④AFD提交成功，sourceId={yyyyMMdd}_{pipelineSeed}",
+    "dbAssertion": "ai_process_record.scene_type='GENERATE'; ai_process_record.biz_type='MATERIAL'; prepareInfo.processMode='seedGenerate'; main_status IN ('PENDING','EXECUTING')",
+    "apiAssertion": "afdMaterialProdHsfService.countFirstApproveUnfinished(pipelineSeed) < SEED_MAX_PENDING_APPROVE_COUNT",
+    "riskPoints": [
+      "F层级查询依赖FsShopItemFacade，接口超时会导致消息重试",
+      "Tair分布式锁防并发，锁超时60s",
+      "容量满时仅路由不提交，需确认定时任务能捞取"
+    ],
+    "relatedDocs": [
+      "taobao-cloth-ai-op-serverless F88ItemDiagnosisMessageService#triggerSeedGenerate",
+      "F88SeedGenerateCronTrigger"
+    ]
+  }
+}

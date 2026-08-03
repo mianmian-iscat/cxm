@@ -1,0 +1,154 @@
+{
+  "id": "f88-audit-tc05",
+  "name": "TC05 - 审核操作完整流程：租户验证 + 进入审核任务 + 查看素材 + 审核通过/驳回 + 状态验证",
+  "businessType": "f88_material",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面渲染"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】页面必须包含F88标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "运营平台",
+      "description": "【租户身份验证】必须显示'运营平台'字样"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "待审核",
+      "description": "验证列表中有待审核任务"
+    },
+    {
+      "type": "screenshot",
+      "label": "flow-01-list",
+      "description": "截图 - 人工审核列表（含待审核任务）"
+    },
+
+    {
+      "type": "clickText",
+      "text": "审核",
+      "selector": "button.ant-btn-primary, button.ant-btn",
+      "description": "点击「审核」按钮进入审核操作"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待审核详情页/弹窗加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "flow-02-audit-detail",
+      "description": "截图 - 审核详情页"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "通过",
+      "description": "验证审核详情页有'通过'按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "驳回",
+      "description": "验证审核详情页有'驳回'按钮"
+    },
+
+    {
+      "type": "clickText",
+      "text": "驳回",
+      "selector": "button",
+      "description": "点击驳回按钮（测试驳回表单校验）"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待驳回表单出现"
+    },
+    {
+      "type": "screenshot",
+      "label": "flow-03-reject-form",
+      "description": "截图 - 驳回表单（未填写原因）"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "驳回原因",
+      "description": "验证驳回表单有'驳回原因'字段"
+    },
+
+    {
+      "type": "fill",
+      "selector": "textarea, .ant-input",
+      "value": "自动化测试：素材质量不达标",
+      "description": "填写驳回原因"
+    },
+    {
+      "type": "screenshot",
+      "label": "flow-04-reject-filled",
+      "description": "截图 - 驳回表单已填写"
+    },
+
+    {
+      "type": "clickText",
+      "text": "取消",
+      "selector": "button, .ant-modal-footer button",
+      "description": "取消驳回（不实际提交，避免影响数据）"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待弹窗关闭"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "0.00%",
+      "description": "验证通过率仍为 0.00%（未实际审核）"
+    },
+    {
+      "type": "screenshot",
+      "label": "flow-05-final",
+      "description": "截图 - 审核流程测试完成"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "待抓包确认",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

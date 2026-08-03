@@ -1,0 +1,126 @@
+{
+  "id": "contract-f88-matchedimg-sub-variables",
+  "name": "接口契约：matchedImg各子图独立变量结构验证",
+  "description": "验证每个图组输出matchedImg_N_1~5共5个独立变量(string/list)，供下游分别引用",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "api_contract",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情页"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "模板匹配",
+      "description": "点击模板匹配"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待面板"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_1",
+      "description": "验证图组1第1张变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_2",
+      "description": "验证图组1第2张变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_3",
+      "description": "验证图组1第3张变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_4",
+      "description": "验证图组1第4张变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg1_5",
+      "description": "验证图组1第5张变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg2_1",
+      "description": "验证图组2第1张变量"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "matchedImg2_5",
+      "description": "验证图组2第5张变量"
+    },
+    {
+      "type": "screenshot",
+      "label": "matchedimg-sub-vars",
+      "description": "截图 - matchedImg子图变量"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发可访问，已登录",
+    "riskPoints": [
+      "每个图组含5张图各有独立变量matchedImgN_1~5",
+      "类型为string/list"
+    ],
+    "contractFields": [
+      "matchedImg1_1",
+      "matchedImg1_2",
+      "matchedImg1_3",
+      "matchedImg1_4",
+      "matchedImg1_5",
+      "matchedImg2_1",
+      "matchedImg2_2",
+      "matchedImg2_3",
+      "matchedImg2_4",
+      "matchedImg2_5"
+    ],
+    "relatedDocs": [
+      "F88主图素材供给产品方案 v3.0 20260623"
+    ]
+  },
+  "source": "dingtalk-doc-MNDoBb60VLYDGNPytBE4qmgwJlemrZQ3",
+  "sourceIds": null
+}

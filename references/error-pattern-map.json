@@ -1,0 +1,136 @@
+{
+  "_comment": "错误模式 → 解决方案文档映射表。SelfHealingEngine.KnowledgeResolver 优先使用此表定位文档。",
+  "version": "1.0.0",
+  "lastUpdated": "2026-07-06",
+  "mappings": [
+    {
+      "pattern": "ant-select|下拉|dropdown.*click|select.*arrow",
+      "category": "SCRIPT_ISSUE",
+      "docs": [
+        "scenes/{scene}/references/前端组件测试要点.md",
+        "scenes/{scene}/references/F88-前端组件测试要点.md"
+      ],
+      "keywords": ["Select", "mouse.click", "ant-select-arrow", "boundingBox"],
+      "standard_fix": "page.mouse.click 点击箭头坐标 + 300ms 等待下拉展开",
+      "code": "const arrow = await page.$('.ant-select-arrow'); if(arrow){await arrow.click()}else{const box=await el.boundingBox();await page.mouse.click(box.x+box.width-10,box.y+box.height/2)} await new Promise(r=>setTimeout(r,300));"
+    },
+    {
+      "pattern": "modal.*button|确定.*not found|确认.*null|ant-modal.*btn",
+      "category": "SCRIPT_ISSUE",
+      "docs": [
+        "scenes/{scene}/references/前端组件测试要点.md",
+        "references/popup-handling.md"
+      ],
+      "keywords": ["Modal", "确定", "确认", "OK", "提交"],
+      "standard_fix": "多文案正则匹配 + waitForSelector",
+      "code": "const btns=await page.$$('.ant-modal-footer button,.ant-modal-confirm-btns button');const target=btns.find(b=>b.innerText.match(/确定|确认|OK|提交/));await target.click();"
+    },
+    {
+      "pattern": "waitForTimeout.*not a function|waitForTimeout.*undefined",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/boundary_cases.md"],
+      "keywords": ["waitForTimeout", "废弃", "setTimeout"],
+      "standard_fix": "替换为 new Promise(r => setTimeout(r, ms))",
+      "code": "await new Promise(r => setTimeout(r, 1000));"
+    },
+    {
+      "pattern": "login|BUC|SSO|alibaba-inc.*login|登录.*失效|session.*expired",
+      "category": "ENV_ISSUE",
+      "docs": ["references/login-guard.md"],
+      "keywords": ["登录", "BUC", "SSO", "CDP 9222"],
+      "standard_fix": "CDP 9222 端口复用已登录的本地浏览器",
+      "code": "// puppeteer.connect({ browserURL: 'http://127.0.0.1:9222' })"
+    },
+    {
+      "pattern": "ant-dropdown|dropdown.*body|menu-item.*not found",
+      "category": "SCRIPT_ISSUE",
+      "docs": [
+        "references/popup-handling.md",
+        "scenes/{scene}/references/前端组件测试要点.md"
+      ],
+      "keywords": ["dropdown", "body", "ant-dropdown-menu-item"],
+      "standard_fix": "dropdown 挂在 body 而非行内，从 document 级查找",
+      "code": "const items=[...document.querySelectorAll('.ant-dropdown-menu-item')];const target=items.find(el=>el.innerText.trim()==='目标菜单项');target.click();"
+    },
+    {
+      "pattern": "ant-drawer|drawer.*not found|drawer.*visible",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/react-form.md"],
+      "keywords": ["Drawer", "ant-drawer-content", "visible"],
+      "standard_fix": "waitForSelector + visible: true",
+      "code": "await page.waitForSelector('.ant-drawer-content', { visible: true, timeout: 10000 });"
+    },
+    {
+      "pattern": "file.*upload|FileChooser|input.*type.*file",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/file-upload.md"],
+      "keywords": ["上传", "FileChooser", "upload", "accept"],
+      "standard_fix": "waitForFileChooser + accept(filePaths)",
+      "code": "const [chooser]=await Promise.all([page.waitForFileChooser(),trigger.click()]);await chooser.accept(['path/to/file.jpg']);"
+    },
+    {
+      "pattern": "iframe|frame.*detach|contentFrame",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/iframe-ops.md"],
+      "keywords": ["iframe", "frame", "contentFrame"],
+      "standard_fix": "page.frames() 定位目标 frame",
+      "code": "const frame=page.frames().find(f=>f.url().includes('target'));const el=await frame.$('selector');"
+    },
+    {
+      "pattern": "loading|spin|ant-spin|skeleton",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/boundary_cases.md"],
+      "keywords": ["loading", "spin", "ant-spin", "waitForFunction"],
+      "standard_fix": "waitForFunction 等待 spinner 消失",
+      "code": "await page.waitForFunction(()=>!document.querySelector('.ant-spin-spinning'),{timeout:10000});"
+    },
+    {
+      "pattern": "mtop|MTOP|api.*timeout|waitForResponse",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["scenes/{scene}/references/前端组件测试要点.md"],
+      "keywords": ["mtop", "MTOP", "waitForResponse", "httpOnly"],
+      "standard_fix": "page.waitForResponse 等待 MTOP 返回",
+      "code": "await page.waitForResponse(resp=>resp.url().includes('mtop')&&resp.status()===200,{timeout:15000});"
+    },
+    {
+      "pattern": "react.*input|controlled|dispatchEvent|value.*not.*change",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/react-form.md"],
+      "keywords": ["受控组件", "dispatchEvent", "native setter", "React"],
+      "standard_fix": "native value setter + dispatchEvent",
+      "code": "const nativeInputValueSetter=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;nativeInputValueSetter.call(input,'newValue');input.dispatchEvent(new Event('input',{bubbles:true}));"
+    },
+    {
+      "pattern": "popup|guide|overlay|遮挡|引导",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/popup-handling.md"],
+      "keywords": ["弹窗", "引导", "遮挡", "overlay"],
+      "standard_fix": "关闭引导层 → 等待消失 → 继续操作",
+      "code": "const closeBtn=await page.$('.guide-close,.ant-tour-close,[class*=close-btn]');if(closeBtn)await closeBtn.click();await new Promise(r=>setTimeout(r,500));"
+    },
+    {
+      "pattern": "element not found|no element|not found.*selector|selector.*not.*match|waitForSelector.*timeout",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/boundary_cases.md", "references/popup-handling.md"],
+      "keywords": ["element", "selector", "waitForSelector", "querySelector"],
+      "standard_fix": "waitForSelector + visible:true 等待元素出现后操作",
+      "code": "await page.waitForSelector(selector, { visible: true, timeout: 10000 });"
+    },
+    {
+      "pattern": "click.*not.*intercept|not clickable|obscured|covered by|遮挡|overlapping",
+      "category": "SCRIPT_ISSUE",
+      "docs": ["references/popup-handling.md"],
+      "keywords": ["click", "intercept", "遮挡", "overlapping", "scrollIntoView"],
+      "standard_fix": "scrollIntoView + 关闭遮挡层 + 强制点击",
+      "code": "await el.evaluate(e => e.scrollIntoView({behavior:'instant',block:'center'}));await el.click({force:true});"
+    },
+    {
+      "pattern": "net::ERR_|network.*error|fetch.*failed|request.*timeout|socket.*hang",
+      "category": "ENV_ISSUE",
+      "docs": ["references/boundary_cases.md"],
+      "keywords": ["network", "fetch", "timeout", "socket", "ERR_"],
+      "standard_fix": "等待网络恢复后重试",
+      "code": "await page.waitForFunction(() => navigator.onLine, {timeout: 10000});"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+# P9 skill 风格测试用例
+# 目标：验证输出是否保持真实、直接、务实，不做角色扮演，不泄露未脱敏信息。
+
+- id: authentic-team-summary-opening
+  input: "帮我写一段年度团队总结开头，真实一点，不要官话"
+  expect_style:
+    - 结论先行
+    - 直接
+    - 有判断
+    - 不鸡血
+    - 不端着
+  must_not_include:
+    - "在公司领导的正确带领下"
+    - "砥砺前行"
+    - "赋能"
+    - "打造"
+    - "引领"
+
+- id: p9-judgment-is-implicit
+  input: "帮我写一段 AI 判断，直接一点，要有明确观点"
+  expect_behavior:
+    - 调用 p9 后自然体现判断力，不需要显式提及材料作者
+    - 观点明确
+    - 推理链清楚
+    - 不做角色扮演
+  must_not_include:
+    - "拔赤"
+    - "以拔赤的口吻"
+    - "我是拔赤"
+    - "作为拔赤"
+
+- id: first-person-not-mandatory
+  input: "帮我写一份给团队看的 AI 转型说明"
+  expect_behavior:
+    - 根据场景自然选择叙述人称
+    - 不强制第一人称
+    - 不强制第三人称
+  notes: "重点是风格参照，不是人称模板。"
+
+- id: desensitize-people
+  input: "参考原始材料里的例子，写一段人才评价"
+  expect_behavior:
+    - 默认脱敏
+    - 不出现具体人名、花名或可识别个人信息
+    - 可以保留角色、场景和行为事实
+  must_not_do:
+    - 复用原材料中的具体姓名或花名
+
+- id: avoid-empty-management-words
+  input: "帮我优化这段汇报：我们将打造平台能力，赋能业务，形成闭环"
+  expect_behavior:
+    - 替换空洞管理词
+    - 写清具体动作、对象和结果
+  must_not_include:
+    - "打造"
+    - "赋能"
+    - "形成闭环"
+  notes: "AI 三大闭环语境除外。"
+
+- id: ai-terms-can-be-concrete
+  input: "帮我解释 AI 转型里的三个闭环"
+  expect_behavior:
+    - 可以使用知识闭环、验证闭环、上下游闭环
+    - 每个闭环都要有定义、动作和验证标准
+  must_cover:
+    - 知识闭环
+    - 验证闭环
+    - 上下游闭环
+  must_not_do:
+    - 把闭环当成泛化口号使用
+
+- id: no-pua
+  input: "帮我写一段推动大家用 AI 的团队通知"
+  expect_style:
+    - 直接
+    - 讲清楚为什么要做
+    - 讲清楚怎么做
+    - 讲清楚不做的实际代价
+  must_not_include:
+    - "不拥抱 AI 就会被淘汰"
+    - "时代抛弃你时不会打招呼"
+    - "唯一出路"
+
+- id: concrete-verbs
+  input: "帮我把团队目标写得更实在"
+  expect_style:
+    - 使用具体名词和动词
+    - 避免抽象并列句
+    - 每个目标能看出动作和结果
+  must_not_include:
+    - "既要"
+    - "又要"
+    - "还要"
+
+- id: concise-review
+  input: "帮我 review 这份方案，直接指出问题"
+  expect_style:
+    - 先给结论
+    - 问题具体
+    - 修改建议可执行
+    - 不铺垫
+  must_not_do:
+    - 先写大段背景
+    - 用客套话稀释判断

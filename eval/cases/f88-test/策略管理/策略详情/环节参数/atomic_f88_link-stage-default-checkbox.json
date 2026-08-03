@@ -1,0 +1,221 @@
+{
+  "id": "atomic-f88-link-stage-default-checkbox",
+  "name": "UI：环节参数详情-多策略默认checkbox切换验证",
+  "description": "验证一个环节有多个策略时，默认checkbox是否支持多个同时勾选、切换交互、保存后状态持久化",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "打开链路详情(20180)"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const paramSpans = spans.filter(s => (s.textContent || '').trim() === '入参'); return { total: paramSpans.length, positions: paramSpans.map((s,i) => { const r = s.getBoundingClientRect(); return { idx: i, x: r.x, y: r.y, w: r.width, h: r.height, visible: r.y > 0 && r.y < window.innerHeight }; }) }; })()",
+      "description": "获取所有'入参'span位置",
+      "storeAs": "paramSpans"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramSpans",
+      "path": "total",
+      "gte": 2,
+      "description": "至少2个环节有入参链接"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const paramSpans = spans.filter(s => (s.textContent || '').trim() === '入参'); const target = paramSpans[1]; if (!target) return { found: false }; target.scrollIntoView({ block: 'center' }); const r = target.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "滚动到首图生图环节的入参并获取坐标",
+      "storeAs": "targetParam"
+    },
+    {
+      "type": "click",
+      "description": "点击首图生图环节的'入参'",
+      "useCoordinates": true,
+      "coordinateSource": "targetParam"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "环节参数详情",
+      "description": "弹窗标题验证"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "策略列表板块存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); const checkboxes = wrappers.map((w, i) => { const input = w.querySelector('input[type=checkbox]'); return { idx: i, label: (w.textContent || '').trim(), checked: input?.checked ?? null, disabled: input?.disabled ?? null }; }); const checkedCount = checkboxes.filter(c => c.checked === true).length; const uncheckedCount = checkboxes.filter(c => c.checked === false).length; return { open: true, total: checkboxes.length, checkedCount, uncheckedCount, checkboxes, multiDefaultAllowed: checkedCount > 1, allChecked: checkedCount === checkboxes.length }; })()",
+      "description": "分析所有默认checkbox初始状态",
+      "storeAs": "initialState"
+    },
+    {
+      "type": "assertStore",
+      "key": "initialState",
+      "path": "open",
+      "equals": true,
+      "description": "弹窗已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "initialState",
+      "path": "total",
+      "gte": 2,
+      "description": "至少有2个策略(对应2个默认checkbox)"
+    },
+    {
+      "type": "assertStore",
+      "key": "initialState",
+      "path": "multiDefaultAllowed",
+      "equals": true,
+      "description": "核心断言：多个策略可以同时勾选默认(非互斥)"
+    },
+    {
+      "type": "assertStore",
+      "key": "initialState",
+      "path": "allChecked",
+      "equals": true,
+      "description": "初始状态：所有策略默认checkbox均已勾选"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); const firstChecked = wrappers.find(w => w.querySelector('input[type=checkbox]')?.checked); if (!firstChecked) return { found: false }; const r = firstChecked.getBoundingClientRect(); return { found: true, label: (firstChecked.textContent || '').trim(), x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位第1个已勾选的checkbox",
+      "storeAs": "firstCb"
+    },
+    {
+      "type": "click",
+      "description": "取消勾选第1个策略的默认checkbox",
+      "useCoordinates": true,
+      "coordinateSource": "firstCb"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待状态更新"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); return { states: wrappers.map(w => ({ label: (w.textContent || '').trim(), checked: w.querySelector('input[type=checkbox]')?.checked })), checkedCount: wrappers.filter(w => w.querySelector('input[type=checkbox]')?.checked).length }; })()",
+      "description": "验证取消勾选后其他checkbox状态不变",
+      "storeAs": "afterUncheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "afterUncheck",
+      "path": "checkedCount",
+      "description": "取消勾选后剩余勾选数=总数-1",
+      "expression": "val => val === store.initialState.total - 1"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); const unchecked = wrappers.find(w => !w.querySelector('input[type=checkbox]')?.checked); if (!unchecked) return { found: false }; const r = unchecked.getBoundingClientRect(); return { found: true, label: (unchecked.textContent || '').trim(), x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位刚取消勾选的checkbox",
+      "storeAs": "uncheckedCb"
+    },
+    {
+      "type": "click",
+      "description": "重新勾选该checkbox",
+      "useCoordinates": true,
+      "coordinateSource": "uncheckedCb"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待状态恢复"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); return { checkedCount: wrappers.filter(w => w.querySelector('input[type=checkbox]')?.checked).length, allChecked: wrappers.every(w => w.querySelector('input[type=checkbox]')?.checked) }; })()",
+      "description": "验证重新勾选后全部恢复",
+      "storeAs": "afterRecheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "afterRecheck",
+      "path": "allChecked",
+      "equals": true,
+      "description": "重新勾选后全部checkbox恢复为已勾选"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn"
+    },
+    {
+      "type": "click",
+      "description": "点击取消关闭弹窗(不保存修改)",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待弹窗关闭"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const visible = drawer && drawer.offsetParent !== null && !drawer.classList.contains('ant-drawer-hidden'); return { drawerClosed: !visible || !drawer }; })()",
+      "description": "验证弹窗已关闭",
+      "storeAs": "closeCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "closeCheck",
+      "path": "drawerClosed",
+      "equals": true,
+      "description": "取消按钮可正常关闭弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-default-checkbox",
+      "description": "多策略默认checkbox切换验证截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180存在；首图生图环节有4个策略",
+    "realDomNotes": "ant-drawer弹窗；策略列表每项含'默认'checkbox；ant-checkbox-wrapper定位；checkbox为input[type=checkbox]",
+    "riskPoints": [
+      "多个默认checkbox是否互斥(实测：不互斥，可同时勾选)",
+      "取消一个后其他是否联动(实测：无联动，独立切换)",
+      "取消后点取消按钮是否正确丢弃变更(不弹确认框)"
+    ],
+    "coreVerification": "一个环节多个策略时，默认checkbox支持多个同时勾选(非radio互斥)，每个checkbox独立切换，取消/保存分别控制持久化"
+  }
+}

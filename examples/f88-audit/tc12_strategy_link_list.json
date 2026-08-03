@@ -1,0 +1,168 @@
+{
+  "id": "f88-strategy-tc12",
+  "name": "TC12 - 链路列表页：导航 + 搜索 + 筛选 + 新建/编辑/复制/删除链路",
+  "businessType": "f88_material",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+    "waitAfterLoad": 3000
+  },
+  "relatedCases": ["RP-SL-01~08"],
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路列表页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】页面必须包含F88标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "运营平台",
+      "description": "【租户身份验证】页面包含运营平台字样"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面完全加载"
+    },
+    {
+      "type": "screenshot",
+      "name": "tc12-link-list-loaded",
+      "description": "截图：链路列表页加载完成"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路名称",
+      "description": "表头包含'链路名称'"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生命周期",
+      "description": "表头包含'生命周期'"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "提交人",
+      "description": "表头包含'提交人'"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "更新时间",
+      "description": "表头包含'更新时间'"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "操作",
+      "description": "表头包含'操作'"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "新建链路",
+      "description": "页面包含'新建链路'按钮"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='搜索链路名称']",
+      "value": "zy测试",
+      "react": true,
+      "description": "搜索框输入'zy测试'"
+    },
+    {
+      "type": "pressKey",
+      "key": "Enter",
+      "description": "按回车执行搜索"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待搜索结果"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "zy测试",
+      "description": "搜索结果包含'zy测试'相关链路"
+    },
+    {
+      "type": "screenshot",
+      "name": "tc12-search-result",
+      "description": "截图：搜索结果"
+    },
+
+    {
+      "type": "click",
+      "selector": "input[placeholder*='搜索链路名称']",
+      "description": "清空搜索框"
+    },
+    {
+      "type": "pressKey",
+      "key": "Control+a",
+      "description": "全选搜索框内容"
+    },
+    {
+      "type": "pressKey",
+      "key": "Backspace",
+      "description": "删除内容"
+    },
+    {
+      "type": "pressKey",
+      "key": "Enter",
+      "description": "重新搜索（恢复全量列表）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待列表恢复"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "请选择",
+      "description": "生命周期筛选下拉框存在"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "编辑",
+      "description": "操作列包含'编辑'按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "复制",
+      "description": "操作列包含'复制'按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "删除",
+      "description": "操作列包含'删除'按钮"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "实验",
+      "description": "列表中包含'实验'生命周期"
+    }
+  ]
+}

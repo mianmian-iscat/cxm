@@ -1,0 +1,235 @@
+{
+  "id": "normal_f88_template_mgmt_filter",
+  "name": "模版包管理 - 筛选专项(4筛选+重置)",
+  "description": "覆盖模版包管理全部筛选功能：店铺名称/店铺ID/买手名称(fill react:true)+使用状态(AntD Select mouse.click)+重置按钮清空验证+每个筛选后卡片数量对比。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template-mgmt",
+    "filter",
+    "regression"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "打开模版包管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待店铺卡片列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "验证租户身份"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder], input.ant-input'); const selects = document.querySelectorAll('.ant-select'); const cards = document.querySelectorAll('.ant-card, [class*=card]'); const btns = document.querySelectorAll('button, .ant-btn'); return { inputCount: inputs.length, inputs: Array.from(inputs).map(i=>({placeholder:i.placeholder})), selectCount: selects.length, initialCardCount: cards.length, hasReset: Array.from(btns).some(b=>/重置/.test(b.textContent)) }; })()",
+      "description": "探查筛选组件和初始卡片数量"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|management|filter|search",
+      "description": "开始网络抓包-监控筛选API"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='店铺名称']",
+      "value": "F88测试店铺",
+      "react": true,
+      "data-test-target": "filter-shop-name",
+      "description": "填充店铺名称筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-shop-name",
+      "description": "截图-店铺名称筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); return { countAfterShopFilter: cards.length }; })()",
+      "description": "统计店铺名称筛选后卡片数量"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "data-test-target": "reset-btn",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder]'); const hasValue = Array.from(inputs).some(i => i.value && i.value.trim()); return { cleared: !hasValue }; })()",
+      "description": "验证重置后清空"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-after-reset-1",
+      "description": "截图-重置后"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='店铺ID'], input[placeholder*='ID']",
+      "value": "2219662018344",
+      "react": true,
+      "data-test-target": "filter-shop-id",
+      "description": "填充店铺ID筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-shop-id",
+      "description": "截图-店铺ID筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); return { countAfterIdFilter: cards.length }; })()",
+      "description": "统计店铺ID筛选后卡片数量"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='买手']",
+      "value": "阿赫",
+      "react": true,
+      "data-test-target": "filter-buyer-name",
+      "description": "填充买手名称筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-buyer-name",
+      "description": "截图-买手名称筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); return { countAfterBuyerFilter: cards.length }; })()",
+      "description": "统计买手名称筛选后卡片数量"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "selectorIndex": 0,
+      "data-test-target": "filter-usage-status",
+      "description": "展开使用状态Select(AntD需mouse.click)"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')).map(el=>el.textContent)",
+      "description": "获取使用状态选项列表"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-status-dropdown",
+      "description": "截图-使用状态下拉"
+    },
+    {
+      "type": "clickText",
+      "text": "使用中",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择'使用中'状态"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-status-in-use",
+      "description": "截图-使用中筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('.ant-card, [class*=card]'); const statusTags = document.querySelectorAll('.ant-tag, [class*=tag]'); const inUseCards = Array.from(cards).filter(c => /使用中/.test(c.textContent)); return { countAfterStatusFilter: cards.length, inUseCardCount: inUseCards.length, statusTags: Array.from(statusTags).map(t=>t.textContent.trim()).filter(Boolean).slice(0,5) }; })()",
+      "description": "验证使用状态筛选效果: 卡片数+使用中卡片数"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待重置"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder]'); const selects = document.querySelectorAll('.ant-select-selection-item'); const hasValue = Array.from(inputs).some(i => i.value && i.value.trim()); return { allCleared: !hasValue, selectCleared: selects.length === 0 || Array.from(selects).every(s => /全部|请选择|placeholder/.test(s.textContent)) }; })()",
+      "description": "最终验证重置: 所有Input清空+Select恢复默认"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmf-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "模版包管理筛选专项: ①店铺名称(fill react:true) ②店铺ID(fill react:true) ③买手名称(fill react:true) ④使用状态(AntD Select mouse.click展开, 选项: 全部/使用中/未使用) ⑤重置按钮清空所有筛选 ⑥每次筛选后对比卡片数量验证效果。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在多个店铺卡片"
+}

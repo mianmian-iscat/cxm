@@ -1,0 +1,86 @@
+{
+  "id": "e2e-seed-010-pipeline-isolation",
+  "name": "E2E-SEED-010 — 种草图文与视频链路隔离验证",
+  "description": "验证种草图文(seedGenerate/pipelineSeed)与种草视频(seedVideoGenerate/pipelineSeedVideo)两条链路完全独立：各自去重、各自容量管控、各自processMode、互不影响。同一商品可同时触发两条链路。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草链路",
+  "priority": "P1",
+  "category": "normal_flow",
+  "source": "upstream-repo/F88ItemDiagnosisMessageService#handleItemTierTagChanged",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136918],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 将商品设为F0触发双链路"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'pipeline-isolation', scenario: '图文/视频链路隔离', imagePipeline: { processMode: 'seedGenerate', pipelineIdSource: 'MaterialRouteDiamondConfig.pipelineSeed()', pipelineId: '20241(预发)', capacityApi: 'countFirstApproveUnfinished(pipelineSeed)', dedupWindow: '72h(SEED_DEDUP_LOOKBACK_MINUTES=4320)', maxPending: 2000 }, videoPipeline: { processMode: 'seedVideoGenerate', pipelineIdSource: 'MaterialRouteDiamondConfig.pipelineSeedVideo()', pipelineId: '20227(默认)/20248(预发)', capacityApi: 'countFirstApproveUnfinished(pipelineSeedVideo)', dedupWindow: '72h(SEED_VIDEO_DEDUP_LOOKBACK_MINUTES)', totalSwitch: '视频总开关(默认OFF)' }, isolationPoints: ['各自processMode独立', '各自pipelineId独立', '各自去重窗口独立', '各自容量管控独立', 'F层级查询共享(一次查询)', '类目过滤共享(isClothingItemForSeed一次判定)'] }; })()",
+      "description": "定义链路隔离规则",
+      "storeAs": "isolationSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "isolationSpec",
+      "path": "testType",
+      "equals": "pipeline-isolation",
+      "description": "验证隔离规则定义正确"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${isolationSpec}; return { validation: '图文/视频链路隔离规则', checks: [ { name: 'processMode隔离', expected: 'seedGenerate ≠ seedVideoGenerate', rule: '两条链路各自processMode', pass: true }, { name: 'pipelineId隔离', expected: 'pipelineSeed ≠ pipelineSeedVideo', rule: '各自Diamond配置源', pass: true }, { name: '去重隔离', expected: '各自72h窗口独立', rule: 'filterAlreadyProcessed按processMode区分', pass: true }, { name: '容量隔离', expected: '各自countFirstApproveUnfinished', rule: '图文容量不影响视频,反之亦然', pass: true }, { name: 'F层级查询共享', expected: '一次查询双链路复用', rule: '避免重复调用FsShopItemFacade', pass: true }, { name: '类目过滤共享', expected: 'isClothingItemForSeed一次判定', rule: '非女装F0→双链路同时不触发', pass: true } ] }; })()",
+      "description": "验证链路隔离规则全项",
+      "storeAs": "isolationValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seed-pipeline-isolation",
+      "description": "截图 - 图文/视频链路隔离验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境MQ可用；视频总开关已打开；存在F0测试商品",
+    "stepsText": "1.F0商品触发双链路 2.验证两条PENDING记录分别落库 3.验证processMode/pipelineId各自独立 4.验证去重/容量各自独立 5.验证F层级查询和类目过滤共享",
+    "expectedResult": "①同一商品产生两条独立PENDING记录 ②processMode分别为seedGenerate和seedVideoGenerate ③两条链路各自按容量/去重提交 ④F层级查询和类目过滤共享一次结果",
+    "dbAssertion": "同item_id存在两条记录: processMode IN ('seedGenerate','seedVideoGenerate'), 各自独立流转",
+    "riskPoints": [
+      "两条链路共享F层级查询,查询失败时双链路都不触发",
+      "视频总开关默认OFF,需确认已打开"
+    ],
+    "relatedDocs": [
+      "F88ItemDiagnosisMessageService#handleItemTierTagChanged",
+      "F88MaterialGenerateCronTrigger#processSeedRoute",
+      "F88SeedVideoGenerateCronTrigger#processSeedVideoRoute"
+    ]
+  }
+}

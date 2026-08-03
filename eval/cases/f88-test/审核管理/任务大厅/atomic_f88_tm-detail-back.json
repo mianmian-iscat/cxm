@@ -1,0 +1,88 @@
+{
+  "id": "atomic-f88-tm-detail-back",
+  "name": "UI：任务管理-详情页返回验证",
+  "description": "验证详情页可返回任务管理列表页",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); arrows.forEach(a => a.click()); return 'expanded'; })()",
+      "description": "展开所有节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '详情'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "点击详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const backBtns = Array.from(document.querySelectorAll('a,button')).filter(el => { const t = el.textContent.trim(); return ['返回','back','<'].some(k => t.includes(k) || t === k); }); if(backBtns.length > 0) { backBtns[0].click(); return 'clicked-back'; } return 'no-back-btn'; })()",
+      "description": "点击返回按钮",
+      "storeAs": "backResult"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { url: location.href, isTaskMgmt: location.href.includes('task-management') }; })()",
+      "description": "验证已返回列表页",
+      "storeAs": "backCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-detail-back",
+      "description": "返回列表页"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在任务管理数据",
+    "realDomNotes": "详情页应有返回按钮或面包屑导航",
+    "riskPoints": []
+  }
+}

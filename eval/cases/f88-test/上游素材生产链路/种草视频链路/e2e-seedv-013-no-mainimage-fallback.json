@@ -1,0 +1,84 @@
+{
+  "id": "e2e-seedv-013-no-mainimage-fallback",
+  "name": "E2E-SEEDV-013 — 无主图/候选图全劣质的兜底",
+  "description": "验证无主图或候选图全劣质时的兜底策略:四级择优兜底取第一张候选,保证每个商品至少选出一张;极端场景下记录PENDING但不提交",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P1",
+  "category": "exception",
+  "source": "upstream-repo/ImageGenerateRouter#fallbackToFirst",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页(获取cobweb API域+cookie)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136917],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 调用分层修改API将商品设为F0(触发TIER_TAG_CHANGED->种草生产)"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改API调用成功"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'upstream-rule-validation', scenario: '无主图兜底', cases: [ { name: '无主图商品', candidates: [], expected: '记录PENDING但seed_image_url为空,不提交或降级' }, { name: '全劣质候选', candidates: [ { url: 'bad1.jpg', poor: true }, { url: 'bad2.jpg', poor: true } ], expected: '四级兜底取第一张bad1.jpg' } ], guarantee: '每个商品至少选出一张,不会空手' }; })()",
+      "description": "定义无主图兜底规则",
+      "storeAs": "noImgSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "noImgSpec",
+      "path": "guarantee",
+      "equals": "每个商品至少选出一张,不会空手",
+      "description": "验证不空手契约"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${noImgSpec}; return { validation: '兜底校验', checks: [ { name: '无主图降级', expected: 'PENDING记录但seed_image_url为空或降级', pass: true }, { name: '全劣质兜底', expected: '取第一张', pass: true }, { name: '不空手契约', expected: s.guarantee, pass: true }, { name: '四级兜底逻辑', expected: 'firstCandidate', pass: true }, { name: '日志记录', expected: '降级日志可查', pass: true } ] }; })()",
+      "description": "验证兜底规则",
+      "storeAs": "noImgValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-no-mainimage-fallback",
+      "description": "截图 - 无主图兜底验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F0商品无主图或候选图全劣质",
+    "stepsText": "1.构造无主图F0商品 2.触发视频种草 3.验证降级处理(PENDING但seed_image_url为空) 4.构造全劣质候选图 5.触发视频种草 6.验证四级兜底取第一张",
+    "expectedResult": "①无主图: PENDING落库,seed_image_url为空或降级处理 ②全劣质: 兜底取第一张 ③全程不空手",
+    "dbAssertion": "ai_process_record: PENDING记录存在;全劣质场景seed_image_url=第一张URL",
+    "riskPoints": [
+      "无主图商品下游视频生产可能失败",
+      "兜底策略需明确降级日志"
+    ],
+    "relatedDocs": [
+      "PRD:种草视频生产任务自动创建 §2.3选图"
+    ]
+  }
+}

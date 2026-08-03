@@ -1,0 +1,69 @@
+{
+  "id": "TC-SL-005",
+  "name": "TC-SL-005 — 新增视觉迭代弹窗与校验 [P0]",
+  "description": "验证新增视觉迭代：前置条件检查、迭代名称必填且最多40字、创建后进入Brief草稿",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "店铺列表",
+  "page": "店铺列表",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/shopList",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tbody tr'); for (const row of rows) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent.includes('新增视觉')); if (btn) return { found: true, disabled: btn.disabled, text: btn.textContent.trim() }; } return { found: false }; })()",
+      "description": "查找新增视觉按钮",
+      "storeAs": "findBtn"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tbody tr'); for (const row of rows) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent.includes('新增视觉') && !b.disabled); if (btn) { btn.click(); return { clicked: true }; } } return { clicked: false }; })()",
+      "description": "点击可用店铺的新增视觉按钮",
+      "storeAs": "clickBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); if (!modal) return { found: false }; const title = modal.querySelector('.ant-modal-title, h3')?.textContent.trim(); const nameInput = modal.querySelector('input'); const saveBtn = Array.from(modal.querySelectorAll('button')).find(b => b.textContent.includes('保存')); return { found: true, title, nameInput: !!nameInput, saveBtn: !!saveBtn }; })()",
+      "description": "验证新增视觉弹窗",
+      "storeAs": "modalVerify"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal, .ant-drawer'); const nameInput = modal?.querySelector('input'); if (nameInput) { const longName = 'A'.repeat(41); const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(nameInput, longName); nameInput.dispatchEvent(new Event('input', {bubbles: true})); return { inputLength: 41, maxLength: nameInput.maxLength }; } return { found: false }; })()",
+      "description": "验证迭代名称40字限制",
+      "storeAs": "maxLengthCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "new-iteration-modal"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在无进行中迭代的店铺，用户有创建权限",
+    "stepsText": "1. 找到无进行中迭代的店铺行\n2. 点击新增视觉按钮\n3. 验证弹窗展示迭代名称输入框\n4. 输入超过40字验证限制\n5. 空表单保存验证必填",
+    "expectedResult": "1. 有进行中迭代的店铺按钮置灰\n2. 弹窗展示迭代名称输入框（必填，最多40字）\n3. 不预填默认名称\n4. 保存后创建迭代并进入详情页Brief tab",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/店铺列表"
+  }
+}

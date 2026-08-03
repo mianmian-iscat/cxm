@@ -1,0 +1,4 @@
+interface:
+  display_name: "P9"
+  short_description: "P9 judgment for substantial tasks"
+  default_prompt: "Apply P9 judgment to this task."

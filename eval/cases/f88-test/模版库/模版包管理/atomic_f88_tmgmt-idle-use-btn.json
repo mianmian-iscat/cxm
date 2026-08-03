@@ -1,0 +1,67 @@
+{
+  "id": "atomic-f88-tmgmt-idle-use-btn",
+  "name": "UI：模版包管理-置为闲置/立即使用按钮验证",
+  "description": "验证模版包卡片操作按钮：使用中→置为闲置，闲置中→立即使用",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const detailBtns = Array.from(document.querySelectorAll('button')).filter(b => b.textContent.trim() === '查看详情'); if(detailBtns.length > 2) { detailBtns[2].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "进入店铺详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const idleBtns = Array.from(document.querySelectorAll('button')).filter(b => b.textContent.includes('置为闲置')); const useBtns = Array.from(document.querySelectorAll('button')).filter(b => b.textContent.includes('立即使用')); return { hasIdleBtn: idleBtns.length > 0, hasUseBtn: useBtns.length > 0, idleCount: idleBtns.length, useCount: useBtns.length }; })()",
+      "description": "验证状态操作按钮",
+      "storeAs": "btnInfo"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmgmt-idle-use-btn",
+      "description": "置为闲置/立即使用按钮"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "使用中→置为闲置，闲置中→立即使用",
+    "riskPoints": []
+  }
+}

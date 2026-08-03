@@ -1,0 +1,71 @@
+{
+  "id": "ui-f88-task-create-step2",
+  "name": "UI：F88 新建任务弹窗-进入第二步（任务基础设置）",
+  "description": "填写第一步必填项（任务名称+节点选择+上传真实模版）后点击下一步，验证进入第二步并展示审核标准/优先级/预期交付时间/难度预估/人效预估字段。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待任务列表加载" },
+    { "type": "assert", "target": "page", "contains": "新建任务", "description": "验证新建任务按钮存在" },
+    { "type": "screenshot", "label": "step2-00-init", "description": "截图-初始状态" },
+    { "type": "clickText", "text": "新建任务", "description": "点击新建任务打开弹窗" },
+    { "type": "wait", "ms": 1500, "description": "等待弹窗动画" },
+    { "type": "assert", "target": "page", "contains": "任务创建", "description": "验证弹窗第一步标题" },
+    {
+      "type": "fill",
+      "selector": "input[placeholder=\"最多输入50字符\"]",
+      "value": "自动化测试任务-step2验证",
+      "react": true,
+      "description": "填写任务名称"
+    },
+    {
+      "type": "selectOption",
+      "label": "任务节点选择",
+      "option": "模板审核",
+      "description": "选择任务节点：图片人工审核"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待节点选择后模版区域渲染" },
+    { "type": "assert", "target": "page", "contains": "下载模版", "description": "验证模版下载入口出现" },
+    {
+      "type": "upload",
+      "filePath": "test-fixtures/task-upload-sample.xlsx",
+      "description": "上传真实图片审核模版文件"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待上传处理" },
+    { "type": "screenshot", "label": "step2-01-filled", "description": "截图-第一步填完" },
+    { "type": "clickText", "text": "下一步", "description": "点击下一步进入第二步" },
+    { "type": "wait", "ms": 2000, "description": "等待第二步页面渲染" },
+    { "type": "assert", "target": "page", "contains": "审核标准", "description": "验证第二步-审核标准字段" },
+    { "type": "assert", "target": "page", "contains": "优先级", "description": "验证第二步-优先级字段" },
+    { "type": "screenshot", "label": "step2-02-step2-view", "description": "截图-第二步视图" },
+    { "type": "clickText", "text": "取消", "description": "取消弹窗，不提交脏数据" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。test-fixtures/task-upload-sample.xlsx 必须存在（真实模版，OSS下载）。",
+    "blockingResolved": {
+      "层1": "runner新增upload step（execUpload，支持隐藏input[type=file]）",
+      "层2": "占位xlsx被后端拒绝→下载真实模版image_audit_template.xlsx（a.template-download-link OSS URL）",
+      "结论": "三层策略成功突破，不需跳过"
+    },
+    "realDomNotes": "第二步字段含：审核标准/优先级/预期交付时间/难度预估/人效预估；antd Steps组件切步；取消按钮确认不提交。",
+    "riskPoints": ["selectOption图片人工审核依赖antd dropdown body挂载，runner已内置鼠标点击", "upload依赖隐藏input，uploadFile API无需可见"]
+  }
+}

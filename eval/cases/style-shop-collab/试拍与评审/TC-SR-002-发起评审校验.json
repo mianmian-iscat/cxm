@@ -1,0 +1,53 @@
+{
+  "id": "TC-SR-002",
+  "name": "TC-SR-002 — 发起评审最小集校验 [P0]",
+  "description": "验证发起评审条件：至少5组达标、每组含原款图+模板图+首图+5张套图+构图/姿势/角度各3种",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P0",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const reviewBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('发起评审')); const statusText = document.body.textContent.match(/\\d+\\/\\d+\\s*组达标/)?.[0]; return { reviewBtnDisabled: reviewBtn?.disabled, statusText }; })()",
+      "description": "检查发起评审按钮状态和达标提示",
+      "storeAs": "reviewCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const tips = []; if (text.includes('未达标')) tips.push('存在未达标图组'); if (text.includes('原款')) tips.push('提示原款图'); if (text.includes('套图')) tips.push('提示套图数量'); return { tips, textPreview: text.substring(0, 500) }; })()",
+      "description": "检查未达标提示",
+      "storeAs": "tips"
+    },
+    {
+      "type": "screenshot",
+      "label": "review-validation"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "IN_PRODUCTION状态，图组未完全达标",
+    "stepsText": "1. 检查发起评审按钮是否置灰\n2. 检查达标组数提示\n3. 检查未达标图组缺失项提示",
+    "expectedResult": "1. 未达5组时发起评审按钮置灰\n2. 展示当前达标组数如'3/5 组达标'\n3. 提示第一个未达标图组和缺失项",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

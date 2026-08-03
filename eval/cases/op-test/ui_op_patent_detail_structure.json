@@ -1,0 +1,49 @@
+{
+  "id": "ui-op-patent-detail-structure",
+  "name": "UI：原创保护商家端-专利详情页5阶段时间轴验证（PatentDetail）",
+  "description": "从商家端申请列表进入一条专利详情，全量验证 PatentDetail 组件：5阶段时间轴（申请→快审→预审→授权→保护）、证书下载/预览入口、按钮条件渲染（不同状态显示不同操作）、维权入口（保护中才显示发起维权）、绑定商品入口。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开原创保护商家端首页" },
+    { "type": "wait", "ms": 4000, "description": "等待商家端加载" },
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护", "description": "验证商家端已加载" },
+    { "type": "clickText", "text": "查看详情", "description": "点击第一条专利的查看详情（打开patentDetailDrawer）" },
+    { "type": "wait", "ms": 3000, "description": "等待PatentDetail渲染" },
+    { "type": "screenshot", "label": "patent-detail-timeline", "description": "截图-专利详情时间轴" },
+
+    { "type": "assert", "target": "page", "contains": "详情", "description": "【详情页标题】验证专利详情页已打开" },
+    { "type": "assert", "target": "page", "contains": "申请编号", "description": "【基本信息】验证含申请编号" },
+    { "type": "assert", "target": "page", "contains": "专利号", "description": "【基本信息】验证含专利号" },
+
+    { "type": "assert", "target": "page", "contains": "申请", "description": "【时间轴STEP1】验证含申请阶段" },
+    { "type": "assert", "target": "page", "contains": "预审", "description": "【时间轴STEP2】验证含预审阶段" },
+    { "type": "assert", "target": "page", "contains": "授权", "description": "【时间轴STEP3】验证含授权阶段" },
+    { "type": "assert", "target": "page", "contains": "保护", "description": "【时间轴STEP4】验证含保护阶段" },
+
+    { "type": "assert", "target": "page", "contains": "绑定商品", "description": "【操作入口】验证含绑定商品入口（确权状态可见）" },
+
+    { "type": "screenshot", "label": "patent-detail-full", "description": "截图-专利详情完整视图" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "isv测试账号已登录；商家端有专利数据（至少一条保护中状态）。",
+    "realDomNotes": "PatentDetail组件：5阶段时间轴（申请→快审→预审→授权→保护）；证书下载/预览（授权后可用）；按钮条件渲染（不同status显示不同操作）；维权入口（保护中状态显示发起维权）；绑定商品入口（确权状态显示）。",
+    "riskPoints": [
+      "商家端无数据时查看详情按钮不存在",
+      "5阶段时间轴可能在非保护中状态下部分节点不可见",
+      "证书下载/预览仅授权后可用",
+      "发起维权按钮需同时满足:YC_PROTECTING+itemAuditStatus通过+到期日前20天内"
+    ]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "id": "ui-f88-audit-material-switch",
+  "name": "UI：审核详情-多素材切换验证",
+  "description": "验证审核详情页多素材切换：素材列表/缩略图点击切换→主图更新→URL变化",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "审核",
+      "description": "打开审核详情"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const thumbs = document.querySelectorAll('[class*=thumb], [class*=Thumbnail], [class*=slider] img, [class*=MaterialSlider] img'); return { count: thumbs.length, urls: Array.from(thumbs).slice(0, 5).map(i => i.src?.substring(0, 80)) }; })()",
+      "description": "查找素材缩略图",
+      "storeAs": "thumbs"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-material-list",
+      "description": "素材列表"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const thumbs = document.querySelectorAll('[class*=thumb] img, [class*=Thumbnail] img, [class*=slider] img, [class*=MaterialSlider] img'); if(thumbs.length >= 2) { thumbs[1].click(); return `switched to ${thumbs.length}th`; } return `only ${thumbs.length} thumb`; })()",
+      "description": "切换到第2个素材"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const mainImg = document.querySelector('.ant-drawer img, .ant-modal img'); return mainImg ? { url: mainImg.src.substring(0, 120) } : null; })()",
+      "description": "记录切换后主图URL",
+      "storeAs": "switchedImg"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-material-switched",
+      "description": "素材切换后"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在多素材审核任务。",
+    "realDomNotes": "审核详情左侧为素材缩略图列表(MaterialSlider)，点击缩略图切换主图显示。",
+    "riskPoints": [
+      "单素材任务无切换功能"
+    ]
+  }
+}

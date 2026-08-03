@@ -1,0 +1,73 @@
+{
+  "id": "atomic-f88-ll-copy",
+  "name": "UI：链路列表-复制链路确认弹窗验证",
+  "description": "点击复制按钮，验证确认弹窗出现",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '复制'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no copy btn'; })()",
+      "description": "点击复制",
+      "storeAs": "copyResult"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const pop = document.querySelector('.ant-popover,.ant-popconfirm,.ant-modal-confirm'); const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); return { hasPopconfirm: !!pop, hasModal: !!modal, text: (pop || modal)?.textContent?.trim()?.substring(0,100) || null }; })()",
+      "description": "验证确认弹窗",
+      "storeAs": "confirmDlg"
+    },
+    {
+      "type": "screenshot",
+      "label": "ll-copy-confirm",
+      "description": "复制确认弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cancel = document.querySelector('.ant-popover .ant-btn:not(.ant-btn-primary),.ant-popconfirm .ant-btn:not(.ant-btn-primary)'); if(cancel) { cancel.click(); return 'cancelled'; } return 'no cancel'; })()",
+      "description": "取消复制"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在链路数据",
+    "realDomNotes": "复制需确认弹窗",
+    "riskPoints": []
+  }
+}

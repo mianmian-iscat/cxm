@@ -1,0 +1,71 @@
+{
+  "id": "atomic-f88-tl-view-mode",
+  "name": "UI：淘内资源池-组图/单图模式切换验证",
+  "description": "验证淘内资源池支持组图模式和单图模式两种显示切换",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateLibrary",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开淘内资源池"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const hasGroup = t.includes('组图模式'); const hasSingle = t.includes('单图模式'); return { hasGroupMode: hasGroup, hasSingleMode: hasSingle }; })()",
+      "description": "验证视图模式",
+      "storeAs": "modeInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "modeInfo",
+      "path": "hasGroupMode",
+      "equals": true,
+      "description": "验证组图模式选项存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "modeInfo",
+      "path": "hasSingleMode",
+      "equals": true,
+      "description": "验证单图模式选项存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "tl-view-mode",
+      "description": "组图/单图模式切换"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "",
+    "riskPoints": []
+  }
+}

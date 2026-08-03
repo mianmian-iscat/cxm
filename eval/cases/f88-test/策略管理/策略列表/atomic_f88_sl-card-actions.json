@@ -1,0 +1,82 @@
+{
+  "id": "atomic-f88-sl-card-actions",
+  "name": "UI：策略列表-策略卡片操作按钮验证",
+  "description": "验证策略卡片包含打开/复制操作按钮",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const actions = Array.from(document.querySelectorAll('a,button')).filter(el => { const t = el.textContent.trim(); return ['打开','复制'].some(k => t.includes(k)); }); return { actions: actions.map(a => a.textContent.trim()), count: actions.length }; })()",
+      "description": "提取操作按钮",
+      "storeAs": "cardActions"
+    },
+    {
+      "type": "assertStore",
+      "key": "cardActions",
+      "path": "found",
+      "equals": true,
+      "description": "验证 提取操作按钮 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "列表",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "cardActions",
+      "path": "count",
+      "notEmpty": true,
+      "description": "验证操作按钮存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "sl-card-actions",
+      "description": "策略操作按钮"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在策略数据",
+    "realDomNotes": "操作: 打开/复制",
+    "riskPoints": []
+  }
+}

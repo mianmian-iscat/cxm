@@ -1,0 +1,32 @@
+{
+  "run_id": "taobao-homepage-screenshot-001-20260622114006",
+  "created_at": "2026-06-22T11:40:06.035582Z",
+  "artifacts": [
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/taobao-homepage-screenshot-001-20260622114006/input.json",
+      "size_bytes": 646,
+      "created_at": "2026-06-22T11:40:06.035948Z"
+    },
+    {
+      "type": "screenshot",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/taobao-homepage-screenshot-001-20260622114006/screenshots/step2-taobao-homepage.png",
+      "size_bytes": 196413,
+      "created_at": "2026-06-22T11:40:15.291461Z"
+    },
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/taobao-homepage-screenshot-001-20260622114006/capture.json",
+      "size_bytes": 7639783,
+      "created_at": "2026-06-22T11:40:15.331987Z"
+    },
+    {
+      "type": "json",
+      "path": "/Users/jianlan/.qoderwork/skills/web-automation/core/../artifacts/taobao-homepage-screenshot-001-20260622114006/output.json",
+      "size_bytes": 7656122,
+      "created_at": "2026-06-22T11:40:15.373817Z"
+    }
+  ],
+  "finalized_at": "2026-06-22T11:40:15.373884Z",
+  "artifact_count": 4
+}

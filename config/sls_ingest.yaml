@@ -1,0 +1,231 @@
+# ── SLS 接入配置 ─────────────────────────────────────────────────────────────
+# 本文件定义了 web-automation 度量日志接入阿里云日志服务（SLS）的配置。
+# 数据来源：artifacts/metrics.log（JSON-Lines 格式，由 MetricsLogger 写入）
+# 采集方式：Logtail 文件采集（JSON 模式）或 SDK 写入
+
+sls:
+  # ── Project 配置 ──
+  project: web-automation-metrics
+  region: cn-hangzhou
+  description: Web 自动化测试跨业务统一度量日志
+
+  # ── Logstore 配置 ──
+  logstores:
+    - name: task_metrics
+      description: 统一度量日志（所有业务共用）
+      shard_count: 2
+      ttl_days: 90
+      hot_ttl_days: 7
+
+      # 索引字段定义（与 MetricLogEntry.to_dict() 对齐）
+      index_fields:
+        - name: task_id
+          type: text
+          description: 执行实例 ID（run_id）
+          case_sensitive: false
+
+        - name: business_type
+          type: text
+          description: 业务类型标识（分区键）
+          case_sensitive: false
+          partition_key: true
+          enum_values:
+            - f88_material
+            - original_protection
+            - xiaoer
+            - qianniu
+            - tpp
+            - aifashion
+            - safety-code
+            - smoke
+
+        - name: step
+          type: text
+          description: 步骤类型
+          enum_values:
+            - navigate
+            - click
+            - fill
+            - wait
+            - waitForAPI
+            - screenshot
+            - assert
+            - selectOption
+            - uncheckCheckbox
+            - clickText
+            - waitForUrl
+            - llm_plan
+            - llm_assert
+            - llm_heal
+            - cdpDrag
+            - cdpKeyEvent
+            - cdpMouseWheel
+            - emulateFullscreen
+            - mockNetwork
+            - setFocus
+            - observeTransitions
+            - screencast
+
+        - name: action
+          type: text
+          description: 具体操作描述
+          case_sensitive: false
+
+        - name: result
+          type: text
+          description: 执行结果
+          enum_values:
+            - success
+            - failed
+            - retrying
+            - skipped
+
+        - name: duration_ms
+          type: long
+          description: 步骤耗时（毫秒）
+
+        - name: token_used
+          type: long
+          description: LLM Token 消耗数（无 LLM 调用时为空）
+
+        - name: confidence
+          type: double
+          description: LLM 决策置信度（0.0~1.0，无 LLM 调用时为空）
+
+        - name: error_code
+          type: text
+          description: 标准错误码
+          enum_values:
+            - ELEMENT_NOT_FOUND
+            - TIMEOUT
+            - NAVIGATION_ERROR
+            - ASSERT_FAILED
+            - LLM_HALLUCINATION
+            - LLM_TIMEOUT
+            - COMPLIANCE_BLOCKED
+            - NETWORK_ERROR
+            - LOGIN_REQUIRED
+            - SELECTOR_STALE
+            - FULLSCREEN_BLOCKED
+            - DRAG_NOT_SUPPORTED
+            - KEYBOARD_EVENT_FAILED
+            - PLAY_OBSERVATION_LIMITED
+            - ZOOM_NOT_TRIGGERED
+            - FOCUS_REQUIRED
+            - SHORTCUT_CONFLICT
+            - PANEL_TRANSITION_FAILED
+            - EXCEPTION_SIM_FAILED
+            - UNKNOWN
+
+        - name: screenshot_path
+          type: text
+          description: 截图文件路径
+
+        - name: is_false_positive
+          type: text
+          description: 是否为误报（assert 步骤专用）
+
+        - name: timestamp
+          type: date
+          description: 日志时间戳（ISO 8601）
+          format: "yyyy-MM-dd'T'HH:mm:ssXXX"
+
+
+# ── Logtail 采集配置 ──────────────────────────────────────────────────────────
+logtail:
+  config_name: web-auto-metrics-collector
+  input_type: file
+  log_path: "${WEB_AUTO_ARTIFACTS_DIR:-./artifacts}"
+  file_pattern: "metrics.log"
+  log_type: json_log
+  key:
+    - task_id
+    - business_type
+    - step
+    - action
+    - result
+    - duration_ms
+    - token_used
+    - confidence
+    - error_code
+    - screenshot_path
+    - is_false_positive
+    - timestamp
+
+
+# ── 常用查询模板 ──────────────────────────────────────────────────────────────
+# 可直接粘贴到 SLS 控制台执行
+queries:
+
+  # 按业务类型统计任务成功率（过去24小时）
+  success_rate_by_business: |
+    * AND step: assert
+    | SELECT
+        business_type,
+        COUNT_IF(result = 'success') * 1.0 / COUNT(*) AS success_rate,
+        COUNT(*) AS total
+      FROM log
+      WHERE __time__ > now() - interval '24' hour
+      GROUP BY business_type
+      ORDER BY success_rate ASC
+
+  # Token 消耗趋势（过去7天，按天）
+  token_trend_7d: |
+    * AND token_used > 0
+    | SELECT
+        date_format(__time__, '%Y-%m-%d') AS day,
+        business_type,
+        SUM(token_used) AS total_tokens,
+        AVG(token_used) AS avg_tokens
+      FROM log
+      WHERE __time__ > now() - interval '7' day
+      GROUP BY day, business_type
+      ORDER BY day
+
+  # 错误码分布（过去1小时）
+  error_distribution: |
+    * AND result: failed
+    | SELECT
+        error_code,
+        business_type,
+        COUNT(*) AS count
+      FROM log
+      WHERE __time__ > now() - interval '1' hour
+      GROUP BY error_code, business_type
+      ORDER BY count DESC
+
+  # LLM 置信度分布（过去7天）
+  llm_confidence_distribution: |
+    * AND confidence > 0
+    | SELECT
+        business_type,
+        AVG(confidence) AS avg_confidence,
+        MIN(confidence) AS min_confidence,
+        approx_percentile(confidence, 0.5) AS p50_confidence,
+        approx_percentile(confidence, 0.9) AS p90_confidence,
+        COUNT(*) AS llm_calls
+      FROM log
+      WHERE __time__ > now() - interval '7' day
+      GROUP BY business_type
+
+  # 环境限制错误码分布（过去7天）
+  env_limitation_distribution: |
+    * AND (
+        error_code: FULLSCREEN_BLOCKED OR
+        error_code: DRAG_NOT_SUPPORTED OR
+        error_code: KEYBOARD_EVENT_FAILED OR
+        error_code: PLAY_OBSERVATION_LIMITED OR
+        error_code: ZOOM_NOT_TRIGGERED OR
+        error_code: FOCUS_REQUIRED OR
+        error_code: SHORTCUT_CONFLICT OR
+        error_code: PANEL_TRANSITION_FAILED OR
+        error_code: EXCEPTION_SIM_FAILED
+      )
+    | SELECT
+        error_code,
+        business_type,
+        COUNT(*) AS count
+      FROM log
+      WHERE __time__ > now() - interval '7' day
+      GROUP BY error_code, business_type
+      ORDER BY count DESC

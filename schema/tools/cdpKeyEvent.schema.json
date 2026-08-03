@@ -1,0 +1,28 @@
+{
+  "name": "cdpKeyEvent",
+  "version": "1.0.0",
+  "description": "CDP 原生级键盘事件",
+  "triggers": ["键盘", "按键", "keypress", "keydown", "keyup"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "key"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "cdpKeyEvent" },
+      "key": { "type": "string" },
+      "code": { "type": "string" },
+      "keyCode": { "type": "integer" },
+      "modifiers": { "type": "integer", "default": 0 },
+      "keyType": { "type": "string", "enum": ["keyDown", "keyUp", "both"], "default": "both" },
+      "text": { "type": "string" },
+      "preventDefault": { "type": "boolean", "default": false },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "sent": { "type": "boolean" } } },
+  "timeout_ms": 5000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 300 }
+}

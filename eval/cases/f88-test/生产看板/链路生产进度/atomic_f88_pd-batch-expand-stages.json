@@ -1,0 +1,74 @@
+{
+  "id": "atomic-f88-pd-batch-expand-stages",
+  "name": "UI：生产看板-批次展开环节详情验证",
+  "description": "验证生产看板展开批次后显示环节列表：环节名/进行中/已通过/已失败/进度%/下载",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const carets = document.querySelectorAll('[class*=caret-down]'); const expandable = Array.from(carets).filter(c => c.closest('[class*=progress],[class*=Progress]')); if(expandable.length > 0) { expandable[0].click(); } return 'expanded'; })()",
+      "description": "展开批次"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const hasStage = t.includes('劣质图编辑') || t.includes('劣质图审核'); const hasProgress = t.includes('进行中') || t.includes('已通过'); const hasDownload = Array.from(document.querySelectorAll('button')).some(b => b.textContent.includes('下载')); return { hasStage, hasProgress, hasDownload }; })()",
+      "description": "验证环节详情",
+      "storeAs": "stageInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "stageInfo",
+      "path": "hasStage",
+      "equals": true,
+      "description": "验证展开后显示环节名称"
+    },
+    {
+      "type": "screenshot",
+      "label": "pd-batch-stages",
+      "description": "批次展开环节详情"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "展开批次显示环节列表，每个环节有进度%和下载按钮",
+    "riskPoints": []
+  }
+}

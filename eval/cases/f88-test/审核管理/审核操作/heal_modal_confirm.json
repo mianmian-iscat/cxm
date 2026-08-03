@@ -1,0 +1,72 @@
+{
+  "id": "heal-modal-confirm-button",
+  "name": "自愈验证：Modal 确认按钮多文案兼容",
+  "description": "验证当 Modal 确认按钮文案不是标准的「确定」时，自愈引擎能通过正则匹配找到按钮",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "self_healing_validation",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "click",
+      "selector": ".ant-modal-confirm-btns .ant-btn-primary",
+      "description": "【触发自愈】点击不存在的 Modal 确认按钮（页面无弹窗时该元素不存在）"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-modal-heal",
+      "description": "截图 - 自愈尝试后状态"
+    }
+  ],
+  "capture": {
+    "enabled": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "error",
+    "_comment": "此用例预期触发自愈但最终仍失败（因为确实没有Modal），用于验证自愈流程被正确触发且不会无限重试"
+  },
+  "_testDesign": {
+    "preconditions": "页面无Modal弹窗",
+    "expectedHealBehavior": "知识库命中 modal 规则 → 尝试多文案正则匹配 → 仍未找到 → 记录 healAttempt.retrySuccess=false",
+    "riskPoints": [
+      "自愈无限循环",
+      "healAttempt 未正确记录"
+    ],
+    "relatedDocs": [
+      "references/error-pattern-map.json",
+      "references/popup-handling.md"
+    ],
+    "verifyFields": [
+      "output.steps[2].healAttempt.action == 'knowledge_fix'",
+      "output.steps[2].healAttempt.retrySuccess == false"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

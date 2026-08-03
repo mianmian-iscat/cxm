@@ -1,0 +1,70 @@
+{
+  "id": "smoke-hjratingconsole-bill-query",
+  "name": "冒烟：汇金RatingConsole账单查询页可访问",
+  "description": "打开汇金 Rating Console 账单查询页，验证页面加载、查询区域（外部订单号输入框）与查询按钮存在。",
+  "businessType": "hjratingconsole",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "hjratingconsole.alibaba-inc.com",
+    "url": "https://pre-hjratingconsole.alibaba-inc.com/hjratingconsole/faq/billQuery.htm",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-hjratingconsole.alibaba-inc.com/hjratingconsole/faq/billQuery.htm",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开账单查询页"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "账单",
+      "description": "验证账单查询页标题/内容存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查询",
+      "description": "验证查询按钮/入口存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "hj-bill-query-loaded",
+      "description": "截图-账单查询页已加载"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "阿里员工内网BUC已登录。",
+    "realDomNotes": "host: pre-hjratingconsole.alibaba-inc.com；route: hjratingconsole/faq/billQuery.htm；功能：外部订单号查询账单明细/消息/详单/按业务类型筛选。",
+    "riskPoints": [
+      "BUC登录态失效会跳转login.alibaba-inc.com，此时页面不含'账单'文本",
+      "预发环境偶发503"
+    ]
+  }
+}

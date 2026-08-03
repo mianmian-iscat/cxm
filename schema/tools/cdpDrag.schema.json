@@ -1,0 +1,27 @@
+{
+  "name": "cdpDrag",
+  "version": "1.0.0",
+  "description": "CDP 原生级精确拖拽",
+  "triggers": ["拖拽", "拖动", "drag"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "fromX", "fromY", "toX", "toY"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "cdpDrag" },
+      "fromX": { "type": "number" },
+      "fromY": { "type": "number" },
+      "toX": { "type": "number" },
+      "toY": { "type": "number" },
+      "steps": { "type": "integer", "default": 10 },
+      "button": { "type": "string", "enum": ["left", "right", "middle"], "default": "left" },
+      "screenshot": { "type": "boolean", "default": false },
+      "description": { "type": "string" },
+      "id": { "type": "string" },
+      "output_binding": { "type": "object" }
+    }
+  },
+  "returns": { "type": "object", "properties": { "dragged": { "type": "boolean" } } },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 500 }
+}

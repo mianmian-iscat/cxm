@@ -1,0 +1,52 @@
+{
+  "id": "regression-f88-review-regenerate",
+  "name": "回归：F88 审核详情记录表格结构验证",
+  "description": "进入审核任务详情页，验证审核记录表格结构（任务ID/商家名称/审核状态/图片/类目/审核人）与筛选项。原重生图流程依赖数据操作无法稳定无人化，降级为详情页结构验证。基于预发真实结构重写。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 50, "outputCompact": true },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待任务列表加载" },
+    { "type": "assert", "target": "page", "contains": "个人任务中心", "description": "验证页面已加载" },
+    {
+      "type": "clickText",
+      "text": "查看详情",
+      "description": "进入首条审核任务详情"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待审核详情加载" },
+    { "type": "screenshot", "label": "review-detail-table", "description": "截图-审核详情记录表格" },
+    { "type": "assert", "target": "page", "contains": "审核标准", "description": "【MR-040】验证详情含审核标准" },
+    { "type": "assert", "target": "page", "contains": "商家名称", "description": "【MR-040】验证详情含商家名称字段" },
+    { "type": "assert", "target": "page", "contains": "任务ID", "description": "【MR-020】验证详情表格含任务ID列" },
+    { "type": "assert", "target": "page", "contains": "审核状态", "description": "【MR-020】验证详情表格含审核状态列" },
+    { "type": "assert", "target": "page", "contains": "类目", "description": "【MR-020】验证详情表格含类目列" },
+    { "type": "assert", "target": "page", "contains": "审核人", "description": "【MR-020】验证详情表格含审核人列" }
+  ],
+  "capture": { "enabled": true, "filter": "review|task|audit", "captureBody": true },
+  "screenshot": { "onError": true },
+  "post_asserts": null,
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问，个人任务中心-审核任务下存在至少一条任务可点'查看详情'。",
+    "realDomNotes": "从 personal-task-center 点'查看详情'进入 /review/task/detail?taskType=audit&taskId=N；详情页字段：审核标准/商家名称/商家ID/任务ID/审核状态/审核人/类目；表格列：任务ID/商家名称/审核状态/图片/类目/审核人/备注。原重生图流程(负反馈→regenerateImage→替换/取消)需特定审核数据+数据操作，无法稳定无人化，已降级为结构验证。",
+    "riskPoints": ["依赖审核任务首条数据存在", "详情字段随任务类型(图片/视频)变化"],
+    "qoderworkRef": "testcases_material_review.json MR-020/MR-040/MR-050"
+  },
+  "source": "qoderwork/f88-test/testcases_material_review.json",
+  "sourceIds": ["MR-020", "MR-040", "MR-050"]
+}

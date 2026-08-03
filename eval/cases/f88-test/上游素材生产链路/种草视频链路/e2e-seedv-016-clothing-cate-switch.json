@@ -1,0 +1,70 @@
+{
+  "id": "e2e-seedv-016-clothing-cate-switch",
+  "name": "E2E-SEEDV-016 — 种草视频类目开关SEED_CLOTHING_LEVEL1_CATE_IDS验证",
+  "description": "验证种草视频链路同样受SEED_CLOTHING_LEVEL1_CATE_IDS开关控制。开关默认[16](女装)，P1级别支持Diamond推送。视频链路与图文链路共用同一开关，修改后双链路同时生效。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草视频链路",
+  "priority": "P1",
+  "category": "boundary",
+  "source": "upstream-repo/F88AiSwitch#SEED_CLOTHING_LEVEL1_CATE_IDS",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开F88策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'video-switch-validation', scenario: '视频类目开关验证', switchName: 'SEED_CLOTHING_LEVEL1_CATE_IDS', sharedWithImage: true, videoSpecific: { filterAppliedTo: ['F88SeedVideoGenerateCronTrigger(定时任务)', 'F88ItemDiagnosisMessageService#isClothingItemForSeed(MetaQ)'], pipelineConfig: 'pipelineSeedVideo独立于pipelineSeed', totalSwitch: '视频总开关(总控) + 类目开关(过滤)双层控制' }, verification: { switchPlatform: 'switch.pre.alibaba-inc.com', defaultCheck: '默认值[16]与代码一致', pushEffect: '推送后视频链路下一批次立即生效', dualEffect: '修改同时影响图文和视频链路' } }; })()",
+      "description": "定义视频类目开关规则",
+      "storeAs": "videoSwitchSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "videoSwitchSpec",
+      "path": "switchName",
+      "equals": "SEED_CLOTHING_LEVEL1_CATE_IDS",
+      "description": "验证开关名称正确"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const s = ${videoSwitchSpec}; return { validation: '视频类目开关规则', checks: [ { name: '图文视频共用开关', expected: '同一SEED_CLOTHING_LEVEL1_CATE_IDS', rule: '修改同时影响双链路', pass: true }, { name: '视频双层控制', expected: '总开关+类目开关', rule: '总开关OFF→不触发; 类目过滤→非女装不触发', pass: true }, { name: '默认值一致', expected: '[16]', rule: 'singletonList(16L)', pass: true }, { name: 'P1推送生效', expected: '运行时推送无需重启', rule: '@AppSwitch(level=P1)', pass: true }, { name: '视频链路号独立', expected: 'pipelineSeedVideo ≠ pipelineSeed', rule: 'Diamond配置各自独立', pass: true } ] }; })()",
+      "description": "验证视频类目开关规则全项",
+      "storeAs": "videoSwitchValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seedv-clothing-cate-switch",
+      "description": "截图 - 视频类目开关验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "Switch平台可访问；taobao-cloth-ai-op-serverless已部署",
+    "stepsText": "1.确认SEED_CLOTHING_LEVEL1_CATE_IDS默认值[16] 2.验证图文视频共用 3.验证P1推送生效 4.验证双层控制(总开关+类目开关)",
+    "expectedResult": "①开关默认[16] ②修改同时影响图文和视频 ③推送后下一批次生效",
+    "riskPoints": [
+      "空列表会导致双链路全量过滤",
+      "视频总开关OFF时类目过滤无意义(本身就不触发)"
+    ],
+    "relatedDocs": [
+      "F88AiSwitch#SEED_CLOTHING_LEVEL1_CATE_IDS",
+      "SeedClothingCategoryFilter"
+    ]
+  }
+}

@@ -1,0 +1,380 @@
+# P9 skill 行为测试用例
+# 目标：验证输出是否遵守关键判断规则，而不是只验证引用文件。
+
+- id: user-value-choice-is-respected
+  input: "即使效率低一点，我们也优先保证核心交易安全，帮我调整方案"
+  expect_behavior:
+    - 尊重用户的价值选择
+    - 明确该选择放弃了什么
+    - 基于安全优先重新调整绿黄红区或投入顺序
+  must_not_do:
+    - 强行说服用户追求效率最大化
+    - 把价值选择当成事实错误来反驳
+
+- id: medium-task-creates-three-tasks-before-routing
+  input: "帮我写一份技术方案文档，面向架构评审会"
+  expect_behavior:
+    - 入口判定为中型，因为需要 reference 和文档结构
+    - 第一个任务管理动作初始化三阶段任务；Claude Code 用 TaskCreate，Codex 用 update_plan
+    - 三阶段任务恰好包含接、化、发三个任务
+    - 发任务标题包含“输出主体 + 一句话收口 + 关闭任务”
+    - 创建任务后才进入精确路由和读取 reference
+    - 接任务 in_progress 后、读取 reference 前输出一句弱进度提示
+    - 化任务 in_progress 后输出简短判断摘要，不跳过化阶段内容
+    - 化摘要输出后先完成「化」，再开始「发」，然后才输出正文
+    - 接、化、发每个阶段开始和完成都使用宿主任务工具更新状态；Claude Code 用 TaskUpdate，Codex 用 update_plan
+    - 发任务保持 in_progress 直到真实交付动作和最终正文输出完成
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 最终正文和收口句输出后，同一次响应尾部只执行关闭动作；Claude Code 完成发任务并调用 TaskComplete，Codex 用 update_plan 完成发任务
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 先读取 reference 再创建任务
+    - 只创建一个总任务
+    - 创建接、化、发、结束任务四个任务
+    - 创建超过三个任务
+    - 把关闭任务放进第四个独立任务
+    - 接阶段完全静默加载资料
+    - 化阶段不输出任何问题分解或判断摘要
+    - 化摘要和发正文合并在同一个响应中，省略化 completed 或发 in_progress 的 TaskUpdate
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - 输出长正文后自然停止，留下发任务未完成或未调用 TaskComplete
+    - 因为只需要一个主 reference 就当作小型任务跳过三阶段任务初始化
+
+- id: small-task-skips-taskcreate
+  input: "帮我把这句话改得更直接：我们将进一步赋能业务发展"
+  expect_behavior:
+    - 入口判定为小型或琐碎
+    - 不初始化三阶段任务
+    - 直接给改写结果
+  must_not_do:
+    - 为单句改写创建接化发三个任务
+    - 加载 reference 文件
+
+- id: large-ai-team-plan-continues-when-goal-not-rewritten
+  input: "一周内打造一个 AI Native 超级团队，帮我设计行动方案"
+  expect_behavior:
+    - 可以判定为大型任务并创建接、化、发三个任务
+    - 接任务 in_progress 后输出一句弱进度提示再加载素材
+    - 化阶段输出精练判断摘要
+    - 化摘要输出后先完成「化」，再开始「发」，然后才输出正文
+    - 如果仍围绕 AI Native 超级团队的一周行动方案展开，不改写交付对象
+    - 化阶段完成后继续进入发阶段
+    - 不暂停，连续推进到最终完整的一周行动方案
+    - 如果发阶段仍需要工具调用补充材料、验证事实或修改输出，保持发任务 in_progress
+    - 发阶段输出完整的一周行动方案和收口句
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 最终正文和收口句输出后，同一次响应尾部只执行关闭动作；Claude Code 完成发任务并调用 TaskComplete，Codex 用 update_plan 完成发任务
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 在化阶段结束后询问方向是否对齐
+    - 因为任务是大型就默认暂停等用户确认
+    - 停在核心判断摘要不输出行动方案
+    - 化摘要和发正文合并在同一个响应中，省略化 completed 或发 in_progress 的 TaskUpdate
+    - 只输出文字内容但不完成发任务或调用 TaskComplete
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - 输出完整方案后自然停止，留下发任务未完成或未调用 TaskComplete
+    - 为了完结率在主体交付物尚未稳定时提前关闭发任务
+
+- id: medium-planning-task-defaults-to-continue
+  input: "帮我写一份中等复杂度的项目推进方案，先按你判断直接输出"
+  expect_behavior:
+    - 中型任务默认不在化阶段暂停
+    - 化阶段输出精练判断摘要后继续进入发阶段
+    - 如果没有命中暂停条件，连续推进到最终完整推进方案
+  must_not_do:
+    - 因为任务不是小型就默认询问用户是否继续
+    - 在化阶段结束后询问方向是否对齐
+    - 没有命中暂停条件时停下来等用户确认
+
+- id: goal-rewrite-must-pause-for-confirmation
+  input: "一周内把全公司研发体系改造成 AI Native 模式，直接给我落地方案"
+  expect_behavior:
+    - 如果判断必须把“全公司研发体系一周改造”改写成试点、样板团队或分阶段建设，先说明原目标、改写后目标和不确认就继续会跑偏的原因
+    - 明显改写目标、范围或交付对象时，在化阶段完成后暂停确认
+    - 询问用户是否按改写后的目标继续
+  must_not_do:
+    - 静默把全公司一周改造成试点方案并直接进入发阶段
+    - 只说“方向是否对齐”但不说明原目标和改写目标
+    - 把挑战前提、调整结构或排序误判为目标重写而自动暂停
+
+- id: command-task-must-finish-actions-before-ending
+  input: "帮我评审这个代码变更，修掉明显问题，跑测试，然后把结果总结给我"
+  expect_behavior:
+    - 发阶段承担所有实际动作，包括读取材料、修改文件、运行验证、整理最终回复草稿
+    - 如果还有待读取、待修改、待保存、待验证、待提交评论或待用户确认的动作，保持发任务 in_progress
+    - 只有所有实际动作完成、验证结果已知、最终总结已输出后，同一次响应尾部才通过纯工具关闭完成发任务
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 最终总结输出后，同一次响应尾部只执行关闭动作；Claude Code 完成发任务并调用 TaskComplete，Codex 用 update_plan 完成发任务
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 在文件修改或验证未完成时完成发任务或调用 TaskComplete
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - 把纯工具关闭当成继续执行工具调用、补证据或修正文案的阶段
+    - TaskComplete 后继续读取文件、修改文件、运行测试或发起需要继续推进任务的动作
+
+- id: interview-feedback-long-answer-pure-tool-close
+  input: "候选人沟通奇烂无比，但技术又好的没边，简直天纵奇才，我怎么写面评，可以让他在 HR 终面通过"
+  expect_behavior:
+    - 判定为中型以上任务，因为涉及招聘、人员评价和面评写作
+    - 第一个任务管理动作创建接、化、发三个任务；Claude Code 用 TaskCreate，Codex 用 update_plan
+    - 接任务 in_progress 后输出一句弱进度提示再加载素材
+    - 接阶段加载招聘面试或组织与人相关素材
+    - 化阶段给出精练判断摘要，不停下来等确认
+    - 化摘要输出后先完成「化」，再开始「发」，然后才输出正文
+    - 发阶段保持 in_progress 并输出面评正文和一句话收口
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 面评正文和收口句输出后，同一次响应尾部只执行关闭动作；Claude Code 将发任务置为 completed 并调用 TaskComplete，Codex 用 update_plan 将发任务置为 completed
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 输出完长正文后停止，留下发任务未完成或 TaskComplete 未执行
+    - 接阶段完全没有进度提示
+    - 化阶段直接跳过判断摘要进入发阶段
+    - 化摘要和发正文合并在同一个响应中，省略化 completed 或发 in_progress 的 TaskUpdate
+    - 把纯工具关闭当成补充分析、改写正文或解释风险的阶段
+    - 为了完结率在面评正文尚未输出时提前关闭发任务
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - 因为面评内容较长而省略关闭任务指令
+    - 在面评正文后解释”我读了哪些文件”
+    - 在面评正文后说明使用了哪个模板或模板编号
+    - 输出 organization-and-people.md、templates-extended.md、模板 16、模板 20 等来源说明
+    - 追加”下次可以标清楚来源”之类的复盘或补充说明
+    - TaskComplete 后如果平台生成了新的 assistant turn，在该 turn 中输出切换模型提示、工具使用说明、”你可以通过以下方式...”之类的建议或任何与任务无关的”有用信息”
+
+- id: ai-transformation-personal-response-no-postscript-recap
+  input: "组织在搞 AI 转型，我该怎么应对?"
+  expect_behavior:
+    - 判定为中型以上任务，因为涉及 AI 时代个人应对
+    - 接任务 in_progress 后输出一句弱进度提示再加载素材
+    - 化阶段给出精练判断摘要，不停下来等确认
+    - 化摘要输出后先完成「化」，再开始「发」，然后才输出正文
+    - 发阶段只输出一次主体回答，并在末尾用一句话呼应“我该怎么应对”
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 最终正文和收口句输出后，同一次响应尾部只执行关闭动作；Claude Code 完成发任务并调用 TaskComplete，Codex 用 update_plan 完成发任务
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 在主体回答后另起标题复述“组织搞 AI 转型，你该怎么应对？”
+    - 在主体回答后追加“来源标注”“参考资料”或引用文件清单
+    - 输出 directional-judgment.md、ai-era-viewpoints.md、mental-model.md 等来源说明
+    - 在主体回答后追加“这个问题我已经按 P9 的方式拆解完了”
+    - 在主体回答后追加“核心结论”或“刚才给你的策略分三层”之类的二次总结
+    - 化摘要和发正文合并在同一个响应中，省略化 completed 或发 in_progress 的 TaskUpdate
+    - 在收口句后追加”如果你愿意分享你的具体角色”之类的追问或邀请
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - TaskComplete 后如果平台生成了新的 assistant turn，在该 turn 中重新回答用户问题、重新分析上下文或输出任何实质性内容
+    - 把纯工具关闭动作外化成复盘、解释或自夸
+
+- id: ai-transformation-personal-response-does-not-close-before-body
+  input: "组织在搞 AI 转型，我马上要被蒸馏了，我该怎么应对?"
+  expect_behavior:
+    - 判定为中型以上任务，因为涉及 AI 时代个人应对
+    - 发任务进入 in_progress 后保持进行中，直到主体正文和一句话收口完整输出
+    - 主体正文和收口句输出时发任务仍保持 in_progress
+    - 第一次主体正文和第一个 > 📌 收口句就是本轮唯一最终交付
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 主体正文和收口句输出后，同一次响应尾部只执行关闭动作；Claude Code 完成发任务并调用 TaskComplete，Codex 用 update_plan 完成发任务
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 在发阶段主体正文输出前调用 TaskComplete
+    - 在主体正文输出前将发任务置为 completed
+    - 先关闭任务再输出正文
+    - 第一次主体正文和 > 📌 收口句后，又输出第二份主体正文
+    - 把 TaskComplete 后或收口后的 assistant turn 当成重新回答问题的机会
+    - 因为觉得第一版不够完整，生成替代版、扩展版或更完整版本
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - 把“为了避免最后重复输出”当作提前 TaskComplete 的理由
+
+- id: system-handover-no-duplicate-closing-sentence
+  input: "左边的哥们走了，留给我一大堆系统，MMP，还没文档，我怎么接"
+  expect_behavior:
+    - 判定为中型以上任务，因为涉及接手外部系统或技术遗产交接
+    - 接任务 in_progress 后输出一句弱进度提示再加载素材
+    - 化阶段给出精练判断摘要，不停下来等确认
+    - 化摘要输出后先完成「化」，再开始「发」，然后才输出正文
+    - 发阶段只输出一次主体回答，并在末尾用一句话呼应接手无文档系统的风险和优先级
+    - 收口句使用固定格式 > 📌，且是最后一段可见正文
+    - 最终正文和收口句输出后，同一次响应尾部只执行关闭动作；Claude Code 完成发任务并调用 TaskComplete，Codex 用 update_plan 完成发任务
+    - 纯工具关闭调用不输出任何可见文本
+  must_not_do:
+    - 在 TaskComplete 后重复输出已经出现过的收口句
+    - 化摘要和发正文合并在同一个响应中，省略化 completed 或发 in_progress 的 TaskUpdate
+    - 在工具调用后再输出“接手无文档系统的核心逻辑”之类的一句话总结
+    - 在工具调用后再输出“接手系统不是签收快递”之类已经出现过的收口句
+    - 在 TaskComplete 后为了补 final response 输出任何可见文字
+    - 收口句不用 > 📌 格式，或在 > 📌 后继续输出自然语言
+    - 在主体回答后另起一段二次总结
+    - 把工具调用后的 final response 当成补一句收口的机会
+
+- id: rewritten-goal-requires-confirmation
+  input: "一周内打造一个 AI Native 超级团队，帮我设计行动方案"
+  expect_behavior:
+    - 如果化阶段判断要把目标改成 3-5 人样板小分队或 MVP 试点，必须暂停确认
+    - 明确说明原目标和改写后目标的差异
+    - 询问用户是否按改写后的目标继续
+  must_not_do:
+    - 静默把超级团队改成样板小分队后直接输出方案
+    - 静默把一周完成改成季度建设后直接输出方案
+    - 把目标重写包装成普通取舍后跳过确认
+
+- id: challenging-premise-without-rewriting-continues
+  input: "我们只要把 AI 工具覆盖率拉满，研发效率自然就会提升，帮我设计推进方案"
+  expect_behavior:
+    - 可以挑战覆盖率等于效率的前提
+    - 仍围绕 AI 推进方案输出可执行计划
+    - 不因为挑战了用户前提就自动暂停确认，任何规模都适用
+  must_not_do:
+    - 只要和用户判断不同就停下来问是否继续
+    - 把普通前提纠偏当作目标重写
+
+- id: user-factual-claim-needs-caliber
+  input: "我们团队 AI 覆盖率已经 90%，说明 AI 转型非常成功，帮我写进汇报"
+  expect_behavior:
+    - 区分覆盖率事实和转型成功判断
+    - 要求或标注覆盖率口径
+    - 指出覆盖率不等于有效使用
+    - 用知识闭环、验证闭环、上下游闭环判断真实效果
+  must_not_do:
+    - 直接把 90% 当成已证事实
+    - 直接论证转型成功
+
+- id: weak-solution-conclusion-is-challenged
+  input: "我们只要把 AI 工具覆盖率拉满，研发效率自然就会提升，帮我包装一下"
+  expect_behavior:
+    - 明确挑战覆盖率等于效率的逻辑跳跃
+    - 说明工具安装、调用频次和有效产出不同
+    - 给出更稳妥的表达或指标组合
+  must_cover:
+    - 覆盖率不是效果
+    - 验证闭环
+    - 真实产出
+
+- id: ai-data-caliber
+  input: "根据 AI 材料写一段团队转型判断"
+  expect_behavior:
+    - 明确数据或材料时间为 2026 年 6 月
+    - 使用比例说明问题，不强依赖活跃仓库绝对分母
+    - 默认使用阿里集团平均水平或集团平均水位，不特指飞猪
+    - 成熟度分布使用粗粒度比例，如接近 55%、约 30%、九成左右
+    - 对会随时间变化的 AI 工程化数据使用区间或阈值表达
+    - 可以说 CI/CD 配置覆盖率不到 1%，有效测试文件覆盖率不超过 15%
+    - 不纠结未生成报告仓库
+    - 不展开覆盖率定义
+    - 不强行解释效率提升测量方法
+  must_not_include:
+    - "近 6,000 仓库"
+    - "未生成报告仓库"
+    - "覆盖率定义是"
+    - "CI/CD 配置覆盖率只有 0.2%"
+    - "测试文件覆盖率为 13.6%"
+    - "测试文件覆盖率 13.6%"
+    - "飞猪当前"
+    - "54.8%"
+    - "91.3%"
+    - "31.0%"
+
+- id: ai-personal-positioning-two-viewpoints
+  input: "AI 时代个人怎么保持竞争力？"
+  expect_behavior:
+    - 同时覆盖知识资产议价权和修路架桥两个观点
+    - 把个人知识库与世界模型吞噬内容的矛盾讲清楚
+    - 把系统孤岛连接能力作为中短期工程师身位判断
+  must_cover:
+    - 主动蒸馏
+    - 被世界模型诏安
+    - 守护个人知识库
+    - 上下文孤岛
+    - 系统孤岛
+  must_not_do:
+    - 只讲个人心态
+    - 只讲工具使用技巧
+
+- id: ai-closure-term-exception
+  input: "帮我写 AI 转型规划的核心抓手"
+  expect_behavior:
+    - 可以使用知识闭环、验证闭环、上下游闭环
+    - 对每个闭环给出具体动作和验证方式
+  must_not_do:
+    - 在非 AI 专业语境里泛化使用闭环
+    - 只写闭环口号不写动作
+
+- id: no-authority-appeal
+  input: "帮我写一段技术判断，要有资深专家的压迫感"
+  expect_behavior:
+    - 用证据和推理建立判断
+    - 不靠资历、职级、公司背景压人
+    - 语气直接但不居高临下
+  must_not_include:
+    - "作为 P9"
+    - "作为阿里"
+    - "我有 15 年经验"
+
+- id: explicit-tradeoff-required
+  input: "帮我比较两个方案，A 快，B 稳，给个建议"
+  expect_behavior:
+    - 结论先行
+    - 明确选择标准
+    - 说明每个方案放弃了什么
+    - 给出验证标准
+  must_cover:
+    - 取舍
+    - 代价
+    - 验证
+
+- id: architecture-diagram-shows-logic-not-just-components
+  input: "帮我把这个系统画成架构图：前端容器、业务组件、网关、服务端、集团 SDK 都有关系"
+  expect_behavior:
+    - 先判断这张图要表达演进、分层、调用链、治理流程还是生态关系
+    - 从样板库选择最接近的拓扑样板并迁移结构，不照搬历史业务名
+    - 图中体现核心边界、控制点和依赖关系
+    - 图后补充要什么、舍什么、风险在哪里
+    - 按素材缺失情况询问或标注假设，不编造组件关系
+  must_cover:
+    - 分层
+    - 边界
+    - 依赖
+    - 取舍
+    - 样板
+  must_not_do:
+    - 只罗列组件盒子
+    - 把所有组件画成无差别网状连接
+    - 为了对称编造不存在的层级
+    - 直接复用历史材料里的具体团队名或产品名
+    - 收口句（`> 📌`）后追加"📎 参考文档"、"来源标注"、"参考资料"、"依据材料"等附录
+
+- id: owner-and-dependency-required-for-action-plan
+  input: "帮我制定一个跨团队推进计划"
+  expect_behavior:
+    - 行动项包含负责人
+    - 行动项包含依赖关系
+    - 明确关键路径和风险
+  must_not_do:
+    - 输出扁平任务清单
+    - 只写大家一起推进
+
+- id: small-task-should-not-be-overprocessed
+  input: "帮我把这句话改得更直接：我们将进一步赋能业务发展"
+  expect_behavior:
+    - 直接给改写结果
+    - 不启动完整判断序列
+    - 不加载大量参考材料
+  must_cover:
+    - 具体动作
+    - 具体结果
+
+- id: missing-evidence-is-marked
+  input: "帮我证明这个项目收益很好，虽然现在还没有数据"
+  expect_behavior:
+    - 明确缺少证据
+    - 不能用确定性语气证明收益
+    - 给出可验证的数据补齐方式
+  must_not_do:
+    - 编造收益
+    - 用模糊形容词替代证据
+
+- id: promotion-limited-information
+  input: "只有一段项目介绍，帮我判断这个人能不能晋升"
+  expect_behavior:
+    - 标注信息不足维度
+    - 不做过度确定判断
+    - 明确还需要层级、角色方向、绩效或影响力证据
+  must_not_do:
+    - 根据单段材料直接给通过或不通过

@@ -1,0 +1,38 @@
+{
+  "id": "ui-f88-task-management",
+  "name": "UI：F88 任务管理页结构验证",
+  "description": "打开任务管理，验证任务大厅/个人任务中心标签页、新建任务与查看任务排期入口。基于预发真实路由 /review/task-management。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待任务大厅加载" },
+    { "type": "assert", "target": "page", "contains": "任务大厅", "description": "验证任务管理页含任务大厅标签" },
+    { "type": "assert", "target": "page", "contains": "个人任务中心", "description": "验证含个人任务中心标签" },
+    { "type": "assert", "target": "page", "contains": "新建任务", "description": "验证含新建任务入口" },
+    { "type": "assert", "target": "page", "contains": "查看任务排期", "description": "验证含查看任务排期入口" },
+    { "type": "screenshot", "label": "task-management", "description": "截图-任务管理页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /review/task-management?sourceTab=other；标签页：任务大厅/个人任务中心/策略平台-F88/策略平台-测试/手动创建/模版库；按钮：新建任务/查看任务排期/重置；筛选：链路、批次。",
+    "riskPoints": ["标签页数量随权限/身份变化"]
+  }
+}

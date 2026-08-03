@@ -1,0 +1,53 @@
+{
+  "id": "settlement-settle-post-008",
+  "name": "补贴后YC取消：补充材料+非首发→补贴0.04→YC取消",
+  "description": "applyId=200000331 | orderId=322056100280271 | 补充材料+非首发→YC取消。验证FINISH状态下的结算金额正确性。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P2",
+  "category": "regression",
+  "source": "dingtalk-spreadsheet/6LeBq413JA9BOdm2iBjQdjE7JDOnGvpb 补贴后",
+  "sourceIds": [
+    "TC_SETTLE_POST_008"
+  ],
+  "context": {
+    "type": "db",
+    "dbGroup": "scenario",
+    "dbEnv": "prod",
+    "script": "scripts/verify_settlement.py",
+    "applyId": "200000331",
+    "orderId": "322056100280271",
+    "patentNo": "202630808080.8"
+  },
+  "steps": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && python3 scripts/verify_settlement.py 200000331",
+      "description": "执行结算校验脚本验证 applyId=200000331"
+    },
+    {
+      "type": "bash",
+      "command": "python3 -c \"import json; d=json.load(open('/tmp/settlement_result_200000331.json')); issues=[i for i in d.get('issues',[]) if 'protect_expire_time' not in i]; assert not issues, f'{issues}'; print('PASS')\"",
+      "description": "断言校验报告无 issues（排除时间反挂数据问题）"
+    }
+  ],
+  "post_asserts": [
+    {
+      "type": "dbQuery",
+      "sql": "SELECT settle_status, total_amount, init_allowance_amount, serv_finish_refund_amount FROM yc_right_settle_order WHERE right_apply_id=200000331 AND is_deleted=0 AND settle_status='FINISH' AND init_allowance_amount=4 AND serv_finish_refund_amount=6",
+      "assert": "notEmpty",
+      "description": "DB验证: 补充材料+非首发→YC取消 结算状态和金额"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "测试数据已预埋 applyId=200000331，dms-alibaba CLI 可连接 scenario/prod",
+    "riskPoints": [
+      "非首发YC取消退6分"
+    ],
+    "prdRef": "PRD: 补贴后YC终止 → 退500-202=298",
+    "scriptRef": "scripts/verify_settlement.py v3"
+  }
+}

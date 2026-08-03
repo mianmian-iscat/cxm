@@ -1,0 +1,158 @@
+{
+  "id": "normal_f88_template_pkg_import",
+  "name": "模版包管理 - 导入模板包3步向导完整流程",
+  "description": "进入店铺详情，点击'导入模板包'，完成3步向导：Step1基础信息(选择源模板包/模板包名称≤30字/应用环节/应用场景/描述) → Step2预览模板图 → Step3确认导入。实测确认：导入不是文件上传，而是从其他店铺复制模板包。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "template",
+    "CRUD",
+    "import"
+  ],
+  "timeout": 180000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "description": "打开模版包管理页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待店铺卡片列表加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const cards = document.querySelectorAll('[class*=shopCard]'); for(const c of cards) { if(c.innerText?.includes('F88测试店铺')) { c.querySelector('button')?.click(); return 'F88测试店铺'; } } for(const c of cards) { const cnt = c.querySelector('[class*=templateCount]'); if(cnt && parseInt(cnt.innerText) > 0) { c.querySelector('button')?.click(); return c.innerText?.substring(0,40); } } return false; })()",
+      "description": "进入F88测试店铺详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待模板包卡片列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "import-pkg-pkg-list",
+      "description": "截图-模板包列表"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "template|package|import",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "导入模板包",
+      "description": "点击'导入模板包'按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待导入向导Step1渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "import-pkg-step1",
+      "description": "截图-Step1基础信息"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const steps = Array.from(document.querySelectorAll('.ant-steps-item')); return steps.map(s => ({ text: s.innerText?.trim()?.substring(0,15), status: s.classList.toString().match(/process|finish|wait/)?.[0] })); })()",
+      "description": "采集向导进度条（预期: 1基础信息=process, 2预览模板图=wait, 3确认导入=wait）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "基础信息",
+      "description": "验证当前为Step1"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const labels = Array.from(document.querySelectorAll('label, .ant-form-item-label')).filter(el => el.offsetHeight > 0).map(el => el.innerText?.trim()).filter(Boolean); const selects = Array.from(document.querySelectorAll('.ant-select')).filter(s => s.offsetHeight > 0).map(s => ({ ph: s.querySelector('.ant-select-selection-placeholder')?.innerText?.trim() || '', val: s.querySelector('.ant-select-selection-item')?.innerText?.trim() || '' })); const fields = Array.from(document.querySelectorAll('input, textarea')).filter(i => i.offsetHeight > 0).map(i => ({ tag: i.tagName, ph: i.getAttribute('placeholder') || '', maxLen: i.getAttribute('maxlength') || '' })); return { labels, selects, fields }; })()",
+      "description": "探查Step1表单结构（实测: 选择源模板包/模板包名称max30/应用环节/应用场景/描述max300）"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "description": "展开'选择源模板包'Select（ph='请选择店铺和模板包'）"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-content')).map(o => o.innerText?.trim()).filter(Boolean)",
+      "description": "采集源模板包选项"
+    },
+    {
+      "type": "clickText",
+      "text": "第一个可选项",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "fallback": {
+        "type": "evaluate",
+        "expression": "document.querySelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')?.click()"
+      },
+      "description": "选择源模板包"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待源包数据加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "import-pkg-step1-selected",
+      "description": "截图-选择源包后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('button')).find(b => b.innerText?.includes('下一步'))?.disabled",
+      "description": "检查下一步按钮是否可用"
+    },
+    {
+      "type": "clickText",
+      "text": "下一步",
+      "within": "button",
+      "description": "点击'下一步'进入Step2预览模板图"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待Step2加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "import-pkg-step2",
+      "description": "截图-Step2预览模板图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.body.innerText.substring(0, 1000)",
+      "description": "采集Step2页面内容"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "import-pkg-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "实测2026-07-09: 导入不是文件上传，而是3步向导从其他店铺复制模板包。Step1字段: 选择源模板包(Select ph='请选择店铺和模板包')/模板包名称(input max30)/应用环节(Select: 搭配/视觉/套图)/应用场景(Select: 主图素材/种草素材)/描述(textarea max300)。向导步骤: 1基础信息 → 2预览模板图 → 3确认导入。按钮文本'导入模板包'。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少两个店铺有模板包可作为导入源"
+}

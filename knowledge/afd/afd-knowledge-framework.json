@@ -1,0 +1,472 @@
+{
+  "id": "afd-style-shop-collab",
+  "description": "AFD 风格店铺协作平台 - 完整知识框架（PRD + 代码架构 + 已有F88体系）",
+  "lastUpdated": "2026-07-10",
+  "source": "钉钉文档PRD jb9Y4gmKWrx9eo4dC4dZLKzqJGXn6lpz + 代码库已有F88知识",
+
+  "platform": {
+    "name": "AFD (AI Fashion) 风格店铺协作平台",
+    "prerequisites": "F88素材生产平台（策略平台/审核平台/模板库）",
+    "domain": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "routePrefix": "/styleShopCollab",
+    "uiFramework": "react-antd（预计，与F88一致）",
+    "auth": "阿里内网SSO（BUC）",
+    "backend": "stylespot/stylespot-admin (Pandora Boot + Spring Boot 2.5.12 + Java 11)"
+  },
+
+  "architecture": {
+    "overview": "AFD是一个完整的素材生产+视觉协作平台，包含两大业务域：① F88素材生产（已有，自动化工作流引擎驱动的AI生图/审核/模板匹配）；② 风格店铺协作平台（新增PRD，人工协作驱动的视觉迭代流程）",
+    "layers": {
+      "素材生产层": "F88工作流引擎（Workflow2Engine）→ 18种NodeProcessor → 策略/链路/批次管理",
+      "审核管理层": "人工审核（单图/套图/封面图）+ 抽检 + 埋雷 + AI机审",
+      "视觉协作层": "风格店铺协作平台 → 店铺管理 + 视觉迭代(Brief→试拍→审核→归档)",
+      "模板管理层": "模板库（淘内/自研/站外）→ 模板匹配 → 疲劳度频控"
+    }
+  },
+
+  "modules": {
+    "M1_素材生产引擎": {
+      "description": "F88核心工作流引擎，自动化AI素材生产",
+      "status": "已有（代码库已覆盖）",
+      "knowledgeFile": "knowledge/f88/f88-material-production.json",
+      "details": {
+        "engine": "Workflow2EngineImpl（幂等+分布式锁+状态机）",
+        "nodeProcessors": [
+          "llm_text(AI文本)", "gen_img(生图)", "map_gen_img(MAP多图)", "gen_video(视频)",
+          "template_match(模板匹配)", "approve(审核)", "crop_head(裁头)", "fabric_tryon(面料上身)",
+          "caption(文案)", "design_agent_prompt(改款prompt)", "match_score(打分)",
+          "season_tag(季节标)", "industry_tag(产业标)", "suggest_price(定价)",
+          "sub_category(副类目)", "style_allocation(款式分配)", "push_select(推选款)", "select_image(选片)"
+        ],
+        "productionPipeline": [
+          "01-数据对接（F0消息→ODPS分发→疲劳度过滤）",
+          "02-参考图选择（构图标→四级筛选）",
+          "03-流式启动（SchedulerX调度→队列水位控制）",
+          "04-模板匹配（IN_USE模板→克隆去重→类目/季节过滤→Tair计数）",
+          "05-LLM生文（重试+降级+URL域名替换）",
+          "06-素材写入（信息流发布→路由策略→幂等）",
+          "07-疲劳度与频控（Tair计数器→TTL管理）",
+          "08-视频生产（千牛SDK→回调提取videoUrl）"
+        ],
+        "strategyMatching": "三级优先级：输入参数匹配 → 商家运营匹配(三级时间回退) → 默认策略",
+        "apis": {
+          "策略CRUD": "GET/POST /api/workflow2/strategy/page|get|detail|save|delete|run",
+          "链路CRUD": "GET/POST /api/workflow2/link/page|get|save|delete|run|copy",
+          "批次操作": "POST /api/workflow/batch/submit|start|terminate|retry",
+          "节点试运行": "POST /api/workflow2/node/tryRun",
+          "素材处理": "8类操作×submit/update/cancel（修手/换脸/局部调整/高清化/AI扩图/换搭配/裁剪/镜像）"
+        }
+      }
+    },
+
+    "M2_审核管理": {
+      "description": "人工审核+抽检+埋雷+AI机审的完整审核体系",
+      "status": "已有（代码库已覆盖，tc01~tc27共105+条用例）",
+      "knowledgeFile": "knowledge/f88/f88-material-audit.json",
+      "details": {
+        "pages": {
+          "个人任务中心": { "route": "/review/personal-task-center", "tabs": ["审核任务", "抽检任务", "埋雷任务"] },
+          "审核标准管理": { "route": "/review/standard-management" },
+          "审核节点管理": { "route": "/review/node-management" },
+          "任务管理": { "route": "/review/task-management" }
+        },
+        "auditTypes": {
+          "单图审核": { "qt": 1, "component": "SingleImageReview" },
+          "套图审核": { "qt": 2, "component": "SetImageReview" },
+          "封面图审核": { "qt": 4, "component": "CoverImageReview", "special": "驳回可触发重生(reGen)" }
+        },
+        "editOperations": "替换/裁剪/高清化/局部修改/去背景 → 编辑后 → ✅确认 → toolbar可见",
+        "downstreamFlow": "审核确认 → output_json.passedImg → common_variable → 下游节点",
+        "qualityMetrics": {
+          "审核通过率": "通过数/总审核数",
+          "抽检一致率": "一致数/抽检总数",
+          "埋雷准确率": "正确判定数/埋雷总数（核心KPI）",
+          "误放率": "要求<5%"
+        }
+      }
+    },
+
+    "M3_模板库": {
+      "description": "素材模板管理（淘内/自研/站外三种模板池）",
+      "status": "已有（部分知识）",
+      "details": {
+        "subMenus": ["模版包管理", "淘内资源池", "优质模板库"],
+        "stateMachine": "DRAFT(1)→REVIEWING(2)→IDLE(3)→IN_USE(4), REJECTED(5), DELETED(0)",
+        "isolation": "同seller+range+scene仅一个IN_USE（应用层校验，有并发竞态）",
+        "templatePools": ["淘内(ads_aifashion_template_gallery_f88)", "自研", "站外"],
+        "multiTenant": "DB(tenant_id) + Hologres(独立表) + ApplyScene(枚举) + ApplyRange"
+      }
+    },
+
+    "M4_风格店铺协作平台": {
+      "description": "新增PRD - 将店铺视觉定制从聊天+Excel协同沉淀为结构化线上流程",
+      "status": "新增（PRD已定义，待开发/测试）",
+      "pages": {
+        "风格店铺协作入口": { "route": "/styleShopCollab", "description": "默认跳转店铺列表" },
+        "店铺列表工作台": { "route": "/styleShopCollab/shopList", "description": "以店铺维度聚合视觉协作进度" },
+        "迭代详情": { "route": "/styleShopCollab/iteration/:iterationId", "description": "单轮视觉迭代完整流程工作台" }
+      },
+
+      "coreEntities": {
+        "Shop（店铺）": {
+          "description": "长期业务主体，协作入口",
+          "keyFields": ["shopId", "sellerId", "shopName"],
+          "relations": "可有多轮视觉迭代，同一时间只允许一个进行中迭代",
+          "collabFields": ["buyerId", "buyerName", "currentVisualPackageId", "activeIterationId", "processOrder"]
+        },
+        "Role（角色）": {
+          "types": {
+            "buyer（店铺买手）": "相对店铺的关系角色，负责发起迭代/提交Brief/审核试拍",
+            "operator（产运）": "角色组权限，负责确认Brief/上传试拍/补拍",
+            "leader（Leader）": "角色组权限，负责复核买手审核结论",
+            "admin（管理员）": "跨店铺运营管理，管理类操作+流程代操作",
+            "viewer（其他人）": "只读查看有权限范围信息"
+          },
+          "keyRule": "店铺买手是相对店铺的关系角色，同一个人在非负责店铺下按其他人处理"
+        },
+        "Iteration（视觉迭代）": {
+          "description": "店铺视觉定制的一次完整流程单元",
+          "aggregates": ["Brief（需求）", "试拍与评审", "视觉基准包", "时间线"],
+          "constraint": "同一店铺同一时间只能存在一个进行中迭代"
+        },
+        "Brief": {
+          "description": "买手传递给产运的视觉生产需求",
+          "versioning": "首版不展示版本区分，驳回后重新编辑才通过v1/v2区分",
+          "sections": ["基础与风格", "目标人群", "货盘与上新计划", "视觉参考", "试拍准备"],
+          "isolation": "未提交草稿只对买手可见"
+        },
+        "SampleReview（试拍与评审）": {
+          "description": "围绕试拍图组的上传/审核/复核/补拍闭环",
+          "pageTypes": {
+            "上传页": "产运上传图片/编辑标签/Excel导入",
+            "审核视图": "买手逐组大图审核，支持单图/整组弃用",
+            "结果视图": "只读查看通过图片和弃用清单"
+          },
+          "sampleGroup": {
+            "structure": "每组包含: 原款图(1张) + 视觉模板图(≥1张) + 首图(1张) + 套图(≥5张)",
+            "tags": ["构图", "姿势", "角度"],
+            "limits": "默认5坑位，首次最多10组"
+          }
+        },
+        "VisualPackage（视觉基准包）": {
+          "description": "归档结果，店铺后续生产的视觉标准",
+          "content": "确认通过的Brief + 最终通过图组 + 弃用清单 + 评审结论摘要 + 可下载资产",
+          "rule": "同一时间只有一个当前应用基准包，可切换历史基准包"
+        },
+        "Timeline（时间线）": {
+          "description": "记录流程状态变化和关键操作",
+          "display": "抽屉形式，每条记录展示操作类型/操作人/操作时间"
+        }
+      },
+
+      "stateMachine": {
+        "description": "视觉迭代10状态完整流转",
+        "states": {
+          "DRAFT_BRIEF":      { "meaning": "Brief草稿中", "handler": "买手", "action": "提交Brief", "next": "PENDING_BRIEF" },
+          "PENDING_BRIEF":    { "meaning": "待产运确认Brief", "handler": "产运", "action": "确认/驳回", "next": "IN_PRODUCTION / REJECTED_BRIEF" },
+          "REJECTED_BRIEF":   { "meaning": "Brief被产运驳回", "handler": "买手", "action": "重新编辑并提交", "next": "PENDING_BRIEF" },
+          "IN_PRODUCTION":    { "meaning": "产运试拍上传中", "handler": "产运", "action": "发起评审", "next": "IN_REVIEW" },
+          "IN_REVIEW":        { "meaning": "买手审核试拍", "handler": "买手", "action": "完成审核", "next": "PENDING_LEADER" },
+          "PENDING_LEADER":   { "meaning": "Leader复核", "handler": "Leader", "action": "确认通过/确认驳回/打回买手", "next": "ARCHIVED / RETURNED / RETURNED_TO_BUYER" },
+          "RETURNED_TO_BUYER": { "meaning": "Leader打回买手重审", "handler": "买手", "action": "重新提交审核", "next": "PENDING_LEADER" },
+          "RETURNED":         { "meaning": "Leader确认驳回，退回产运补拍", "handler": "产运", "action": "补充上传", "next": "IN_REVIEW" },
+          "ARCHIVED":         { "meaning": "已归档（终态）", "handler": "无", "action": "查看归档", "next": "无" },
+          "CANCELLED":        { "meaning": "已终止（终态）", "handler": "无", "action": "查看历史", "next": "无" }
+        },
+        "terminationRules": [
+          "ARCHIVED/CANCELLED为终态，不允许终止",
+          "其他状态均视为进行中，允许按权限终止",
+          "终止后迭代状态变为CANCELLED，只读查看",
+          "终止后店铺可重新创建新迭代，从Brief v1草稿开始"
+        ]
+      },
+
+      "shopListFeatures": {
+        "filters": ["店铺名称(模糊)", "Seller ID", "买手", "产运(推导)", "店铺视觉状态"],
+        "visualStatuses": {
+          "视觉未启动": "无进行中迭代 + 无当前应用基准包",
+          "视觉定制中(冷启)": "有进行中迭代 + 无当前应用基准包",
+          "视觉定制中(新增)": "有进行中迭代 + 已有当前应用基准包",
+          "正常运行": "无进行中迭代 + 有当前应用基准包"
+        },
+        "views": {
+          "列表视图": "默认，表格+展开历史迭代",
+          "管理视图": "按状态分组展示",
+          "排序模式": "Leader/管理员可拖拽调整处理顺序"
+        },
+        "operations": [
+          "添加风格店（管理员，弹窗：Seller ID+负责买手）",
+          "新增视觉（无进行中迭代时，弹窗：迭代名称）",
+          "修改店铺买手（可搜索下拉，按姓名/工号匹配）",
+          "切换当前基准包（已归档迭代可切换）",
+          "调整排期顺序（排序模式拖拽）",
+          "终止进行中迭代（危险操作，需终止原因+详细说明）"
+        ],
+        "operatorDerivation": "从该店铺所有迭代的产运侧有效操作中，按时间倒序取最新一条"
+      },
+
+      "iterationDetailFeatures": {
+        "tabs": {
+          "Brief": {
+            "defaultFor": ["DRAFT_BRIEF", "PENDING_BRIEF", "REJECTED_BRIEF"],
+            "buyerActions": ["保存草稿", "提交产运确认", "重新编辑Brief(fork新版本)", "重新提交"],
+            "operatorActions": ["确认Brief", "驳回Brief(弹窗：驳回原因单选+详细说明必填)"],
+            "briefFormFields": {
+              "基础与风格": ["迭代名称(必填≤40字)", "风格定位(必填20-200字)"],
+              "目标人群": ["年龄(多选)", "职业(多选)", "其他职业说明(条件必填≤50字)"],
+              "货盘与上新计划": ["品类占比(合计100%)", "上新节奏(单选)", "单次上新量(数字)"],
+              "视觉参考": ["对标店铺(≥1家,名称+链接)", "参考视觉图(1-5张)"],
+              "试拍准备": ["首次试拍商品(10条item_id)"]
+            },
+            "versioning": "首版不展示版本区分，驳回后fork新草稿才出现v1/v2侧栏"
+          },
+          "试拍与评审": {
+            "defaultFor": ["IN_PRODUCTION", "IN_REVIEW", "PENDING_LEADER", "RETURNED_TO_BUYER", "RETURNED"],
+            "uploadPage": {
+              "role": "产运",
+              "features": ["默认5坑位", "最多10组", "Excel批量导入", "保存草稿", "发起评审"],
+              "submitValidation": "≥5组达标, 每组: 原款图1张+视觉模板图≥1张+首图1张+套图≥5张+构图/姿势/角度各≥3种",
+              "excelColumns": ["组编号(必填)", "Item ID(必填)", "图片类型(必填)", "图片URL(必填)", "构图(选填)", "姿势(选填)", "角度(选填)"],
+              "excelSheets": ["试拍图数据(图片明细)", "字段可选值(枚举参考)"]
+            },
+            "reviewView": {
+              "role": "买手",
+              "features": ["左侧图组导航", "参考图(原款+模板)", "试拍图横向大图", "单图/整组弃用", "撤销弃用", "键盘切换"],
+              "discardReasons": ["穿搭穿法", "模特长相", "AI感强", "其他"],
+              "verdict": "单组可用≥5张=组通过, 迭代通过≥3组=买手通过"
+            },
+            "resultView": {
+              "role": "Leader/产运/归档查看",
+              "features": ["铺开中小图", "通过图片/弃用清单分区", "批次标识", "只读"],
+              "batchOrder": "新批次在上，历史批次在下"
+            },
+            "leaderActions": {
+              "买手结论=通过": ["确认通过(归档)", "打回买手(调整意见10-500字)"],
+              "买手结论=驳回": ["确认驳回(重拍)", "打回买手"]
+            },
+            "reworkFlow": {
+              "leader打回买手": "RETURNED_TO_BUYER → 买手重新调整标注 → PENDING_LEADER",
+              "leader确认驳回": "RETURNED → 产运查看结果视图 → 补充上传(追加v2/v3) → IN_REVIEW",
+              "mergeRule": "补拍后买手以v1+v2+...合并图池计算通过指标"
+            }
+          },
+          "归档基准包": {
+            "defaultFor": ["ARCHIVED"],
+            "content": "最终通过图组+弃用清单+弃用原因+基准包ID+版本+来源迭代+归档时间",
+            "readOnly": true,
+            "applicationMark": "当前应用基准包展示'应用中'状态"
+          }
+        },
+        "stepBar": ["买手下Brief", "产运确认", "试拍", "试拍审核", "买手Leader复核", "视觉归档"],
+        "bottomActionBar": "只展示当前用户在当前状态下可执行的主action",
+        "timeline": "常驻入口，抽屉形式，记录所有状态变化事件"
+      },
+
+      "permissionMatrix": {
+        "店铺列表": {
+          "buyer": "查看/筛选/展开/进入详情; 负责店铺:新增视觉/修改买手/切换基准包/终止迭代",
+          "operator": "查看/筛选/展开/进入详情; 不操作列表管理action",
+          "leader": "查看/筛选/展开/进入详情; 修改买手/调整排序/终止迭代",
+          "admin": "全部操作; 添加风格店/任意店铺新增视觉/修改买手/切换基准包/调整排序/终止",
+          "viewer": "查看/筛选/展开/进入详情; 不操作列表管理action"
+        },
+        "Brief阶段": {
+          "buyer": "编辑草稿/保存/提交; 驳回后重新编辑",
+          "operator": "不可见草稿; 确认后确认/驳回",
+          "leader": "不可见草稿; 只读查看已提交版本",
+          "admin": "可代操作任意店铺",
+          "viewer": "不可见草稿; 只读查看已提交版本"
+        },
+        "试拍阶段": {
+          "buyer": "只读",
+          "operator": "上传/保存草稿/发起评审/补充上传/提交补拍",
+          "leader": "只读",
+          "admin": "可代操作上传/补拍",
+          "viewer": "只读"
+        },
+        "审核阶段": {
+          "buyer": "审核视图标注/撤销/提交审核; 被打回后重审",
+          "operator": "只读",
+          "leader": "结果视图默认/审核视图只读; 确认通过/确认驳回/打回买手",
+          "admin": "可代操作审核/复核",
+          "viewer": "只读"
+        },
+        "终止迭代": {
+          "buyer": "可终止负责店铺的进行中迭代",
+          "operator": "不可终止",
+          "leader": "可终止",
+          "admin": "可终止",
+          "viewer": "不可终止"
+        }
+      },
+
+      "dataModel": {
+        "iterationStatusLog": {
+          "purpose": "记录每个迭代从创建到归档/终止的完整状态流转",
+          "fields": ["eventId", "iterationId", "shopId/sellerId", "fromStatus", "toStatus", "action", "actorId/actorName", "actorRole", "occurredAt", "relatedEntityType", "relatedEntityId", "reason", "note"],
+          "rule": "每次状态变化追加一条，不覆盖历史"
+        },
+        "iterationTimeSnapshot": {
+          "purpose": "提升列表/统计看板查询效率",
+          "fields": ["iterationId", "shopId/sellerId", "createdAt", "briefFirstSubmittedAt", "briefConfirmedAt", "firstSampleSubmittedAt", "buyerFirstReviewedAt", "leaderFirstReviewedAt", "lastReturnedToBuyerAt", "lastReturnedToOperatorAt", "archivedAt", "cancelledAt", "currentStatus"]
+        },
+        "sampleVersion": {
+          "purpose": "试拍图组提交批次记录",
+          "fields": ["sampleVersionId", "iterationId", "versionNo", "submitType", "submittedBy", "submittedAt", "groupCount", "imageCount", "status", "sourceReworkRecordId"],
+          "groupFields": ["groupId", "sampleVersionId", "iterationId", "itemId", "originalImageUrl", "templateImageUrls", "firstImageUrl", "suitImageUrls", "imageType/tags", "createdAt"]
+        },
+        "reviewRecord": {
+          "purpose": "买手/Leader评审记录",
+          "fields": ["reviewRecordId", "iterationId", "reviewType", "versionScope", "actorId/actorName", "actorRole", "reviewedAt", "verdict", "totalGroupCount", "passedGroupCount", "rejectedGroupCount", "totalImageCount", "discardedImageCount", "reason", "roundNo"]
+        },
+        "imageResult": {
+          "purpose": "图片级评审结果",
+          "fields": ["imageResultId", "reviewRecordId", "iterationId", "sampleVersionId", "groupId", "imageId/imageUrl", "imageType", "passed", "discardReason", "discardedByGroup", "createdAt"]
+        },
+        "visualPackage": {
+          "purpose": "视觉基准包归档记录",
+          "fields": ["visualPackageId", "shopId/sellerId", "iterationId", "sourceReviewRecordId", "versionName", "archivedBy", "archivedAt", "isCurrent", "passedGroupCount", "discardedImageCount", "packageSnapshot"]
+        }
+      },
+
+      "statisticsMetrics": {
+        "迭代归档率": "已归档迭代数 / 已进入评审后的迭代数",
+        "买手首审通过率": "首次verdict=通过的迭代数 / 首次买手审核迭代数",
+        "Leader最终通过率": "确认通过次数 / (确认通过+确认驳回)次数",
+        "Leader打回率": "发生过打回买手的迭代数 / 进入Leader复核的迭代数",
+        "产运补拍率": "存在v2+试拍记录的迭代数 / 进入买手审核的迭代数",
+        "图组通过率": "通过图组数 / 评审覆盖图组数",
+        "图片弃用率": "弃用图片数 / 评审覆盖图片数",
+        "平均归档周期": "已归档迭代(archivedAt - createdAt)平均值"
+      }
+    },
+
+    "M5_选款页": {
+      "description": "AI Fashion 商家端选款",
+      "status": "已有",
+      "knowledgeFile": "knowledge/aifashion/aifashion-style-selection.json",
+      "details": {
+        "domain": "sellerhome-myseller.taobao.com",
+        "route": "/afd/home/styleSelection",
+        "auth": "淘宝商家账号",
+        "apis": {
+          "款式列表": "POST /api/afd/select/style/batch/list",
+          "账户信息": "GET /api/account/getAccountInfo"
+        },
+        "knownIssues": [
+          "搜索按钮文字「搜 索」含空格",
+          "类目下拉labelClass是tbd-select-prefix",
+          "价格input需通过React fiber onChange触发"
+        ]
+      }
+    }
+  },
+
+  "relationshipMap": {
+    "F88素材生产 → 风格店铺协作": "F88自动化生图为协作平台提供AI辅助能力（如AI生图、AI机审），协作平台是人工协作驱动的流程管理",
+    "审核管理 → 试拍评审": "F88审核管理体系（单图/套图/封面图审核）可复用审核交互模式（弃用/通过/驳回），但协作平台的试拍评审是独立的买手+Leader双层审核",
+    "模板库 → 视觉基准包": "F88模板库管理素材生产模板，协作平台的视觉基准包是归档产物（最终视觉标准），两者概念独立",
+    "工作流引擎 → 迭代状态机": "F88 Workflow2Engine是自动化节点编排引擎，协作平台迭代状态机是人工协作流程状态机，架构层面独立"
+  },
+
+  "testStrategy": {
+    "existingCoverage": "F88素材生产+审核管理已有tc01~tc27共105+条用例覆盖",
+    "newTestAreas": [
+      {
+        "area": "店铺列表工作台",
+        "priority": "P0",
+        "testPoints": [
+          "店铺列表加载+筛选+视图切换",
+          "添加风格店弹窗校验(Seller ID纯数字+去重+买手必填)",
+          "新增视觉弹窗(迭代名称≤40字+无进行中迭代前置)",
+          "修改买手(可搜索下拉+相同买手提示)",
+          "切换基准包(已归档迭代候选+确认弹窗)",
+          "排期模式(拖拽排序+保存+取消恢复)",
+          "终止迭代(危险操作弹窗+原因必填+只读终态)",
+          "历史迭代展开(倒序+基准包标识+操作入口)"
+        ]
+      },
+      {
+        "area": "Brief流程",
+        "priority": "P0",
+        "testPoints": [
+          "Brief草稿编辑+保存+提交校验(必填/字数/组合字段)",
+          "产运确认Brief→IN_PRODUCTION",
+          "产运驳回Brief→REJECTED_BRIEF(弹窗:驳回原因+详细说明)",
+          "买手重新编辑(fork新版本+版本侧栏v1/v2)",
+          "买手重新提交→PENDING_BRIEF",
+          "草稿隔离(产运/Leader不可见未提交草稿)"
+        ]
+      },
+      {
+        "area": "试拍上传与评审",
+        "priority": "P0",
+        "testPoints": [
+          "图组上传(默认5坑位+最多10组+最小集校验)",
+          "Excel批量导入(模板下载+行级/组级校验+追加/覆盖)",
+          "发起评审校验(≥5组达标+每组最小集+标签≥3种)",
+          "买手审核(审核视图+单图弃用+整组弃用+撤销+判定规则)",
+          "结果视图(只读+批次标识+弃用清单)",
+          "Leader复核(确认通过→归档/确认驳回→补拍/打回买手)",
+          "补拍流程(追加v2/v3+合并图池+重新审核)"
+        ]
+      },
+      {
+        "area": "视觉归档与终止",
+        "priority": "P1",
+        "testPoints": [
+          "Leader确认通过→自动归档+基准包生成+状态ARCHIVED",
+          "归档基准包展示(最终通过图组+弃用清单+应用中状态)",
+          "终止迭代(权限校验+弹窗必填+终态只读+释放名额)"
+        ]
+      },
+      {
+        "area": "角色权限矩阵",
+        "priority": "P1",
+        "testPoints": [
+          "5类角色在各阶段的action可见性",
+          "买手相对店铺的关系角色(非负责店铺=其他人)",
+          "只读规则(非处理角色+终态+历史版本)",
+          "管理员代操作(不跳过流程校验)"
+        ]
+      },
+      {
+        "area": "数据模型与统计",
+        "priority": "P2",
+        "testPoints": [
+          "状态变更记录追加不覆盖",
+          "时间快照统计(阶段耗时计算)",
+          "试拍提交批次v1/v2/v3不覆盖",
+          "评审记录轮次保留",
+          "统计口径(8项指标)验证"
+        ]
+      }
+    ]
+  },
+
+  "codebaseIntegration": {
+    "existingKnowledgeFiles": [
+      { "path": "knowledge/f88/f88-material-production.json", "module": "M1_素材生产引擎" },
+      { "path": "knowledge/f88/f88-material-audit.json", "module": "M2_审核管理" },
+      { "path": "knowledge/aifashion/aifashion-style-selection.json", "module": "M5_选款页" },
+      { "path": "scenes/f88-test/knowledge/f88-material-audit.json", "module": "M2_审核管理(场景级详细版)" },
+      { "path": "scenes/f88-test/references/F88-测试知识库总纲.md", "module": "F88全景总纲" },
+      { "path": "scenes/f88-test/references/F88-DB表速查.md", "module": "数据库表结构" },
+      { "path": "scenes/f88-test/references/F88-前端组件测试要点.md", "module": "React+AntD踩坑" },
+      { "path": "scenes/f88-test/references/audit-operations.md", "module": "审核操作动线" }
+    ],
+    "sceneSkills": [
+      { "path": "scenes/f88-test/SKILL.md", "coverage": "F88审核管理+策略平台(tc01~tc27)" }
+    ],
+    "harnessKnowledge": [
+      "harness/knowledge/features/feat_f88_audit_states.json",
+      "harness/knowledge/features/feat_f88_react_antd.json",
+      "harness/knowledge/contracts/contract_f88_audit_flow.json",
+      "harness/knowledge/infra/infra_f88_apis.json",
+      "harness/knowledge/infra/infra_f88_system.json",
+      "harness/knowledge/patterns/pat_f88_drawer_animation.json",
+      "harness/knowledge/patterns/pat_f88_react_fill.json"
+    ],
+    "knowledgeIndex": "knowledge/index.json — 全局页面知识库索引，AFD相关条目: f88-material-audit, f88-material-production, aifashion-style-selection"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "id": "ui-f88-task-hall-test",
+  "name": "UI：F88 任务大厅-策略平台测试来源任务创建全流程",
+  "description": "从策略平台测试来源tab进入，通过策略平台链路详情页触发试运行创建审核任务，验证任务自动出现在策略平台-测试列表中，包含完整的链路选择/试运行/下载模板/上传数据/发起运行流程。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=test",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=test",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务大厅-策略平台测试来源tab"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务表格加载" },
+    { "type": "assert", "target": "page", "contains": "策略平台-测试", "description": "验证含策略平台-测试来源tab" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证表格含任务名称列" },
+    { "type": "assert", "target": "page", "contains": "审核状态&进度", "description": "验证表格含审核状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "抽检状态&进度", "description": "验证表格含抽检状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "埋雷状态&进度", "description": "验证表格含埋雷状态&进度列" },
+    { "type": "screenshot", "label": "test-hall-init", "description": "截图-策略平台-测试tab初始状态" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const firstRow = rows[0]; if (!firstRow) return { taskCount: 0 }; const cells = firstRow.querySelectorAll('td'); return { taskCount: rows.length, firstTaskName: cells[0]?.innerText?.trim(), firstProgress: Array.from(cells).find(c => /进行|完成|待开始|\\d\\/\\d/.test(c.innerText))?.innerText?.trim() }; })()",
+      "storeAs": "testTabBefore",
+      "description": "记录策略平台-测试tab当前任务数和首个任务信息"
+    },
+
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "进入策略平台链路详情页（id=20180）"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待链路详情页加载" },
+    { "type": "assert", "target": "page", "contains": "链路", "description": "验证链路详情页已加载" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const trialBtn = btns.find(b => b.textContent.trim() === '试运行' && b.offsetHeight > 0); return { hasTrialBtn: !!trialBtn, trialBtnText: trialBtn?.textContent?.trim() }; })()",
+      "storeAs": "trialBtnInfo",
+      "description": "检测试运行按钮"
+    },
+    { "type": "screenshot", "label": "test-link-detail", "description": "截图-链路详情页" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const trialBtn = btns.find(b => b.textContent.trim() === '试运行' && b.offsetHeight > 0); if (trialBtn) { trialBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击试运行按钮"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待试运行弹窗渲染" },
+    { "type": "screenshot", "label": "test-trial-modal", "description": "截图-试运行弹窗" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const els = [...document.querySelectorAll('button, span, div, a')]; const dl = els.find(e => e.textContent.trim() === '下载模板' && e.offsetHeight > 0); if (dl) { dl.click(); return { downloaded: true }; } return { downloaded: false }; })()",
+      "storeAs": "templateDownload",
+      "description": "下载试运行模板"
+    },
+    { "type": "wait", "ms": 5000, "description": "等待模板下载完成" },
+    { "type": "screenshot", "label": "test-template-download", "description": "截图-模板下载" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const fileInput = document.querySelector('input[type=\"file\"]'); return { hasFileInput: !!fileInput }; })()",
+      "storeAs": "fileInputInfo",
+      "description": "检测文件上传input"
+    },
+    {
+      "type": "upload",
+      "filePath": "test-fixtures/task-upload-sample.xlsx",
+      "description": "上传测试数据xlsx文件"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待上传处理" },
+    { "type": "screenshot", "label": "test-upload-done", "description": "截图-文件已上传" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const inputs = document.querySelectorAll('input[placeholder*=\"任务名称\"], input[placeholder*=\"请输入\"]'); for (const input of inputs) { if (input.placeholder.includes('任务名称') && input.offsetHeight > 0) { const nativeSet = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; input.focus(); nativeSet.call(input, '策略平台测试回归_' + new Date().toISOString().slice(0,10)); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); return { filled: true, value: input.value }; } } return { filled: false }; })()",
+      "storeAs": "taskNameFill",
+      "description": "填写试运行任务名称"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selects = document.querySelectorAll('.ant-select, .ant-select-selector'); for (const sel of selects) { if (sel.offsetHeight > 0 && sel.closest('.ant-select')) { sel.click(); return { opened: true }; } } return { opened: false }; })()",
+      "description": "打开运行类型下拉"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待下拉展开" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const options = document.querySelectorAll('.ant-select-item-option, .ant-select-dropdown .ant-select-item'); for (const opt of options) { if (opt.offsetHeight > 0) { opt.click(); return { selected: opt.textContent.trim() }; } } return { selected: null }; })()",
+      "storeAs": "runTypeSelected",
+      "description": "选择运行类型"
+    },
+    { "type": "screenshot", "label": "test-form-filled", "description": "截图-试运行表单填写完成" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const submitBtn = btns.find(b => (b.textContent.includes('发起任务运行') || b.textContent.includes('发起运行')) && b.offsetHeight > 0); if (submitBtn) { submitBtn.click(); return { submitted: true, btnText: submitBtn.textContent.trim() }; } return { submitted: false }; })()",
+      "storeAs": "submitResult",
+      "description": "点击发起任务运行"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务提交处理" },
+    { "type": "screenshot", "label": "test-submitted", "description": "截图-任务已提交" },
+
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=test",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "返回策略平台-测试tab验证新任务出现"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表刷新" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); return { taskCount: rows.length, firstTaskName: rows[0]?.querySelector('td')?.innerText?.trim() }; })()",
+      "storeAs": "testTabAfter",
+      "description": "读取刷新后的任务列表"
+    },
+    { "type": "screenshot", "label": "test-hall-final", "description": "截图-策略平台-测试tab最终状态" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。test-fixtures/task-upload-sample.xlsx 必须存在。链路id=20180可用。",
+    "realDomNotes": "策略平台测试来源的任务通过链路详情页'试运行'创建；流程：进入链路详情→点击试运行→下载模板→上传数据xlsx→填写任务名称→选择运行类型→发起任务运行；任务自动出现在策略平台-测试tab中。",
+    "riskPoints": [
+      "链路id=20180可能被删除或变更",
+      "试运行弹窗DOM结构可能与新建任务弹窗不同",
+      "上传的xlsx文件需匹配链路起点入参（seller_id/item_id等）",
+      "发起运行后任务出现在列表可能需要异步处理时间"
+    ]
+  }
+}

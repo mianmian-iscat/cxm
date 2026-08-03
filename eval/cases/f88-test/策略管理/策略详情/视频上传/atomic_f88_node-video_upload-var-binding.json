@@ -1,0 +1,134 @@
+{
+  "id": "atomic-f88-node-video_upload-var-binding",
+  "name": "UI：视频上传节点-字段绑定方式验证(商品ID/视频)",
+  "description": "验证视频上传节点的字段绑定方式：商品ID和视频字段是否支持变量引用或模板语法绑定上游出参",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '打开'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no open btn'; })()",
+      "description": "打开第一条策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点选择弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modals = document.querySelectorAll('.ant-modal'); for (const m of modals) { if (m.classList.contains('ant-modal-hidden')) continue; const r = m.getBoundingClientRect(); if (r.width < 200) continue; const cards = m.querySelectorAll('.ant-card-hoverable, .ant-card'); for (const card of cards) { const t = card.querySelector('.ant-card-meta-title'); if (t && t.textContent.trim() === '视频上传') { card.scrollIntoView({ block: 'center' }); card.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择视频上传节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待视频上传编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const fields = []; for (const item of formItems) { const label = (item.querySelector('.ant-form-item-label')?.textContent || '').trim(); const hasVarBtn = !!item.querySelector('button, [class*=variable], [role=button]'); const input = item.querySelector('input, textarea'); const inputVal = input?.value || ''; const hasTemplateSyntax = inputVal.includes('{{') || inputVal.includes('stage'); const inputType = input?.type || input?.tagName || 'none'; if (label.length > 0) { fields.push({ label, hasVarBtn, hasTemplateSyntax, inputType, inputValue: inputVal.substring(0, 60) }); } } return { open: true, fieldCount: fields.length, fields }; })()",
+      "description": "分析每个字段的绑定方式",
+      "storeAs": "fieldAnalysis"
+    },
+    {
+      "type": "assertStore",
+      "key": "fieldAnalysis",
+      "path": "open",
+      "equals": true,
+      "description": "编辑抽屉已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "fieldAnalysis",
+      "path": "fieldCount",
+      "gte": 2,
+      "description": "至少2个字段(商品ID/视频)"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const itemIdItem = formItems.find(i => { const label = (i.querySelector('.ant-form-item-label')?.textContent || ''); return label.includes('商品ID') || label.includes('商品'); }); if (!itemIdItem) return { noItemId: true }; const inp = itemIdItem.querySelector('input'); return { itemIdExists: true, itemIdType: inp?.type || 'none', itemIdPlaceholder: inp?.getAttribute('placeholder') || '' }; })()",
+      "description": "检查商品ID字段交互方式",
+      "storeAs": "itemIdCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "itemIdCheck",
+      "path": "itemIdExists",
+      "equals": true,
+      "description": "商品ID字段存在"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const videoItem = formItems.find(i => { const label = (i.querySelector('.ant-form-item-label')?.textContent || ''); return label.includes('视频') && !label.includes('上传'); }); if (!videoItem) return { noVideo: true }; const inp = videoItem.querySelector('input'); return { videoExists: true, videoType: inp?.type || 'none', videoPlaceholder: inp?.getAttribute('placeholder') || '' }; })()",
+      "description": "检查视频字段交互方式",
+      "storeAs": "videoCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "videoCheck",
+      "path": "videoExists",
+      "equals": true,
+      "description": "视频字段存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "video_upload-var-binding",
+      "description": "字段绑定方式验证截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const c = document.querySelector('.ant-drawer:not(.ant-drawer-hidden) .ant-drawer-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭抽屉"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录",
+    "realDomNotes": "视频上传节点字段: 上传类型(Select)/商品ID(Input)/视频(Input)；变量引用按钮仅在已有上游节点时可见",
+    "riskPoints": [
+      "商品ID字段是直接输入还是必须变量引用",
+      "视频字段是否支持URL直接输入",
+      "无上游节点时变量引用按钮是否隐藏"
+    ]
+  }
+}

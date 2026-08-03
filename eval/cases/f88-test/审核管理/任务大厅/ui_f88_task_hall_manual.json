@@ -1,0 +1,142 @@
+{
+  "id": "ui-f88-task-hall-manual",
+  "name": "UI：F88 任务大厅-手动创建审核任务全流程",
+  "description": "从手动创建来源tab进入，点击新建任务，走完整4步流程（任务创建→任务基础设置→任务分配→检查设置），填写任务名称/节点选择/上传数据/审核标准/优先级/分配方式，最后提交并验证任务出现在手动创建列表中。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=manual",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=manual",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务大厅-手动创建来源tab"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务表格加载" },
+    { "type": "assert", "target": "page", "contains": "手动创建", "description": "验证含手动创建来源tab" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证表格含任务名称列" },
+    { "type": "assert", "target": "page", "contains": "审核状态&进度", "description": "验证表格含审核状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "抽检状态&进度", "description": "验证表格含抽检状态&进度列" },
+    { "type": "assert", "target": "page", "contains": "埋雷状态&进度", "description": "验证表格含埋雷状态&进度列" },
+    { "type": "screenshot", "label": "manual-hall-init", "description": "截图-手动创建tab初始状态" },
+
+    { "type": "clickText", "text": "新建任务", "description": "Step1-点击新建任务按钮" },
+    { "type": "wait", "ms": 2500, "description": "等待创建弹窗渲染" },
+    { "type": "assert", "target": "page", "contains": "任务创建", "description": "验证弹窗Step1标题" },
+    { "type": "assert", "target": "page", "contains": "任务基础设置", "description": "验证4步流程含Step2" },
+    { "type": "assert", "target": "page", "contains": "任务分配", "description": "验证4步流程含Step3" },
+    { "type": "assert", "target": "page", "contains": "任务名称", "description": "验证Step1含任务名称字段" },
+    { "type": "assert", "target": "page", "contains": "任务节点选择", "description": "验证Step1含节点选择字段" },
+    { "type": "assert", "target": "page", "contains": "上传数据", "description": "验证Step1含上传数据字段" },
+    { "type": "screenshot", "label": "manual-create-step1", "description": "截图-Step1任务创建" },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder=\"最多输入50字符\"]",
+      "value": "手动创建回归测试",
+      "react": true,
+      "description": "Step1-填写任务名称"
+    },
+    {
+      "type": "selectOption",
+      "label": "任务节点选择",
+      "option": "模板审核",
+      "description": "Step1-选择任务节点：图片人工审核"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待节点选择后模版区域渲染" },
+    { "type": "assert", "target": "page", "contains": "下载模版", "description": "验证模版下载入口出现" },
+    {
+      "type": "upload",
+      "filePath": "test-fixtures/task-upload-sample.xlsx",
+      "description": "Step1-上传真实图片审核模版文件"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待上传处理" },
+    { "type": "screenshot", "label": "manual-create-step1-filled", "description": "截图-Step1填写完成" },
+
+    { "type": "clickText", "text": "下一步", "description": "Step2-点击进入任务基础设置" },
+    { "type": "wait", "ms": 2000, "description": "等待Step2渲染" },
+    { "type": "assert", "target": "page", "contains": "审核标准", "description": "验证Step2-审核标准字段" },
+    { "type": "assert", "target": "page", "contains": "优先级", "description": "验证Step2-优先级字段" },
+    { "type": "assert", "target": "page", "contains": "预期交付时间", "description": "验证Step2-预期交付时间字段" },
+    { "type": "assert", "target": "page", "contains": "难度预估", "description": "验证Step2-难度预估字段" },
+    { "type": "assert", "target": "page", "contains": "人效预估", "description": "验证Step2-人效预估字段" },
+    {
+      "type": "selectOption",
+      "label": "优先级",
+      "option": "P1",
+      "description": "Step2-选择优先级P1"
+    },
+    { "type": "screenshot", "label": "manual-create-step2", "description": "截图-Step2任务基础设置" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const pickerInput = document.querySelector('.ant-picker-input input'); if (!pickerInput) return 'no picker'; pickerInput.click(); return 'clicked'; })()",
+      "description": "Step2-点击预期交付时间日期选择器"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待日期面板展开" },
+    {
+      "type": "click",
+      "selector": ".ant-picker-now a, .ant-picker-now-btn",
+      "description": "Step2-点击“此刻”快速填充当前时间"
+    },
+    { "type": "wait", "ms": 500, "description": "等待时间填充" },
+    {
+      "type": "click",
+      "selector": ".ant-picker-ok button",
+      "description": "Step2-点击日期选择器确定按钮"
+    },
+    { "type": "pressKey", "key": "Escape", "description": "Step2-关闭日期选择器面板" },
+    { "type": "wait", "ms": 500, "description": "等待日期选择器关闭" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('.ant-picker-input input'); return input ? input.value : 'no input'; })()",
+      "description": "Step2-验证预期交付时间已填充"
+    },
+
+    { "type": "clickText", "text": "下一步", "description": "Step3-点击进入任务分配" },
+    { "type": "wait", "ms": 2000, "description": "等待Step3渲染" },
+    { "type": "assert", "target": "page", "contains": "参与人员", "description": "验证Step3-参与人员字段" },
+    { "type": "assert", "target": "page", "contains": "分配结果", "description": "验证Step3-分配结果字段" },
+    { "type": "screenshot", "label": "manual-create-step3", "description": "截图-Step3任务分配" },
+
+    { "type": "clickText", "text": "一键分配", "description": "Step3-点击一键分配以解锁下一步" },
+    { "type": "wait", "ms": 1500, "description": "等待一键分配完成" },
+
+    { "type": "clickText", "text": "下一步", "description": "Step4-点击进入检查设置" },
+    { "type": "wait", "ms": 2000, "description": "等待Step4渲染" },
+    { "type": "assert", "target": "page", "contains": "检查设置", "description": "验证4步流程进度条始终可见（Step4检查设置）" },
+    { "type": "screenshot", "label": "manual-create-step4", "description": "截图-Step4检查设置" },
+
+    { "type": "clickText", "text": "取 消", "description": "取消弹窗-不提交脏数据" },
+    { "type": "wait", "ms": 1500, "description": "等待弹窗关闭" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); return { taskCount: rows.length, headers: Array.from(document.querySelectorAll('th')).map(th => th.innerText.trim()).filter(t => t) }; })()",
+      "storeAs": "manualTable",
+      "description": "读取手动创建tab表格信息"
+    },
+    { "type": "screenshot", "label": "manual-hall-final", "description": "截图-手动创建tab最终状态" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。test-fixtures/task-upload-sample.xlsx 必须存在。",
+    "realDomNotes": "sourceTab=manual；4步创建弹窗：1任务创建(名称/节点/上传)/2任务基础设置(审核标准/优先级/交付时间/难度/人效)/3任务分配(参与人/分配方式)/4检查设置(抽检开关/比例);表格列:任务名称/优先级/预期交付时间/创建人/审核状态&进度/抽检状态&进度/埋雷状态&进度/任务时长(除埋雷)/操作。",
+    "riskPoints": [
+      "上传模版文件必须为真实xlsx，占位文件会被后端拒绝",
+      "selectOption依赖antd dropdown body挂载",
+      "取消按钮真实文本为「取 消」含空格",
+      "Step3/Step4字段可能因节点选择不同而变化"
+    ]
+  }
+}

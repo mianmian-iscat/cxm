@@ -1,0 +1,61 @@
+{
+  "id": "tc07-sample-upload",
+  "name": "试拍上传与最小集校验",
+  "description": "产运上传试拍图组并验证最小集校验规则",
+  "priority": "P0",
+  "category": "functional",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "IN_PRODUCTION"
+    },
+    {
+      "type": "click",
+      "selector": "[data-tab*='试拍']",
+      "description": "切换到试拍Tab"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图上传页面初始状态"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": "[class*='upload-slot']",
+      "count": 5,
+      "description": "验证默认5坑位"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "element_count",
+      "selector": "[class*='upload-slot']",
+      "expected": 5
+    }
+  ],
+  "tags": [
+    "afd",
+    "functional",
+    "sample",
+    "minimum-set"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

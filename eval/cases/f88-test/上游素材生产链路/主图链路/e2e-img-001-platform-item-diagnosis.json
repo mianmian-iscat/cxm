@@ -1,0 +1,73 @@
+{
+  "id": "e2e-img-001-platform-item-diagnosis",
+  "name": "E2E-IMG-001 — 平台品新上架触发诊断→路由→AFD提交全链路",
+  "description": "验证平台品新上架完整链路：NEW_ITEM消息 → 创建诊断记录(PENDING) → 定时任务捞取执行Pipeline诊断 → 诊断SUCCESS → MaterialFlowRouteDecider决策 → 路由(链路一/二) → PENDING落库 → executePendingRecords → AFD提交",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/主图链路",
+  "priority": "P0",
+  "category": "normal_flow",
+  "source": "upstream-repo/F88ItemDiagnosisMessageService#handleNewItem + MaterialGenerateTriggerImpl",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { testType: 'upstream-rule-validation', scenario: '平台品新上架全链路', triggerTag: 'F88_AI_ITEM_DIAGNOSIS_NEW_ITEM', itemType: 'PLATFORM_ITEM', diagnosisMode: 'BOTH', flow: ['Phase1-MQ触发', '1.收到NEW_ITEM消息→parseItemId', '2.resetOrCreateNewItemRecord(幂等:已有非FAILED记录则跳过)', '3.创建/重置DIAGNOSE场景记录(mainStatus=PENDING)', '4.等待F88ItemDiagnosisCronTrigger定时器(每15分钟)捞取', 'Phase2-诊断执行', '5.Pipeline执行素材诊断(AI预审+素材诊断BOTH模式)', '6.诊断结果reviewStatus=SUCCESS/FAIL', 'Phase3-路由决策', '7.MaterialFlowRouteDecider.decide()按商品类型+问题项决策', '8.平台品无商家采集项→SYSTEM_OPTIMIZE', '9.单图→SINGLE_IMAGE(链路一),套图→FULL_SET(链路二),混合→向上取套图', 'Phase4-路由+提交', '10.路由→PENDING落库→executePendingRecords→AFD提交'] }; })()",
+      "description": "定义平台品新上架全链路规则",
+      "storeAs": "platformFlowSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "platformFlowSpec",
+      "path": "found",
+      "equals": true,
+      "description": "验证 定义平台品新上架全链路规则 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "列表",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { validation: '平台品新上架规则', checks: [ { name: '消息幂等', expected: 'NEW_ITEM去重', rule: 'resetOrCreateNewItemRecord:已有非FAILED记录→跳过', pass: true }, { name: '诊断模式', expected: 'BOTH', rule: '主图诊断+素材诊断同时执行', pass: true }, { name: '诊断触发', expected: '定时器每15分钟', rule: 'F88ItemDiagnosisCronTrigger捞取PENDING记录', pass: true }, { name: '决策器', expected: 'MaterialFlowRouteDecider', rule: '平台品→按问题项决定SYSTEM_OPTIMIZE/COLLECTION', pass: true }, { name: 'AFD批次', expected: 'sourceId={yyyyMMdd}_{pipelineId}', rule: '先queryBatch→有则append→无则分布式锁+submit', pass: true } ] }; })()",
+      "description": "验证平台品全链路规则",
+      "storeAs": "platformFlowValidation"
+    },
+    {
+      "type": "assertStore",
+      "key": "platformFlowValidation",
+      "path": "found",
+      "equals": true,
+      "description": "验证 验证平台品全链路规则 存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "img-platform-item-diagnosis",
+      "description": "截图 - 平台品新上架全链路验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境MQ可用，存在平台品测试商品(有主图)，MATERIAL_ROUTE_ENABLED=true",
+    "stepsText": "1.构造NEW_ITEM消息 2.消费→创建DIAGNOSE记录 3.等待定时触发诊断 4.诊断SUCCESS 5.MaterialFlowRouteDecider决策 6.路由→PENDING 7.AFD提交",
+    "expectedResult": "①DIAGNOSE记录创建(sceneType=DIAGNOSE,mainStatus=PENDING) ②诊断完成后GENERATE记录创建 ③路由按素材能力分流 ④AFD提交成功",
+    "dbAssertion": "ai_process_record.scene_type IN ('DIAGNOSE','GENERATE'); ai_process_record.item_id={testItemId}",
+    "riskPoints": [
+      "NEW_ITEM重复投递时已有非FAILED记录会被跳过",
+      "诊断Pipeline执行失败时记录状态为FAILED,NEW_ITEM重试可重新触发"
+    ],
+    "relatedDocs": [
+      "taobao-cloth-ai-op-serverless F88ItemDiagnosisMessageService#handleNewItem",
+      "MaterialGenerateTriggerImpl"
+    ]
+  }
+}

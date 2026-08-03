@@ -1,0 +1,93 @@
+{
+  "id": "atomic-f88-audit-image-zoom",
+  "name": "UI：审核详情-图片放大查看验证",
+  "description": "在审核详情页点击图片放大查看",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "审核任务",
+      "description": "切换到审核任务Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待Tab切换"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('tr[class*=row],[class*=task-item]'); if(rows.length > 0) { rows[0].click(); return 'clicked'; } return 'no task'; })()",
+      "description": "点击第一条任务"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = document.querySelectorAll('img[class*=audit],[class*=material] img,[class*=review] img'); if(imgs.length > 0) { imgs[0].click(); return 'clicked'; } return 'no image'; })()",
+      "description": "点击图片",
+      "storeAs": "clickImg"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const viewer = document.querySelector('[class*=viewer],[class*=zoom],[class*=preview],[class*=modal]'); return { hasViewer: !!viewer }; })()",
+      "description": "验证放大查看",
+      "storeAs": "viewerDlg"
+    },
+    {
+      "type": "screenshot",
+      "label": "audit-image-zoom",
+      "description": "图片放大查看"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const close = document.querySelector('[class*=viewer] [class*=close],[class*=modal] .ant-modal-close'); if(close) close.click(); return 'closed'; })()",
+      "description": "关闭查看"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核任务",
+    "realDomNotes": "",
+    "riskPoints": []
+  }
+}

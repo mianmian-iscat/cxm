@@ -1,0 +1,39 @@
+{
+  "id": "ui-f88-merchant-config",
+  "name": "UI：F88 商家信息配置页结构验证",
+  "description": "打开商家管理-信息配置，验证店铺信息配置表格列（店铺信息/合作供应商/负责买手/视觉偏好等）与批量下载入口。基于预发真实路由 /afdMerchantManagement/shopConfig。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开商家信息配置页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待店铺信息配置表格加载" },
+    { "type": "assert", "target": "page", "contains": "店铺信息配置", "description": "验证信息配置页已加载" },
+    { "type": "assert", "target": "page", "contains": "合作供应商", "description": "验证表格含合作供应商列" },
+    { "type": "assert", "target": "page", "contains": "负责买手", "description": "验证表格含负责买手列" },
+    { "type": "assert", "target": "page", "contains": "视觉偏好", "description": "验证表格含视觉偏好列" },
+    { "type": "assert", "target": "page", "contains": "批量下载", "description": "验证含批量下载入口" },
+    { "type": "screenshot", "label": "merchant-config", "description": "截图-商家信息配置页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /afdMerchantManagement/shopConfig；表格列：店铺信息/合作供应商/参考竞店/负责买手/视觉偏好/搭配偏好/参考视觉图例/操作；按钮：重置筛选/搜索/批量下载/编辑。",
+    "riskPoints": ["表格数据为空时仅表头存在"]
+  }
+}

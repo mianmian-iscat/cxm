@@ -1,0 +1,183 @@
+{
+  "id": "f88-audit-tc01",
+  "name": "TC01 - 个人任务中心：租户身份验证 + 审核/抽检/埋雷Tab切换 + 任务搜索",
+  "businessType": "f88_material",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心页面"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "page-initial",
+      "description": "截图 - 个人任务中心初始状态"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】页面必须包含F88标识"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "运营平台",
+      "description": "【租户身份验证】必须显示'运营平台'字样"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "当前身份",
+      "description": "【租户身份验证】当前身份下拉必须存在"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核任务",
+      "description": "验证默认Tab'审核任务'存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "抽检任务",
+      "description": "验证Tab'抽检任务'存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "埋雷任务",
+      "description": "验证Tab'埋雷任务'存在"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "任务名称",
+      "description": "验证审核任务列表包含'任务名称'字段"
+    },
+
+    {
+      "type": "clickText",
+      "text": "抽检任务",
+      "selector": "[class*='tab'], [class*='nav'], span, a",
+      "description": "切换到'抽检任务'Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待抽检任务列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "tab-spot-check",
+      "description": "截图 - 抽检任务Tab"
+    },
+
+    {
+      "type": "clickText",
+      "text": "埋雷任务",
+      "selector": "[class*='tab'], [class*='nav'], span, a",
+      "description": "切换到'埋雷任务'Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待埋雷任务列表加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "tab-landmine",
+      "description": "截图 - 埋雷任务Tab"
+    },
+
+    {
+      "type": "clickText",
+      "text": "审核任务",
+      "selector": "[class*='tab'], [class*='nav'], span, a",
+      "description": "切回'审核任务'Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待列表加载"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证左侧导航有'审核管理'菜单"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "商家管理",
+      "description": "验证左侧导航有'商家管理'菜单"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "value": "首图审核",
+      "description": "搜索任务名称'首图审核'"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待搜索结果"
+    },
+    {
+      "type": "screenshot",
+      "label": "search-task",
+      "description": "截图 - 搜索任务后"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图审核",
+      "description": "验证搜索结果包含'首图审核'"
+    },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "value": "",
+      "description": "清空搜索框"
+    },
+    {
+      "type": "screenshot",
+      "label": "page-final",
+      "description": "截图 - 测试完成时页面状态"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "待抓包确认",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

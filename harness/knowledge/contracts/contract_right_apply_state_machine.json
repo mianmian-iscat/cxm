@@ -1,0 +1,15 @@
+{
+  "id": "contract_right_apply_state_machine",
+  "category": "contracts",
+  "title": "申请状态机契约",
+  "content": "{\"states\": [\"SAVING\", \"QUICK_AUDITING\", \"QUICK_REJECTED\", \"PRE_PRE_AUDITING\", \"PRE_REJECTED\", \"PRE_AUDITING\", \"PRE_AUDITED\", \"CERT_AUTHED\", \"CERT_FILE_SYNCED\", \"YC_AUDITING\", \"YC_AUDITED\", \"YC_REJECTED\", \"PATENT_GRANTED\", \"PATENT_REJECTED\"], \"transitions\": {\"SAVING\": [\"QUICK_AUDITING\", \"PRE_PRE_AUDITING\"], \"QUICK_AUDITING\": [\"QUICK_REJECTED\", \"PRE_PRE_AUDITING\"], \"QUICK_REJECTED\": [], \"PRE_PRE_AUDITING\": [\"PRE_REJECTED\", \"PRE_AUDITING\"], \"PRE_REJECTED\": [], \"PRE_AUDITING\": [\"PRE_AUDITED\", \"PRE_REJECTED\"], \"PRE_AUDITED\": [\"CERT_AUTHED\"], \"CERT_AUTHED\": [\"CERT_FILE_SYNCED\"], \"CERT_FILE_SYNCED\": [\"YC_AUDITING\"], \"YC_AUDITING\": [\"YC_AUDITED\", \"YC_REJECTED\"], \"YC_AUDITED\": [\"PATENT_GRANTED\"], \"YC_REJECTED\": [], \"PATENT_GRANTED\": [], \"PATENT_REJECTED\": []}, \"to_regular_trigger\": [\"PRE_REJECTED\", \"PRE_AUDIT_REJECT\", \"CERT_REJECT\"], \"to_regular_non_trigger\": [\"QUICK_REJECTED\"]}",
+  "tags": [
+    "状态机",
+    "契约",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783394362.291918
+}

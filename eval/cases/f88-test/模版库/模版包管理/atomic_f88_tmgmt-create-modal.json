@@ -1,0 +1,90 @@
+{
+  "id": "atomic-f88-tmgmt-create-modal",
+  "name": "UI：模版包管理-新建模板包弹窗验证",
+  "description": "点击新建模板包按钮，验证弹窗及表单字段",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新建模板包",
+      "description": "点击新建模板包"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); return { hasModal: !!m, title: m ? m.querySelector('.ant-modal-title')?.textContent?.trim() : null }; })()",
+      "description": "验证弹窗",
+      "storeAs": "createModal"
+    },
+    {
+      "type": "assertStore",
+      "key": "createModal",
+      "path": "hasModal",
+      "equals": true,
+      "description": "验证新建弹窗出现"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if(!m) return { fields: [] }; const inputs = Array.from(m.querySelectorAll('input,select,textarea')).map(i => ({ placeholder: i.placeholder || '', type: i.type, label: i.closest('.ant-form-item')?.querySelector('label')?.textContent?.trim() || '' })); return { fields: inputs }; })()",
+      "description": "探查表单字段",
+      "storeAs": "formFields"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmgmt-create-modal",
+      "description": "新建模板包弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const c = document.querySelector('.ant-modal-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在模版包数据",
+    "realDomNotes": "新建弹窗: 店铺选择/模板包名称/应用环节/应用场景/模板上传",
+    "riskPoints": []
+  }
+}

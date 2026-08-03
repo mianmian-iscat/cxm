@@ -1,0 +1,404 @@
+{
+  "id": "f88-material-production",
+  "description": "F88 素材生产 - 策略配置/批次管理/CRM/看板模块（F88策略平台）",
+  "uiFramework": "react-antd",
+  "captureFilter": "strategy|batch|material|crm",
+  "lastUpdated": "2026-07-13",
+  "initStatus": "enriched",
+  "lastVerified": null,
+  "verifiedByRun": null,
+
+  "pageUrl": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/config",
+  "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+  "urlRoute": "strategy/config",
+
+  "notes": [
+    "页面为 React + Ant Design 组件，策略编辑器使用DAG可视化画布",
+    "策略节点通过data-node-type属性定位，如[data-node-type='gen_img']",
+    "试运行按钮点击后可能耗时30-60秒（调用AI模型），需长超时",
+    "批次管理列表有 F88_STREAM / F88_BATCH 两种类型",
+    "CRM页面使用Ant Design ProTable，支持批量导出",
+    "看板数据实时聚合，钉钉播报由diamond配置驱动"
+  ],
+
+  "pages": {
+    "策略配置列表": {
+      "route": "strategy/config",
+      "description": "策略列表页，支持创建/编辑/复制/删除策略",
+      "actions": ["创建策略", "编辑", "复制", "删除", "试运行"]
+    },
+    "策略编辑器": {
+      "route": "strategy/editor/:id",
+      "description": "DAG画布式策略编辑器，拖拽添加节点，连线配置流程",
+      "nodeTypes": ["gen_img", "map_gen_img", "llm_text", "image_enhance", "auto_review", "template_embed"]
+    },
+    "批次管理": {
+      "route": "batch/management",
+      "description": "生产批次管理，支持按类型(F88_STREAM/F88_BATCH)筛选",
+      "actions": ["查看", "终止", "重试"]
+    },
+    "素材写入": {
+      "route": "material/write",
+      "description": "手动/API方式写入素材到信息流",
+      "validationRules": {
+        "标题": "不超过20字",
+        "文案": "10-1000字",
+        "图片": "3-9张，比例3:4",
+        "商品": "必须已上架，坑位未满"
+      }
+    },
+    "CRM leads管理": {
+      "route": "crm/leads",
+      "description": "商家leads分配/跟进/筛选，含商家档案",
+      "fields": ["商家地址(新增)", "跟进状态", "来源"],
+      "removedFields": ["品类(已删除)", "价格带(已删除)"]
+    },
+    "看板": {
+      "route": "dashboard",
+      "description": "实时聚合看板，展示生产批次执行进度和数据统计"
+    },
+    "模板库": {
+      "route": "template/library",
+      "description": "素材模板管理，支持按类型/场景筛选"
+    }
+  },
+
+  "workflowNodes": {
+    "gen_img": {
+      "description": "单张图片生成节点",
+      "models": ["wan2.7-image", "wan2.7-image-pro", "gpt-image-2"],
+      "params": {
+        "ratio": ["1:1", "3:4"],
+        "resolution": ["1K", "2K"],
+        "model": "必选"
+      },
+      "trialRun": true,
+      "note": "试运行验证单张生图质量"
+    },
+    "map_gen_img": {
+      "description": "批量图片生成节点（多条记录并行）",
+      "models": ["wan2.7-image", "wan2.7-image-pro"],
+      "trialRun": true,
+      "note": "每条记录独立生成"
+    },
+    "llm_text": {
+      "description": "LLM文本生成节点",
+      "models": ["claude-sonnet-4", "claude-sonnet-4-opus", "qwen3.6-plus"],
+      "params": {
+        "maxChars": "非必填，填写后严格限制输出字符数",
+        "prompt": "必填"
+      },
+      "trialRun": true
+    },
+    "image_enhance": {
+      "description": "图片高清化处理节点",
+      "capabilities": ["分辨率提升", "质量改善"],
+      "trialRun": true,
+      "note": "输出高清化后的图片"
+    },
+    "auto_review": {
+      "description": "AI机审节点",
+      "algorithms": {
+        "AI_QUALITY": "低质量AI识别 - aigcTag=false图片应PASS",
+        "BAD_MATERIAL": "劣质素材识别 - npx/face_cover/messy/porno/stretch → REJECT",
+        "CTR_RANKING": "CTR择优 - 多候选图按CTR预估分排序选出最优"
+      },
+      "trialRun": true
+    }
+  },
+
+  "apis": {
+    "策略试运行": {
+      "name": "strategyTrial",
+      "method": "POST",
+      "urlKeyword": "strategy/trial",
+      "timeout": 60000,
+      "note": "调用AI模型可能耗时较长"
+    },
+    "提交素材任务": {
+      "name": "submitMaterialTask",
+      "method": "POST",
+      "urlKeyword": "submitMaterialTask",
+      "hsfService": "com.alibaba.f88.material.MaterialProductionService::submitMaterialTask",
+      "note": "缺少必填字段时返回参数校验错误"
+    },
+    "查询批次列表": {
+      "name": "queryBatchList",
+      "method": "POST",
+      "urlKeyword": "batch/list",
+      "responseFields": ["batchId", "batchType", "status", "createTime"]
+    },
+    "查询批次详情": {
+      "name": "queryBatchDetail",
+      "method": "POST",
+      "urlKeyword": "batch/detail",
+      "responseFields": ["batchType", "records", "status"]
+    },
+    "追加批次记录": {
+      "name": "appendRecordsToBatch",
+      "method": "POST",
+      "urlKeyword": "appendRecordsToBatch",
+      "note": "追加后批次状态保持PROCESSING，支持单条/小批量"
+    },
+    "素材写入信息流": {
+      "name": "writeMaterial",
+      "method": "POST",
+      "urlKeyword": "material/write",
+      "validations": ["标题≤20字", "文案10-1000字", "图片3-9张3:4", "商品已上架", "坑位未满"],
+      "note": "校验失败返回明确错误信息"
+    },
+    "模板嵌入推理": {
+      "name": "templateInference",
+      "method": "POST",
+      "urlKeyword": "tppwork.taobao.com/pyinfer_tao_ea119/api/v1/inference/sync",
+      "appId": 58550,
+      "note": "图片URL必须使用https，不支持普通http"
+    },
+    "CPV平台品查询": {
+      "name": "cpvQuery",
+      "method": "POST",
+      "urlKeyword": "app-mobd-30to.1d.alibaba-inc.com",
+      "env": "PRE",
+      "note": "通过平台品ID查询CPV属性值"
+    }
+  },
+
+  "businessRules": {
+    "流式生产": {
+      "batchType": "F88_STREAM",
+      "幂等规则": "每个linkId每天创建一个F88_STREAM批次",
+      "状态流转": "INIT → PROCESSING → COMPLETED",
+      "追加规则": "appendRecordsToBatch追加后状态保持PROCESSING"
+    },
+    "素材写入校验": {
+      "标题": "不超过20字，超过返回校验错误",
+      "文案": "10-1000字，不在范围内返回校验错误",
+      "图片数量": "3-9张，不在范围内返回校验错误",
+      "图片比例": "3:4",
+      "商品状态": "必须已上架，未上架返回'商品未上架'错误",
+      "坑位": "已满时返回'坑位已满'错误"
+    },
+    "CRM字段变更": {
+      "新增": ["商家地址"],
+      "删除": ["品类", "价格带"],
+      "note": "leads列表字段已变更，需验证旧字段不再展示"
+    },
+    "看板播报": {
+      "trigger": "diamond配置驱动",
+      "channel": "钉钉群",
+      "note": "实时聚合批次执行数据"
+    },
+    "视觉企划配置": {
+      "operations": "CRUD(创建/读取/更新/删除)",
+      "scope": "商家级别",
+      "note": "配置驱动模板选择"
+    }
+  },
+
+  "assertHints": {
+    "试运行成功": {
+      "target": "api",
+      "urlPattern": "strategy/trial",
+      "path": "data.success",
+      "equals": true
+    },
+    "批次为STREAM类型": {
+      "target": "api",
+      "urlPattern": "batch/detail",
+      "path": "data.data.batchType",
+      "equals": "F88_STREAM"
+    },
+    "素材写入校验失败": {
+      "target": "api",
+      "urlPattern": "material/write",
+      "path": "data.success",
+      "equals": false
+    }
+  },
+
+  "evalCases": {
+    "nodeType": {
+      "description": "17种节点类型创建测试用例（每个用例：新建策略→添加节点→配置→保存→刷新验证），已按节点类型分子目录",
+      "generator": "scripts/generate-all-node-cases.js",
+      "count": 17,
+      "verifiedPass": true,
+      "baseDir": "eval/cases/f88-test/策略管理/策略详情",
+      "files": [
+        "LLM文本生成/ui_f88_create_llm_text_strategy.json",
+        "生图/ui_f88_create_image_gen_strategy.json",
+        "Map生图/ui_f88_create_map_image_strategy.json",
+        "季节标签/ui_f88_create_season_tag_strategy.json",
+        "产业标签/ui_f88_create_industry_tag_strategy.json",
+        "定价节点/ui_f88_create_pricing_strategy.json",
+        "模板匹配/ui_f88_create_template_strategy.json",
+        "人工审核/ui_f88_create_auto_audit_strategy.json",
+        "Caption/ui_f88_create_caption_strategy.json",
+        "改款prompt推理/ui_f88_create_redesign_prompt_strategy.json",
+        "视频生成/ui_f88_create_video_gen_strategy.json",
+        "人工审核/ui_f88_create_manual_audit_strategy.json",
+        "高清化处理/ui_f88_create_hd_enhance_strategy.json",
+        "视频上传/ui_f88_create_video_upload_strategy.json",
+        "匹配度打分/ui_f88_create_match_score_strategy.json",
+        "款式分配/ui_f88_create_style_alloc_strategy.json",
+        "面料上身/ui_f88_create_fabric_tryon_strategy.json"
+      ]
+    },
+    "strategyDetail": {
+      "description": "策略详情页9大功能用例（编辑/阶段/入参/删除/落库/一致性/文案/列表页/操作按钮），已归入策略通用子目录",
+      "generator": "scripts/generate-strategy-detail-cases.js",
+      "count": 9,
+      "verifiedPass": true,
+      "files": [
+        "策略通用/ui_f88_strategy_detail_edit_info.json",
+        "策略通用/ui_f88_strategy_detail_stage_change.json",
+        "策略通用/ui_f88_strategy_io_params.json",
+        "策略通用/ui_f88_strategy_node_delete.json",
+        "策略通用/ui_f88_strategy_detail_storage.json",
+        "策略通用/ui_f88_strategy_data_consistency.json",
+        "策略通用/ui_f88_strategy_detail_text.json",
+        "策略通用/ui_f88_strategy_list_full.json",
+        "策略通用/ui_f88_strategy_detail_actions.json"
+      ],
+      "notes": [
+        "Case 3/4 改用 evaluate 检查节点编排区（避免策略名称匹配假阳性）",
+        "季节标签/Caption节点imgUrl/taoCate需dataSourceConfig，否则save API返回B9999",
+        "Case 4 使用LLM文本生成节点（无需dataSourceConfig，可正常保存）"
+      ]
+    },
+    "strategyDetailSupplement": {
+      "description": "9个策略详情页补充原子用例（基于浏览器实际操作发现：节点弹窗/编辑器抽屉/Start-End抽屉/落库树/试运行Tabs/节点操作/下拉选项），已归入策略通用子目录",
+      "generator": "scripts/generate-strategy-detail-supplement.js",
+      "count": 9,
+      "verifiedPass": true,
+      "files": [
+        "策略通用/ui_f88_sd_node_types_modal.json",
+        "策略通用/ui_f88_sd_node_editor_drawer.json",
+        "策略通用/ui_f88_sd_start_drawer.json",
+        "策略通用/ui_f88_sd_end_drawer.json",
+        "策略通用/ui_f88_sd_storage_tree.json",
+        "策略通用/ui_f88_sd_trial_run_tabs.json",
+        "策略通用/ui_f88_sd_node_operations.json",
+        "策略通用/ui_f88_sd_stage_dropdown.json",
+        "策略通用/ui_f88_sd_step_dropdown.json"
+      ],
+      "interactionsVerified": [
+        "节点类型弹窗20种完整验证",
+        "LLM节点编辑器抽屉全字段(模型类型/UserPrompt/输出格式/字符数)",
+        "Start入参抽屉(新增字段/必填选填radio)",
+        "End出参抽屉(空状态/新增字段)",
+        "落库配置弹窗树结构(设计4/视觉2/套图1=7目标变量)",
+        "试运行弹窗Tabs(单次运行/批量运行)",
+        "节点操作按钮(arrow-up/down/delete/edit)",
+        "策略阶段下拉(实验/灰度/量产)",
+        "环节下拉(企划/设计/搭配/视觉/套图/款式分配/信息补充/面料上身/视频=9项)"
+      ]
+    },
+    "compositeStrategy": {
+      "description": "4个组合型策略用例（基于真实链路搭配模式：生图三段式/审核/LLM+审核/链路管理），已按节点归入子目录",
+      "generator": "scripts/generate-composite-strategy-cases.js",
+      "count": 4,
+      "verifiedPass": true,
+      "files": [
+        "生图/ui_f88_strategy_gen_triple.json",
+        "人工审核/ui_f88_strategy_review.json",
+        "人工审核/ui_f88_strategy_llm_review_combo.json",
+        "策略通用/ui_f88_chain_management.json"
+      ],
+      "patterns": [
+        "生图三段式: LLM文本生成 → 模板匹配 → 生图",
+        "审核单节点: 人工审核节点+Start入参配置",
+        "LLM+审核组合: 先生成后审核",
+        "链路创建与环节管理"
+      ]
+    }
+  },
+
+  "knownIssues": [
+    "策略编辑器为DAG画布，节点通过[data-node-type]属性定位",
+    "试运行调用AI模型可能耗时30-60秒，超时设置需60000ms以上",
+    "模板嵌入推理接口要求image_url为https链接",
+    "CPV查询需指定env=PRE环境参数",
+    "批次管理排序默认按创建时间倒序",
+    "CRM导出功能需等待后台异步生成Excel",
+    "季节标签/Caption等节点的imgUrl/taoCate需配置dataSourceConfig，否则save API返回B9999错误",
+    "策略详情页assert target=page contains=节点名 会匹配策略名称导致假阳性，需用evaluate定位节点编排区",
+    "链路详情页没有保存按钮，提交环节后自动保存",
+    "按钮文本含空格（“保 存”），需用正则匹配"
+  ],
+
+  "hsfIntegration": {
+    "mavenGroupId": "com.alibaba.f88",
+    "services": [
+      {
+        "interface": "com.alibaba.f88.material.MaterialProductionService",
+        "methods": ["submitMaterialTask", "appendRecordsToBatch", "writeMaterial"]
+      }
+    ]
+  },
+
+  "workflowPatterns": {
+    "standardPipeline": "刷标签 → 首图生图 → 首图审核 → 套图生图 → 套图审核",
+    "keyRules": [
+      "生图之后必有人工审核",
+      "LLM文本生成→模板匹配→生图 是经典三段式",
+      "入参逐级传递: seller_id→seed_image_url→main_img_url→set_img_url",
+      "上游出参=下游入参"
+    ]
+  },
+
+  "templateMatchRules": {
+    "processor": "TemplateMatchProcessor",
+    "modes": {
+      "规则匹配": {
+        "handler": "TemplateMatchProcessor",
+        "fields": ["seller_id", "排序维度", "硬匹配字段"],
+        "sellerRequired": {"模板包": true, "模板库": false},
+        "note": "基于规则过滤+排序，人工可精确控制"
+      },
+      "模型匹配": {
+        "handler": "TemplateMatchProcessor + AI模型",
+        "fields": ["模型选择"],
+        "sellerRequired": false,
+        "note": "由AI算法自动排序，不支持排序维度和硬匹配字段"
+      }
+    },
+    "dataSources": ["模板包", "模板库"],
+    "applyStages": ["搭配", "视觉", "套图"],
+    "applyScenes": ["主图素材", "种草素材"],
+    "knowledgeRefs": [
+      "eval/cases/f88-test/模版库/模版匹配/MODEL_MATCH_RULES.md",
+      "eval/cases/f88-test/模版库/模版匹配/CODE_LEVEL_MATCH_RULES.md",
+      "eval/cases/f88-test/模版库/模版匹配/VALIDATION_RULES.md"
+    ],
+    "testCases": {
+      "e2e": [
+        "e2e_f88_template_match_model_package_outfit.json",
+        "e2e_f88_template_match_model_library_visual.json",
+        "e2e_f88_template_match_rule_package_main.json",
+        "e2e_f88_template_match_rule_library_visual.json"
+      ],
+      "normal": [
+        "normal_f88_template_match_model_mode.json",
+        "normal_f88_template_match_model_package.json",
+        "normal_f88_template_match_model_library.json",
+        "normal_f88_template_match_rule_package.json"
+      ],
+      "boundary": [
+        "boundary_f88_template_match_no_data_source.json",
+        "boundary_f88_template_match_seller_required.json",
+        "boundary_f88_template_match_start_no_seller.json"
+      ]
+    }
+  },
+
+  "_meta": {
+    "initStatus": "enriched",
+    "lastUpdated": "2026-07-13",
+    "lastVerified": null,
+    "verifiedByRun": null,
+    "staleFields": [],
+    "totalRuns": 0,
+    "passRate": null,
+    "source": "qoderwork/f88-test + testcases_material_production + testcases_config_dashboard_template + testcases_crm_recruitment + testcases_cpv_and_store_query + testcases_template_embedding + strategy-detail-cases + composite-strategy-cases"
+  }
+}

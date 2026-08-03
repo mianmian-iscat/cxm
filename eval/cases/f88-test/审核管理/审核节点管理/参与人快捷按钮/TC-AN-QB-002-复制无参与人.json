@@ -1,0 +1,55 @@
+{
+  "id": "TC-AN-QB-002",
+  "name": "TC-AN-QB-002 — 复制按钮：无已选参与人时提示 [P1]",
+  "description": "审核节点编辑页已打开，已选参与人区域为空（前置条件：选择无参与人的节点）",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "审核管理/审核节点管理/参与人快捷按钮",
+  "page": "审核节点编辑页",
+  "priority": "P1",
+  "category": "edge_case",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+    "auth": "buc"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management", "waitUntil": "networkidle", "description": "打开审核节点管理页" },
+    { "type": "wait", "ms": 3000, "description": "等待页面加载" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { /* 寻找一个无参与人的节点: 参与人列为'-'的 */ const rows = document.querySelectorAll('.ant-table-row'); for (let i = 0; i < rows.length; i++) { const text = rows[i].innerText; const cells = text.split('\\t'); const hasNoParticipant = cells.some(c => c.trim() === '-' || c.trim() === '—'); if (hasNoParticipant) { const editBtn = Array.from(rows[i].querySelectorAll('button')).find(b => b.textContent.trim() === '编辑'); if (editBtn) { editBtn.click(); return { clicked: true, rowIndex: i, note: '选择无参与人的节点' }; } } } /* 兜底：选第一个节点 */ const editBtn = rows[0]?.querySelector('button'); if (editBtn) { editBtn.click(); return { clicked: true, rowIndex: 0, note: '兜底选第一个(可能有参与人)' }; } return { clicked: false }; })()",
+      "description": "选择无参与人的节点进行编辑",
+      "storeAs": "openEdit"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待编辑页加载" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { /* 检查当前参与人数量，如果>0则跳过清空操作 */ const container = document.querySelector('[class*=selectedLabel]'); const count = container ? container.querySelectorAll('.ant-select-selection-item').length : 0; return { participantCount: count, isEmpty: count === 0 }; })()",
+      "description": "检查参与人是否为空",
+      "storeAs": "checkEmpty"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('button')); const copyBtn = btns.find(b => (b.textContent || '').includes('复制')); if (!copyBtn) return { clicked: false, error: '未找到复制按钮' }; copyBtn.click(); return { clicked: true }; })()",
+      "description": "点击复制按钮",
+      "storeAs": "clickCopy"
+    },
+    { "type": "wait", "ms": 1000 },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const toasts = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); const toastTexts = Array.from(toasts).map(t => t.textContent.trim()); const hasEmptyToast = toastTexts.some(t => t.includes('当前没有已选参与人') || t.includes('没有')); return { toasts: toastTexts, hasEmptyToast }; })()",
+      "description": "验证toast提示'当前没有已选参与人'",
+      "storeAs": "verifyEmptyToast"
+    },
+    { "type": "screenshot", "label": "copy-btn-empty-toast", "description": "无参与人时复制截图" }
+  ],
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "审核节点编辑页已打开，已选参与人区域为空（选择无参与人的节点，不清空存量数据）",
+    "stepsText": "1. 选择一个无参与人的审核节点\\n2. 进入编辑页\\n3. 点击「复制」按钮",
+    "expectedResult": "页面toast提示「当前没有已选参与人」，剪贴板无内容写入",
+    "priority": "P1",
+    "groupPath": "审核管理/审核节点管理/参与人快捷按钮"
+  }
+}

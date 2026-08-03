@@ -1,0 +1,16 @@
+{
+  "id": "antd_select_choose_option",
+  "description": "在已打开的 Ant Design Select 下拉框里按文本匹配选项并点击。依赖前置 antd_select_open。",
+  "params": [
+    { "name": "optionText",    "type": "string", "required": true, "desc": "选项文本（精确匹配）" },
+    { "name": "matchMode",     "type": "string", "default": "exact", "desc": "匹配模式：exact | contains | startsWith" },
+    { "name": "storeAs",       "type": "string", "default": "antdSelectChoice", "desc": "Store 键名" }
+  ],
+  "steps": [
+    {
+      "type": "evaluate",
+      "expression": "(() => { const mode = '{{matchMode}}'; const text = '{{optionText}}'; const dropdowns = Array.from(document.querySelectorAll('.ant-select-dropdown')).filter(d => d.offsetHeight > 0 && !d.classList.contains('ant-select-dropdown-hidden')); const allOptions = []; for (const dd of dropdowns) { const opts = Array.from(dd.querySelectorAll('.ant-select-item-option, .ant-select-item')); for (const opt of opts) { const t = (opt.textContent || '').trim(); const match = mode === 'contains' ? t.includes(text) : mode === 'startsWith' ? t.startsWith(text) : t === text; allOptions.push({ text: t, match }); if (match) { const r = opt.getBoundingClientRect(); opt.click(); return { ok: true, matched: t, x: r.x + r.width / 2, y: r.y + r.height / 2 }; } } } return { ok: false, error: 'option_not_found', searched: text, mode, visibleOptions: allOptions.map(o => o.text).slice(0, 20) }; })()",
+      "storeAs": "{{storeAs}}"
+    }
+  ]
+}

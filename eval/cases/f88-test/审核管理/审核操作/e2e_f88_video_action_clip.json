@@ -1,0 +1,126 @@
+{
+  "id": "e2e-f88-video-action-clip",
+  "name": "端到端：F88 视频剪辑 → 确认 → 再次下载URL已更新 → 通过 → 数据一致性校验",
+  "description": "进入视频审核详情，记录原始视频URL；点击剪辑按钮调整时间轴并确认；再次点击下载，捕获下载URL并断言与原始URL不同；点击审核通过；抓包验证 approveMaterial 响应，调用 queryMaterialAuditDetail 断言状态与 URL 变化；DB 校验。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表" },
+    {
+      "type": "selectOption",
+      "label": "素材类型",
+      "option": "视频",
+      "description": "筛选视频任务"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待筛选结果" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; return row ? { taskId: row.getAttribute('data-row-key') } : null; })()",
+      "storeAs": "firstTask",
+      "description": "读取首行任务ID"
+    },
+    { "type": "clickText", "text": "审核", "description": "打开第一条待审核视频任务" },
+    { "type": "wait", "ms": 2500, "description": "等待审核详情Drawer打开" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const v = document.querySelector('.ant-drawer video'); return v ? { originUrl: v.src || v.currentSrc } : null; })()",
+      "storeAs": "originVideo",
+      "description": "记录原始视频URL"
+    },
+    { "type": "hover", "selector": "video", "description": "hover视频触发工具栏" },
+    { "type": "wait", "ms": 1000, "description": "等待工具栏出现" },
+    { "type": "clickText", "text": "剪辑", "description": "点击剪辑按钮" },
+    { "type": "wait", "ms": 2000, "description": "等待剪辑面板" },
+    { "type": "clickText", "text": "确认", "description": "确认剪辑" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "submitVideo|video/clip|material/write",
+      "timeout": 20000,
+      "description": "等待视频剪辑提交API"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待剪辑结果渲染" },
+    { "type": "hover", "selector": "video", "description": "hover视频触发工具栏" },
+    { "type": "wait", "ms": 1000, "description": "等待工具栏出现" },
+    { "type": "clickText", "text": "下载", "description": "再次点击下载" },
+    { "type": "wait", "ms": 1500, "description": "等待下载触发" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const v = document.querySelector('.ant-drawer video'); return v ? { downloadUrl: v.src || v.currentSrc } : null; })()",
+      "storeAs": "afterClipVideo",
+      "description": "记录剪辑后视频URL"
+    },
+    {
+      "type": "assertStore",
+      "key": "afterClipVideo",
+      "path": "downloadUrl",
+      "notEquals": "${store.originVideo.originUrl}",
+      "description": "断言剪辑后下载URL与原始URL不同"
+    },
+    { "type": "clickText", "text": "通过", "description": "点击审核通过" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "approveMaterial",
+      "timeout": 15000,
+      "description": "等待审核通过API"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待列表刷新" },
+    {
+      "type": "apiCall",
+      "api": "bzb.api.fsyx_quality_guard.f88.queryMaterialAuditDetail",
+      "v": "1.0",
+      "data": { "taskId": "${store.firstTask.taskId}" },
+      "storeAs": "auditDetail",
+      "description": "调用审核详情API"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.auditStatus",
+      "equals": "APPROVED",
+      "description": "API断言审核状态为已通过"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, video_url, status FROM video_material WHERE task_id = '${store.firstTask.taskId}' ORDER BY id DESC LIMIT 1",
+      "storeAs": "videoDb",
+      "description": "DB查询视频素材记录"
+    },
+    {
+      "type": "assertDbResult",
+      "expectations": [
+        { "field": "status", "equals": "APPROVED" },
+        { "field": "video_url", "notEmpty": true }
+      ],
+      "description": "DB断言状态与视频URL字段"
+    },
+    { "type": "screenshot", "label": "f88-video-clip-e2e-done", "description": "截图-视频剪辑端到端完成" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核视频任务。",
+    "realDomNotes": "视频工具栏含剪辑/下载/替换；剪辑后video.src应变更；下载内容随src更新。",
+    "riskPoints": [
+      "无待审核视频任务时无法进入详情",
+      "DB表名/字段需按真实schema调整（当前为示例）",
+      "剪辑面板交互可能因实现不同而失败"
+    ]
+  }
+}

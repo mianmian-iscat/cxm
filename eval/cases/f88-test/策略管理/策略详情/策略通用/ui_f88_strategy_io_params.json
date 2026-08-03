@@ -1,0 +1,161 @@
+{
+  "id": "ui-f88-strategy-io-params",
+  "name": "UI：F88 策略入参/出参配置",
+  "description": "打开策略详情页，配置 Start 节点入参 seller_id，保存刷新验证持久化。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "clickText",
+      "text": "Start",
+      "description": "点击 Start 节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待 Start 抽屉加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新增字段",
+      "description": "点击新增字段按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待字段选择 modal 加载"
+    },
+    {
+      "type": "click",
+      "text": "seller_id",
+      "within": ".ant-modal:not(.ant-modal-hidden)",
+      "description": "选择 seller_id 字段"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待字段添加完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "start-param-added",
+      "description": "截图-Start 入参已添加"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false, reason: 'no drawer' }; return { ok: drawer.innerText.includes('seller_id') }; })()",
+      "description": "验证抽屉中显示 seller_id"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭 Start 抽屉"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待抽屉关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "io-params-configured",
+      "description": "截图-入参配置完成"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略保存完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const msgs = document.querySelectorAll('.ant-message .ant-message-success, .ant-message .ant-message-error, .ant-notification-notice'); return Array.from(msgs).map(m => m.textContent.trim()); })()",
+      "storeAs": "saveResult",
+      "description": "检查保存结果"
+    },
+    {
+      "type": "navigate",
+      "url": "current",
+      "waitUntil": "networkidle",
+      "description": "刷新页面验证持久化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面重新加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排'); if (!titleEl) return { found: false, reason: 'no title' }; const card = titleEl.closest('.ant-card'); const body = card?.querySelector('.ant-card-body'); if (!body) return { found: false, reason: 'no body' }; return { found: body.innerText.includes('seller_id'), nodeAreaText: body.innerText.substring(0, 200) }; })()",
+      "storeAs": "persistCheck",
+      "description": "检查节点编排区内 seller_id 是否持久化"
+    },
+    {
+      "type": "screenshot",
+      "label": "io-persisted",
+      "description": "截图-入参持久化验证"
+    }
+  ]
+}

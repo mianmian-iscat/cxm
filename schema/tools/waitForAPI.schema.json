@@ -1,0 +1,30 @@
+{
+  "name": "waitForAPI",
+  "version": "1.0.0",
+  "description": "等待特定接口响应后再继续（含响应体）",
+  "triggers": ["等待接口", "等待API", "waitForAPI", "wait api"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "urlPattern"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "waitForAPI" },
+      "urlPattern": { "type": "string", "description": "URL 关键词" },
+      "timeout": { "type": "integer", "default": 10000, "description": "超时毫秒" },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string" },
+      "status": { "type": "integer" },
+      "responseBody": { "description": "响应体" },
+      "duration": { "type": "integer" }
+    }
+  },
+  "timeout_ms": 30000,
+  "retry_policy": { "max_retries": 0 }
+}

@@ -1,0 +1,135 @@
+{
+  "id": "atomic-f88-node-video_upload-empty-save",
+  "name": "UI：视频上传节点-空值保存边界(空商品ID+空视频URL)",
+  "description": "验证视频上传节点在商品ID和视频URL均为空时点击保存的行为：应弹出必填校验提示或阻止保存",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "boundary",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开策略列表"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '打开'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no open btn'; })()",
+      "description": "打开第一条策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点选择弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const modals = document.querySelectorAll('.ant-modal'); for (const m of modals) { if (m.classList.contains('ant-modal-hidden')) continue; const r = m.getBoundingClientRect(); if (r.width < 200) continue; const cards = m.querySelectorAll('.ant-card-hoverable, .ant-card'); for (const card of cards) { const t = card.querySelector('.ant-card-meta-title'); if (t && t.textContent.trim() === '视频上传') { card.scrollIntoView({ block: 'center' }); card.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择视频上传节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待视频上传编辑抽屉加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const fields = {}; for (const item of formItems) { const label = (item.querySelector('.ant-form-item-label')?.textContent || '').trim(); const input = item.querySelector('input:not([type=checkbox]):not([type=radio])'); if (label.includes('商品') && input) { const val = input.value || ''; fields.itemId = { value: val, required: !!item.querySelector('.ant-form-item-required'), hasRequiredMark: !!item.querySelector('[class*=required]') }; } if (label.includes('视频') && !label.includes('上传') && input) { const val = input.value || ''; fields.video = { value: val, required: !!item.querySelector('.ant-form-item-required'), hasRequiredMark: !!item.querySelector('[class*=required]') }; } } return { open: true, fields }; })()",
+      "description": "检查商品ID和视频字段的必填标记",
+      "storeAs": "requiredCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "requiredCheck",
+      "path": "open",
+      "equals": true,
+      "description": "编辑抽屉已打开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { ok: false }; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); for (const item of formItems) { const label = (item.querySelector('.ant-form-item-label')?.textContent || '').trim(); const input = item.querySelector('input:not([type=checkbox]):not([type=radio])'); if (label.includes('商品') && input) { input.focus(); input.blur(); } } return { ok: true, triggered: 'itemId blur' }; })()",
+      "description": "触发商品ID字段校验(聚焦后失焦)",
+      "storeAs": "triggerValidation"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待校验提示出现"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return {}; const errors = Array.from(drawer.querySelectorAll('.ant-form-item-explain-error, .ant-form-item-explain, [class*=error], [class*=Error]')); const errorTexts = errors.map(e => (e.textContent || '').trim()).filter(Boolean); const hasValidationError = errors.length > 0; return { hasValidationError, errorCount: errors.length, errorTexts: errorTexts.slice(0, 5) }; })()",
+      "description": "检查是否有校验错误提示",
+      "storeAs": "validationResult"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { ok: false }; const saveBtn = Array.from(drawer.querySelectorAll('button')).find(b => { const t = (b.textContent || '').trim(); return t === '保 存' || t === '保存'; }); if (saveBtn) { saveBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "空值状态点击保存",
+      "storeAs": "emptySave"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待保存响应"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); const errors = document.querySelectorAll('.ant-form-item-explain-error, .ant-message-error, .ant-message-warning, [class*=error]'); const errorMsgs = Array.from(errors).map(e => (e.textContent || '').trim()).filter(Boolean); const globalMsgs = Array.from(document.querySelectorAll('.ant-message .ant-message-notice')).map(m => (m.textContent || '').trim()); const stillOpen = !!drawer; return { stillOpen, errorMsgs: errorMsgs.slice(0, 5), globalMsgs: globalMsgs.slice(0, 5), blocked: stillOpen }; })()",
+      "description": "检查空值保存结果(是否被阻止)",
+      "storeAs": "emptySaveResult"
+    },
+    {
+      "type": "screenshot",
+      "label": "video_upload-empty-save",
+      "description": "空值保存边界截图"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const c = document.querySelector('.ant-drawer:not(.ant-drawer-hidden) .ant-drawer-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭抽屉"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录",
+    "realDomNotes": "视频上传节点字段: 上传类型(Select)/商品ID(Input)/视频(Input)",
+    "riskPoints": [
+      "商品ID为空保存时是否弹出必填校验提示",
+      "视频URL为空保存时是否弹出必填校验提示",
+      "保存按钮是否会阻止空值提交"
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "id": "atomic-f88-ld-trial-type",
+  "name": "UI：链路详情-试运行运行类型选择验证",
+  "description": "在试运行弹窗中选择运行类型(正式/测试)",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const selects = m ? m.querySelectorAll('.ant-select') : []; return { selectCount: selects.length }; })()",
+      "description": "查找Select控件",
+      "storeAs": "selectInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "selectInfo",
+      "path": "selectCount",
+      "notEmpty": true,
+      "description": "验证有Select控件"
+    },
+    {
+      "type": "screenshot",
+      "label": "ld-trial-type",
+      "description": "运行类型选择"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const c = document.querySelector('.ant-modal-close'); if(c) c.click(); return 'closed'; })()",
+      "description": "关闭弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待加载"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路20180存在",
+    "realDomNotes": "运行类型Select: 正式/测试。坑点: 必须用page.mouse.click()展开",
+    "riskPoints": []
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "id": "nr-sl-00-01-筛选增加-审核状态-选项",
+  "name": "新需求 PRD-test001: 策略列表-筛选增加「审核状态」选项",
+  "description": "PRD-test001 UI变更验证: 筛选增加「审核状态」选项",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-form-item-label label, .ant-form-item-label span')).map(el => el.textContent.trim()).filter(Boolean)",
+      "storeAs": "filterLabels",
+      "description": "提取筛选标签"
+    },
+    {
+      "type": "assertStore",
+      "key": "filterLabels",
+      "path": "found",
+      "equals": true,
+      "description": "验证 提取筛选标签 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "列表",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const btns = Array.from(document.querySelectorAll('button, [role=button], a.ant-btn')).filter(b => b.offsetHeight > 0).map(b => b.textContent.trim()).filter(Boolean); return { buttonCount: btns.length, buttons: btns.slice(0, 20) }; })()",
+      "storeAs": "pageButtons",
+      "description": "提取所有可见按钮"
+    },
+    {
+      "type": "assertStore",
+      "key": "pageButtons",
+      "path": "found",
+      "equals": true,
+      "description": "验证 提取所有可见按钮 存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "nr-nr-sl-00-01-筛选增加-审核状态-选项",
+      "description": "UI变更验证截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；PRD-test001已部署",
+    "realDomNotes": "PRD-test001自动生成的UI变更验证: 筛选增加「审核状态」选项",
+    "riskPoints": [
+      "UI变更可能导致现有元素定位偏移"
+    ]
+  },
+  "_promoted": {
+    "from_prd": "test001",
+    "generated_at": "2026-07-11T10:46:08.060809",
+    "generator": "case_generator.py"
+  }
+}

@@ -1,0 +1,83 @@
+# 测试执行状态机定义
+# 对应 impl.py 的 INIT → CONNECT → CAPTURE_START → STEPS → FINALIZE → DONE 流程
+# 由 core/state_machine.py StateMachineEngine 加载并校验状态转换合法性
+
+name: test_execution
+entity: TestRun
+id_field: run_id
+initial_state: INIT
+
+states:
+  - INIT
+  - CONNECT
+  - CAPTURE_START
+  - STEPS
+  - FINALIZE
+  - DONE
+  - ERROR
+
+transitions:
+  # 正常流程
+  - from: INIT
+    to: CONNECT
+    trigger: start
+    side_effects:
+      - {type: LOG, log: "开始连接浏览器"}
+
+  - from: CONNECT
+    to: CAPTURE_START
+    trigger: connected
+    side_effects:
+      - {type: LOG, log: "浏览器已连接，启动抓包"}
+
+  - from: CAPTURE_START
+    to: STEPS
+    trigger: capture_ready
+    side_effects:
+      - {type: LOG, log: "抓包就绪，开始执行步骤"}
+
+  - from: STEPS
+    to: FINALIZE
+    trigger: steps_done
+    side_effects:
+      - {type: LOG, log: "步骤执行完毕，进入收尾"}
+
+  - from: FINALIZE
+    to: DONE
+    trigger: finalized
+    side_effects:
+      - {type: LOG, log: "收尾完成"}
+
+  # 错误路径
+  - from: CONNECT
+    to: ERROR
+    trigger: connect_failed
+    side_effects:
+      - {type: LOG, log: "浏览器连接失败"}
+
+  - from: STEPS
+    to: ERROR
+    trigger: fatal_error
+    guard: "circuit_broken == true"
+    side_effects:
+      - {type: LOG, log: "熔断触发，强制中止"}
+
+  - from: STEPS
+    to: ERROR
+    trigger: step_failed
+    side_effects:
+      - {type: LOG, log: "步骤执行异常"}
+
+  # Checkpoint 分段信号
+  - from: STEPS
+    to: FINALIZE
+    trigger: checkpoint_signal
+    side_effects:
+      - {type: LOG, log: "Checkpoint 分段保存，进入收尾"}
+
+  # ERROR 也可以进入 FINALIZE（做资源清理）
+  - from: ERROR
+    to: FINALIZE
+    trigger: cleanup
+    side_effects:
+      - {type: LOG, log: "错误后资源清理"}

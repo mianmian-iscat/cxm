@@ -1,0 +1,60 @@
+{
+  "id": "TC-PM-002",
+  "name": "TC-PM-002 — 迭代状态机10种状态流转验证 [P1]",
+  "description": "验证迭代10种状态的正确流转路径和非法流转拦截",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "权限与状态机",
+  "page": "迭代详情",
+  "priority": "P1",
+  "category": "state_machine",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const statusText = document.body.innerText; const expectedSteps = ['买手下 Brief', '产运确认', '试拍', '试拍审核', 'Leader 复核', '视觉归档']; const foundSteps = expectedSteps.filter(e => statusText.includes(e)); const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab')).map(t => t.textContent.trim()).filter(Boolean); return { foundSteps, allStepsFound: foundSteps.length === expectedSteps.length, tabs }; })()",
+      "description": "验证状态步骤条6步",
+      "storeAs": "stepBar"
+    },
+    {
+      "type": "assertStore",
+      "key": "stepBar",
+      "path": "allStepsFound",
+      "equals": true,
+      "description": "6步状态步骤条完整"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const bottomActions = Array.from(document.querySelectorAll('button')).filter(b => { const rect = b.getBoundingClientRect(); return rect.top > window.innerHeight - 100; }).map(b => b.textContent.trim()); return { bottomActions }; })()",
+      "description": "检查底部操作栏当前可用action",
+      "storeAs": "bottomActions"
+    },
+    {
+      "type": "screenshot",
+      "label": "state-steps"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在不同状态的迭代",
+    "stepsText": "1. 验证状态步骤条展示6步\n2. 各状态下验证底部操作栏展示正确action\n3. 验证非当前处理角色只读",
+    "expectedResult": "1. 步骤条展示：买手下Brief→产运确认→试拍→试拍审核→Leader复核→视觉归档\n2. DRAFT_BRIEF底部：保存草稿、提交Brief\n3. PENDING_BRIEF底部：确认Brief、驳回Brief\n4. IN_PRODUCTION底部：保存草稿、发起评审\n5. ARCHIVED/CANCELLED无主流程action",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/权限与状态机"
+  }
+}

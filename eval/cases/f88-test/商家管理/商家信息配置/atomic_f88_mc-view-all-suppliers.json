@@ -1,0 +1,74 @@
+{
+  "id": "atomic-f88-mc-view-all-suppliers",
+  "name": "UI：店铺信息配置-查看全部合作供应商验证",
+  "description": "点击合作供应商的查看全部链接，验证展开全部供应商",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开店铺信息配置"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待数据加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const viewAlls = Array.from(document.querySelectorAll('span,a,button')).filter(el => el.textContent.trim().startsWith('查看全部')); return { count: viewAlls.length, texts: viewAlls.slice(0,3).map(el => el.textContent.trim()) }; })()",
+      "description": "查找查看全部链接",
+      "storeAs": "viewAlls"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const viewAll = Array.from(document.querySelectorAll('span,a,button')).find(el => el.textContent.trim().startsWith('查看全部')); if(viewAll) { viewAll.click(); return 'clicked'; } return 'no view all'; })()",
+      "description": "点击第一个查看全部",
+      "storeAs": "viewClick"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('tr.ant-table-row'); const firstRow = rows[0]; const tds = firstRow?.querySelectorAll('td'); const supplierCell = tds?.[1]; return { supplierCellText: supplierCell?.textContent?.trim()?.substring(0,200) || '' }; })()",
+      "description": "验证供应商展开",
+      "storeAs": "expanded"
+    },
+    {
+      "type": "screenshot",
+      "label": "mc-view-all-suppliers",
+      "description": "查看全部供应商"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在有多个合作供应商的店铺",
+    "realDomNotes": "合作供应商列默认显示2个+查看全部(N)链接，点击展开所有",
+    "riskPoints": []
+  }
+}

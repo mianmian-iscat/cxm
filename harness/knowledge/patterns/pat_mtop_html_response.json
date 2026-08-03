@@ -1,0 +1,16 @@
+{
+  "id": "pat_mtop_html_response",
+  "category": "patterns",
+  "title": "MTOP POST请求返回HTML",
+  "content": "{\"error\": \"非浏览器fetch POST返回HTML而非JSON\", \"root_cause\": \"SSO cookie httpOnly\", \"fix\": \"必须在浏览器内执行 window.lib.mtop.request\"}",
+  "tags": [
+    "MTOP",
+    "浏览器",
+    "P1",
+    "高频"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.4996989
+}

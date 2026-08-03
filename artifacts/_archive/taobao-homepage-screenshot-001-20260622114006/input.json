@@ -1,0 +1,30 @@
+{
+  "id": "taobao-homepage-screenshot-001",
+  "name": "打开淘宝首页并截图",
+  "context": {
+    "urlPattern": "taobao.com"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://www.taobao.com",
+      "description": "打开淘宝首页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "taobao-homepage",
+      "description": "截取淘宝首页全貌"
+    }
+  ],
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

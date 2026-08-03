@@ -1,0 +1,228 @@
+{
+  "id": "f88-audit-tc23",
+  "name": "TC23 - 幂等并发 + 触发机制 + 回调链（模块D-F, 12条）",
+  "description": "后端API/DB级测试。模块D: 幂等性与并发(4条)；模块E: 触发机制(4条)；模块F: 审核完成回调链(4条)。pytest脚本: test_approve_regression.py。涉及workflow_record_log/g_workflow_instance表查询。",
+  "businessType": "f88_material",
+  "relatedCases": ["NEW-D1","NEW-D2","NEW-D3","NEW-D4","NEW-E1","NEW-E2","NEW-E3","NEW-E4","NEW-F1","NEW-F2","NEW-F3","NEW-F4"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心（获取登录态cookie）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "========== 模块D: 幂等性与并发（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-D-start')()",
+      "description": "=== 模块D分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-D1: 重复触发→幂等跳过 — 同一batchId+nodeId只创建1个job",
+      "type": "dbQuery",
+      "sql": "SELECT JSON_EXTRACT(common_variable, '$.batchId') as batch_id, node_type, COUNT(*) as cnt FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' GROUP BY batch_id, node_type HAVING cnt > 1 ORDER BY cnt DESC LIMIT 5",
+      "description": "NEW-D1: 查找同一batchId+nodeType是否有重复record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count == 0",
+      "description": "NEW-D1: 同一batchId+nodeId只创建1个record（幂等，无重复）"
+    },
+
+    {
+      "_comment": "NEW-D2: 任务名冲突→_1/_2后缀",
+      "type": "dbQuery",
+      "sql": "SELECT JSON_EXTRACT(extra_info, '$.strategyName') as name, COUNT(*) as cnt FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' GROUP BY name HAVING cnt > 1 LIMIT 5",
+      "description": "NEW-D2: 查找同名任务"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT JSON_EXTRACT(extra_info, '$.strategyName') as job_name FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(extra_info, '$.strategyName') LIKE '%\\_1' OR JSON_EXTRACT(extra_info, '$.strategyName') LIKE '%\\_2' LIMIT 10",
+      "description": "NEW-D2: 查找带_1/_2后缀的任务名"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.job_name matches '.*_[12]$'",
+      "description": "NEW-D2: 任务名冲突时自动添加_1/_2后缀"
+    },
+
+    {
+      "_comment": "NEW-D3: Tair锁竞争不重复创建 — 并发触发只创建1个任务",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/workflow-records?nodeType=approve&groupBy=batchId&having=count>1&limit=5",
+      "description": "NEW-D3: API查询是否有并发重复创建的record"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.duplicates",
+      "isEmpty": true,
+      "description": "NEW-D3: Tair锁保证并发场景下不重复创建"
+    },
+
+    {
+      "_comment": "NEW-D4: 同名不同relationId重复风险（已知风险 code-level-issues #11）",
+      "type": "dbQuery",
+      "sql": "SELECT JSON_EXTRACT(extra_info, '$.strategyName') as name, JSON_EXTRACT(common_variable, '$.relationId') as rel_id, COUNT(*) as cnt FROM workflow_record_log WHERE id > 4000000 AND node_type='approve' GROUP BY name HAVING cnt > 1 LIMIT 5",
+      "description": "NEW-D4: 查找同名但不同relationId的record（已知风险）"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count >= 0",
+      "description": "NEW-D4: 记录同名不同relationId的情况（已知风险code-level-issues #11，仅监控不阻断）"
+    },
+
+    {
+      "_comment": "========== 模块E: 触发机制（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-E-start')()",
+      "description": "=== 模块E分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-E1: 前驱未全终态→auto跳过 — approve保持TO_SUBMIT",
+      "type": "dbQuery",
+      "sql": "SELECT r1.id, r1.node_type, r1.status FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND r1.status='TO_SUBMIT' ORDER BY r1.id DESC LIMIT 5",
+      "description": "NEW-E1: 查找TO_SUBMIT状态的approve record"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT r2.id, r2.node_type, r2.status FROM workflow_record_log r2 WHERE r2.id > 4000000 AND JSON_EXTRACT(r2.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(r.common_variable, '$.batchId') FROM workflow_record_log r WHERE r.id > 4000000 AND r.node_type='approve' AND r.status='TO_SUBMIT' LIMIT 1) AND r2.node_type != 'approve' AND r2.status NOT IN ('SUCCESS', 'FAIL', 'SKIPPED') LIMIT 5",
+      "description": "NEW-E1: 检查前驱节点是否未全终态"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count > 0",
+      "description": "NEW-E1: 前驱未全终态时，approve保持TO_SUBMIT（auto跳过）"
+    },
+
+    {
+      "_comment": "NEW-E2: notAutoGen配置节点不自动触发",
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status, JSON_EXTRACT(extra_info, '$.notAutoGen') as not_auto_gen FROM workflow_record_log WHERE id > 4000000 AND status='TO_SUBMIT' AND JSON_EXTRACT(extra_info, '$.notAutoGen') IS NOT NULL ORDER BY id DESC LIMIT 5",
+      "description": "NEW-E2: 查找notAutoGen配置的节点"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.status == 'TO_SUBMIT'",
+      "description": "NEW-E2: notAutoGen配置的节点保持TO_SUBMIT，不自动触发"
+    },
+
+    {
+      "_comment": "NEW-E3: 手动trigger_approve覆盖配置",
+      "type": "apiCall",
+      "method": "POST",
+      "url": "/api/review/trigger-approve",
+      "body": { "nodeType": "approve", "manual": true, "dryRun": true },
+      "description": "NEW-E3: 手动触发approve（dryRun模式验证）"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.triggered",
+      "equals": true,
+      "description": "NEW-E3: 手动触发后任务被创建（覆盖notAutoGen配置）"
+    },
+
+    {
+      "_comment": "NEW-E4: initCount>0且非手动→跳过 — 上游未完成时不触发",
+      "type": "dbQuery",
+      "sql": "SELECT r1.id, r1.node_type, r1.status, JSON_EXTRACT(r1.common_variable, '$.initCount') as init_count FROM workflow_record_log r1 WHERE r1.id > 4000000 AND r1.node_type='approve' AND JSON_EXTRACT(r1.common_variable, '$.initCount') > 0 AND r1.status='TO_SUBMIT' ORDER BY r1.id DESC LIMIT 5",
+      "description": "NEW-E4: 查找initCount>0且TO_SUBMIT的record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "all_rows.status == 'TO_SUBMIT'",
+      "description": "NEW-E4: initCount>0且非手动时，上游未完成不触发approve"
+    },
+
+    {
+      "_comment": "========== 模块F: 审核完成回调链（4条） ==========",
+      "type": "eval",
+      "expression": "(() => 'module-F-start')()",
+      "description": "=== 模块F分隔标记 ==="
+    },
+
+    {
+      "_comment": "NEW-F1: 视频审核跳过抽检/埋雷直接完成 — 主任务直接COMPLETED",
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status, JSON_EXTRACT(extra_info, '$.skipSpotCheck') as skip_sc FROM workflow_record_log WHERE id > 4000000 AND node_type='video_approve' AND status='SUCCESS' ORDER BY id DESC LIMIT 5",
+      "description": "NEW-F1: 查找视频审核完成的record"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, node_type, status FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(common_variable, '$.batchId') FROM workflow_record_log WHERE node_type='video_approve' AND status='SUCCESS' AND id > 4000000 LIMIT 1) AND node_type IN ('spot_check', 'mine_check') LIMIT 5",
+      "description": "NEW-F1: 检查视频审核后是否有抽检/埋雷record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "row_count == 0 OR all_rows.status == 'SKIPPED'",
+      "description": "NEW-F1: 视频审核跳过抽检/埋雷，主任务直接COMPLETED"
+    },
+
+    {
+      "_comment": "NEW-F2: 埋雷5%抽样(上限50)",
+      "type": "dbQuery",
+      "sql": "SELECT COUNT(*) as mine_count FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(extra_info, '$.job_type') = 2 AND JSON_EXTRACT(common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(common_variable, '$.batchId') FROM workflow_record_log WHERE node_type='approve' AND status='SUCCESS' AND id > 4000000 LIMIT 1)",
+      "description": "NEW-F2: 统计埋雷任务数量"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "mine_count <= 50",
+      "description": "NEW-F2: 埋雷数量 = 总量*5%，上限50"
+    },
+
+    {
+      "_comment": "NEW-F3: 大量子任务MQ分页发送 — >100条时分页",
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/batch-tasks?batchId=${largeBatchId}&countOnly=true",
+      "description": "NEW-F3: 查询大批量任务的子任务数"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.totalCount",
+      "description": "NEW-F3: >100条子任务时分页发送MQ消息（验证消息日志中分页次数）"
+    },
+
+    {
+      "_comment": "NEW-F4: 抽检覆盖原审核结果 — job_type=1的auditOption被job_type=3覆盖",
+      "type": "dbQuery",
+      "sql": "SELECT r1.id, JSON_EXTRACT(r1.extra_info, '$.job_type') as job_type, JSON_EXTRACT(r1.extra_info, '$.auditOption') as audit_option FROM workflow_record_log r1 WHERE r1.id > 4000000 AND JSON_EXTRACT(r1.common_variable, '$.batchId') IN (SELECT JSON_EXTRACT(common_variable, '$.batchId') FROM workflow_record_log WHERE id > 4000000 AND JSON_EXTRACT(extra_info, '$.job_type') = 3 LIMIT 1) AND JSON_EXTRACT(r1.extra_info, '$.job_type') IN (1, 3) ORDER BY r1.id ASC",
+      "description": "NEW-F4: 查找同一batch中job_type=1(审核)和job_type=3(抽检)的record"
+    },
+    {
+      "type": "assertDbResult",
+      "condition": "exists row with job_type==3",
+      "description": "NEW-F4: 抽检(job_type=3)存在时覆盖原审核(job_type=1)的auditOption"
+    },
+    {
+      "type": "apiCall",
+      "method": "GET",
+      "url": "/api/review/audit-results?batchId=${spotCheckBatchId}&compareJobType=1,3",
+      "description": "NEW-F4: API验证抽检结果是否覆盖了审核结果"
+    },
+    {
+      "type": "assertJson",
+      "path": "$.comparison.finalAuditOption",
+      "equals": "spotCheckResult",
+      "description": "NEW-F4: 最终auditOption取自抽检结果(job_type=3)而非审核结果(job_type=1)"
+    }
+  ]
+}

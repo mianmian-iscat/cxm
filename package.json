@@ -1,0 +1,9 @@
+{
+  "name": "web-automation",
+  "private": true,
+  "version": "3.0.0",
+  "description": "CDP browser automation dependencies",
+  "dependencies": {
+    "puppeteer-core": "^24.7.2"
+  }
+}

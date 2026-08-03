@@ -1,0 +1,59 @@
+{
+  "id": "TC-BF-001",
+  "name": "TC-BF-001 — 买手编辑Brief表单字段展示 [P0]",
+  "description": "验证Brief草稿态表单展示6大分组字段：基础与风格、目标人群、货盘与上新计划、视觉参考、试拍准备",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "Brief协作",
+  "page": "迭代详情-Brief tab",
+  "priority": "P0",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const groups = ['基础与风格', '目标人群', '货盘与上新计划', '视觉参考', '试拍准备']; const fields = ['迭代名称', '风格定位', '年龄', '职业', '品类占比', '上新节奏', '单次上新量', '对标店铺', '参考视觉图', '首次试拍商品']; const foundGroups = groups.filter(g => text.includes(g)); const foundFields = fields.filter(f => text.includes(f)); return { foundGroups, foundFields, allGroupsFound: foundGroups.length === groups.length }; })()",
+      "description": "验证Brief表单分组和字段",
+      "storeAs": "formFields"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const tabs = Array.from(document.querySelectorAll('.ant-tabs-tab, [class*=tab]')).map(t => t.textContent.trim()); const hasBrief = tabs.some(t => t.includes('Brief')); const activeTab = document.querySelector('.ant-tabs-tab-active, [class*=tab-active]')?.textContent.trim(); return { tabs, hasBrief, activeTab }; })()",
+      "description": "验证Brief tab为默认tab",
+      "storeAs": "tabCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "tabCheck",
+      "path": "hasBrief",
+      "equals": true
+    },
+    {
+      "type": "screenshot",
+      "label": "brief-form"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "存在DRAFT_BRIEF状态的迭代，当前用户是店铺买手",
+    "stepsText": "1. 进入迭代详情页\n2. 验证默认进入Brief tab\n3. 检查表单展示6大分组\n4. 检查各字段控件正确展示",
+    "expectedResult": "1. 默认进入Brief tab\n2. 表单展示：迭代名称(输入框)、风格定位(多行文本)、年龄(多选)、职业(多选)、品类占比(组件)、上新节奏(单选)、单次上新量(数字)、对标店铺(组件)、参考视觉图(图片选择)、首次试拍商品(item id输入)",
+    "priority": "P0",
+    "groupPath": "风格店铺协作平台/Brief协作"
+  }
+}

@@ -1,0 +1,56 @@
+{
+ "opts": [],
+ "picked": null,
+ "fileInputCount": 1,
+ "after": {
+  "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=test",
+  "bodyText": "F88-运营平台 当前身份： F88 策略平台 模版库 审核管理 审核标准管理 审核节点管理 任务管理 商家管理 新建任务 1 任务创建 2 任务基础设置 3 任务分配 4 检查设置 任务名称 0 / 50 请输入任务名称 任务节点选择 请选择 请选择任务节点 上传数据 当前节点上传模版：请先选择节点。 点击或拖拽文件上传 支持xlsx、xls格式文件 task-upload-sample.xlsx 取 消 下一步",
+  "errors": [
+   "请输入任务名称",
+   "请选择任务节点"
+  ],
+  "labels": [
+   "任务名称",
+   "任务节点选择",
+   "上传数据",
+   "审核标准",
+   "优先级",
+   "预期交付时间",
+   "难度预估",
+   "人效预估",
+   "职能角色",
+   "能力标签要求",
+   "参与人员",
+   "分配结果",
+   "抽检是否开启",
+   "参与人",
+   "分配方式",
+   "抽检样本来源",
+   "抽检任务比例",
+   "人均抽检任务数量上限",
+   "人均抽检数",
+   "埋雷是否开启",
+   "埋雷任务比例",
+   "人均埋雷任务数量上限",
+   "人均埋雷数"
+  ],
+  "stepState": [
+   {
+    "t": "1 任务创建",
+    "cls": "ant-steps-item-process ant-steps-item-active"
+   },
+   {
+    "t": "2 任务基础设置",
+    "cls": "ant-steps-item-wait"
+   },
+   {
+    "t": "3 任务分配",
+    "cls": "ant-steps-item-wait"
+   },
+   {
+    "t": "4 检查设置",
+    "cls": "ant-steps-item-wait"
+   }
+  ]
+ }
+}

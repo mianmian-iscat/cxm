@@ -1,0 +1,14 @@
+{
+  "id": "infra_db_connection",
+  "category": "infra",
+  "title": "DB连接信息",
+  "content": "{\"db_group\": \"scenario\", \"db_name\": \"prod\", \"host\": \"33.9.212.198:3011\", \"db_id\": \"975919\", \"method\": \"DMS MCP\"}",
+  "tags": [
+    "数据库",
+    "连接"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499702
+}

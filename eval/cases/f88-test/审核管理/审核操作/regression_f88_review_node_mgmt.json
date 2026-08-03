@@ -1,0 +1,125 @@
+{
+  "id": "regression-f88-review-node-mgmt",
+  "name": "回归：F88 审核节点管理+新建节点表单验证",
+  "description": "验证审核节点管理列表结构，点击新建审核节点进入表单页，验证表单步骤（节点配置→检查设置）、关键字段（审核标准/题目类型/分配方式等）存在。基于预发真实结构重写。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核节点管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 2500,
+      "description": "等待节点管理表格加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核节点管理",
+      "description": "验证审核节点管理页已加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "新建审核节点",
+      "description": "【MR-001】验证含新建审核节点入口"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "人效预估",
+      "description": "验证表格含人效预估列"
+    },
+    {
+      "type": "clickText",
+      "text": "新建审核节点",
+      "description": "点击新建审核节点进入创建表单"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点创建表单加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-node-form",
+      "description": "截图-新建审核节点表单"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点配置",
+      "description": "【MR-001】验证表单步骤1-节点配置"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "题目类型",
+      "description": "【MR-001】验证表单含题目类型字段"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "分配方式",
+      "description": "【MR-001】验证表单含分配方式字段"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "不通过原因配置",
+      "description": "【MR-001】验证表单含不通过原因配置"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核标准",
+      "description": "【MR-001】验证表单含审核标准字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "create-node-form-done",
+      "description": "截图-验证完毕（不提交）"
+    }
+  ],
+  "capture": {
+    "enabled": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问。",
+    "realDomNotes": "真实路由 /review/node-management；点'新建审核节点'进入全页面表单（非弹窗），步骤1=节点配置，步骤2=检查设置；表单字段：节点名称(0/25)/审核标准(可多选)/难度预估/人效预估(条/小时)/题目类型(单图/首图/套图/视频/模板审核)/分配方式(按商家/平均)/参与人(职能角色+能力标签)/不通过原因配置(必填)；底部按钮:取消/下一步。",
+    "riskPoints": [
+      "表单字段可能随版本调整",
+      "取消后应返回列表"
+    ],
+    "qoderworkRef": "testcases_material_review.json MR-001"
+  },
+  "source": "qoderwork/f88-test/testcases_material_review.json",
+  "sourceIds": [
+    "MR-001"
+  ]
+}

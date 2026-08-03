@@ -1,0 +1,66 @@
+{
+  "id": "ui-op-quick-audit-drawer",
+  "name": "UI：原创保护小二端-快审抽屉（QuickAuditDrawer）结构验证",
+  "description": "打开小二端列表页，点击快审操作，全量验证 QuickAuditDrawer：抽屉标题、商家sellerId必填字段、产品图片上传区（JPG/PNG）、主视图/左视图预览、发起快审按钮、提交/返回按钮、附加入口（查看申请详情/产品设计要点/记录/查看日志/放大图/各视图比例）。",
+  "businessType": "xiaoer_original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/taotian-apparel-original-protection-xiaoer/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开原创保护小二端列表页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待列表数据加载" },
+    { "type": "assert", "target": "page", "contains": "原创保护", "description": "验证小二端列表页已加载" },
+    { "type": "screenshot", "label": "xiaoer-list-init", "description": "截图-列表初始状态" },
+    {
+      "type": "clickText",
+      "text": "发起快审",
+      "description": "点击行级发起快审按钮"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待QuickAuditDrawer动画完成" },
+
+    { "type": "assert", "assertion": "elementVisible", "selector": ".tbd-drawer, .ant-drawer", "description": "【抽屉】验证Drawer组件已展开" },
+    { "type": "assert", "target": "page", "contains": "发起快审", "description": "【抽屉标题】验证含发起快审标题" },
+
+    { "type": "assert", "target": "page", "contains": "sellerid", "description": "【必填字段】验证含商家sellerId输入" },
+    { "type": "assert", "target": "page", "contains": "产品图片", "description": "【必填字段】验证含产品图片上传区" },
+    { "type": "assert", "target": "page", "contains": "JPG", "description": "【图片格式】验证支持JPG格式" },
+    { "type": "assert", "target": "page", "contains": "PNG", "description": "【图片格式】验证支持PNG格式" },
+
+    { "type": "assert", "target": "page", "contains": "主视图", "description": "【视图预览】验证含主视图预览" },
+    { "type": "assert", "target": "page", "contains": "左视图", "description": "【视图预览】验证含左视图预览" },
+
+    { "type": "assert", "target": "page", "contains": "提交", "description": "【操作按钮】验证含提交按钮" },
+    { "type": "assert", "target": "page", "contains": "返", "description": "【操作按钮】验证含返回按钮" },
+
+    { "type": "assert", "target": "page", "contains": "查看申请详情", "description": "【附加入口】验证含查看申请详情链接" },
+    { "type": "assert", "target": "page", "contains": "产品设计要点", "description": "【附加入口】验证含产品设计要点入口" },
+    { "type": "assert", "target": "page", "contains": "记录", "description": "【附加入口】验证含记录入口" },
+
+    { "type": "screenshot", "label": "quick-audit-drawer", "description": "截图-快审抽屉已打开" },
+    { "type": "clickText", "text": "返", "description": "点击返回关闭抽屉" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "BUC已登录小二端；列表须有待快审记录。",
+    "realDomNotes": "QuickAuditDrawer: sellerId查商家(必填)+产品图片上传(JPG/PNG,必填)+主视图/左视图预览;操作:发起快审+提交+返回;附加入口:查看申请详情/产品设计要点/记录/查看日志/放大图及变化/各视图比例。",
+    "riskPoints": [
+      "列表无数据时快审按钮不存在",
+      "BUC登录态失效跳转登录页",
+      "返回按钮TBD渲染可能为「返 回」（带空格）"
+    ]
+  }
+}

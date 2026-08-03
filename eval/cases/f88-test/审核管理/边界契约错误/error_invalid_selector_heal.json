@@ -1,0 +1,78 @@
+{
+  "id": "error-invalid-selector-heal",
+  "name": "异常流程：错误选择器触发自愈 → 知识库修复 → 重试成功",
+  "description": "使用过时的 .ant-select 选择器（直接 click 而非 mouse.click），验证自愈引擎能命中知识库并自动修复",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "self_healing_validation",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "click",
+      "selector": ".ant-select-selection__rendered",
+      "description": "【故意使用过时选择器】直接点击 ant-select 内部元素（Ant Design 4.x 已废弃此 class）"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "after-heal-select",
+      "description": "截图 - 自愈修复后的下拉状态"
+    }
+  ],
+  "capture": {
+    "enabled": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass",
+    "_comment": "步骤3首次失败后，自愈引擎应命中 error-pattern-map 的 ant-select 规则，执行 mouse.click 箭头坐标修复，重试成功"
+  },
+  "_testDesign": {
+    "preconditions": "页面含 .ant-select 组件",
+    "expectedHealBehavior": "知识库命中 → fix_code 执行 mouse.click → 重试 click 成功",
+    "riskPoints": [
+      "自愈 fix_code 执行失败",
+      "DOM 结构变更导致箭头定位失败"
+    ],
+    "relatedDocs": [
+      "references/error-pattern-map.json",
+      "scenes/f88-test/references/F88-前端组件测试要点.md"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

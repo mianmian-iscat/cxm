@@ -1,0 +1,109 @@
+{
+  "id": "ui-f88-sd-node-types-modal",
+  "name": "UI：策略详情-节点类型弹窗完整验证",
+  "description": "打开策略详情页，点击新增节点，验证弹窗中显示全部20种节点类型及其描述文案。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "打开",
+      "description": "点击第一条策略的打开按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待策略详情页加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证进入策略详情页"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点类型弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { hasModal: false }; const title = modal.querySelector('.ant-modal-title'); return { hasModal: true, title: title?.textContent.trim() }; })()",
+      "storeAs": "modalInfo",
+      "description": "验证节点类型弹窗标题"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)');\n        if (!modal) return { count: 0 };\n        const cards = modal.querySelectorAll('.ant-card');\n        const types = [];\n        for (const card of cards) {\n          const title = card.querySelector('.ant-card-meta-title');\n          const desc = card.querySelector('.ant-card-meta-description');\n          if (title) types.push({ name: title.textContent.trim(), desc: desc?.textContent.trim() || '' });\n        }\n        return { count: types.length, types: types.map(t => t.name) };\n      })()",
+      "storeAs": "nodeTypes",
+      "description": "获取所有节点类型"
+    },
+    {
+      "type": "screenshot",
+      "label": "node-types-modal",
+      "description": "截图-节点类型弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n        const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)');\n        if (!modal) return { ok: false };\n        const text = modal.innerText;\n        const required = ['LLM文本生成', '生图', 'Map生图', '季节标签', '产业标签', '模板匹配', '人工审核', 'Caption', '机审', '高清化处理'];\n        const found = required.filter(r => text.includes(r));\n        const missing = required.filter(r => !text.includes(r));\n        return { found: found.length, total: required.length, missing };\n      })()",
+      "description": "验证关键节点类型存在"
+    },
+    {
+      "type": "pressKey",
+      "key": "Escape",
+      "description": "关闭节点类型弹窗"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待关闭"
+    }
+  ]
+}

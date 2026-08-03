@@ -1,0 +1,83 @@
+{
+  "id": "atom-f88-ptc-material-type",
+  "name": "原子：个人任务中心-素材类型筛选选项验证",
+  "description": "验证素材类型下拉包含主图/详情页/白底图等选项",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 6000,
+      "description": "等待SPA加载完成"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { return { url: window.location.href, bodyLen: (document.body?.innerText || '').length }; })()",
+      "description": "验证页面已稳定加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "return (() => { const selects = document.querySelectorAll('.ant-select'); const typeSelect = Array.from(selects).find(s => { const prev = s.previousElementSibling || s.parentElement?.querySelector('label, span'); return prev && prev.textContent && prev.textContent.includes('素材'); }); return { found: !!typeSelect }; })()",
+      "description": "查找素材类型Select",
+      "storeAs": "typeSelect"
+    },
+    {
+      "type": "assertStore",
+      "key": "typeSelect",
+      "path": "found",
+      "equals": true,
+      "description": "验证 查找素材类型Select 存在"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "审核",
+      "description": "验证页面已加载"
+    },
+    {
+      "type": "assertStore",
+      "key": "typeSelect",
+      "path": "found",
+      "equals": true
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-material-type",
+      "description": "截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "",
+    "realDomNotes": "",
+    "riskPoints": [
+      "无数据时为空"
+    ]
+  }
+}

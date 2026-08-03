@@ -1,0 +1,107 @@
+{
+  "id": "atom-cl-01-list-load",
+  "name": "原子：链路列表页加载验证",
+  "description": "验证链路列表页正确加载，包含表头、搜索框、新建按钮、数据行、分页",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "screenshot": true
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路名称",
+      "description": "表头-链路名称"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "生命周期",
+      "description": "表头-生命周期"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "描述",
+      "description": "表头-描述"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略一致性",
+      "description": "表头-策略一致性"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "提交人",
+      "description": "表头-提交人"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "更新时间",
+      "description": "表头-更新时间"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "操作",
+      "description": "表头-操作"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input[placeholder=\"搜索链路名称\"]'); return { found: !!input, visible: input ? input.offsetHeight > 0 : false }; })()",
+      "storeAs": "searchBox"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const btn = [...btns].find(b => b.textContent.includes('新建链路')); return { found: !!btn, visible: btn ? btn.offsetHeight > 0 : false, text: btn?.textContent.trim() }; })()",
+      "storeAs": "createBtn"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('table tbody tr'); const dataRows = [...rows].filter(r => r.querySelectorAll('td').length > 0); return { rowCount: dataRows.length, hasData: dataRows.length > 0 }; })()",
+      "storeAs": "tableData"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const pagination = document.querySelector('.ant-pagination'); if (!pagination) return { found: false }; const items = pagination.querySelectorAll('li'); const total = pagination.textContent; return { found: true, items: items.length, text: total.substring(0, 50) }; })()",
+      "storeAs": "pagination"
+    },
+    {
+      "type": "screenshot",
+      "label": "list-loaded"
+    }
+  ]
+}

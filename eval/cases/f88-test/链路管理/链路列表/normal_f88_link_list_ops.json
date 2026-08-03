@@ -1,0 +1,155 @@
+{
+  "id": "normal_f88_link_list_ops",
+  "name": "链路列表 - 编辑/复制链路 + 生命周期筛选",
+  "description": "在链路列表验证生命周期筛选(AntD Select)、编辑入口(跳转详情)、复制链路确认弹窗、筛选后列表更新。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "link",
+    "CRUD",
+    "edit",
+    "copy",
+    "filter"
+  ],
+  "timeout": 120000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "description": "打开链路列表页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "screenshot",
+      "label": "link-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tr[data-row-key]'); const selects = document.querySelectorAll('.ant-select'); return { rowCount: rows.length, selectCount: selects.length, columns: Array.from(document.querySelectorAll('.ant-table-thead th')).map(th=>th.textContent.trim()), firstRowBtns: rows.length ? Array.from(rows[0].querySelectorAll('button, a, [class*=btn]')).map(b=>b.textContent.trim()).filter(Boolean) : [] }; })()",
+      "description": "探查表格和筛选组件"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "link|strategy|lifecycle|copy",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "mouse",
+      "action": "click",
+      "selector": ".ant-select",
+      "selectorIndex": 0,
+      "data-test-target": "lifecycle-select",
+      "description": "展开生命周期筛选(AntD Select需mouse.click)"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉展开"
+    },
+    {
+      "type": "evaluate",
+      "expression": "Array.from(document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item')).map(el=>el.textContent)",
+      "description": "获取生命周期选项"
+    },
+    {
+      "type": "screenshot",
+      "label": "link-lifecycle-dropdown",
+      "description": "截图-下拉选项"
+    },
+    {
+      "type": "clickText",
+      "text": "实验",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择实验阶段"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待筛选"
+    },
+    {
+      "type": "screenshot",
+      "label": "link-filtered",
+      "description": "截图-筛选后"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelectorAll('.ant-table-row, tr[data-row-key]').length",
+      "description": "统计筛选后行数"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "实验",
+      "description": "验证筛选结果含实验标签"
+    },
+    {
+      "type": "clickText",
+      "text": "复制",
+      "within": ".ant-table, [class*=list]",
+      "data-test-target": "copy-btn",
+      "description": "点击复制按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待确认弹窗"
+    },
+    {
+      "type": "screenshot",
+      "label": "link-copy-confirm",
+      "description": "截图-复制确认"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const pop=document.querySelector('.ant-popover:not(.ant-popover-hidden),.ant-popconfirm,.ant-modal'); if(!pop) return {found:false}; return {found:true, text:pop.textContent.substring(0,200), buttons:Array.from(pop.querySelectorAll('button')).map(b=>b.textContent.trim())}; })()",
+      "description": "探查确认弹窗结构"
+    },
+    {
+      "type": "clickText",
+      "text": "/(取消|否|Cancel)/",
+      "within": ".ant-popover, .ant-popconfirm, .ant-modal",
+      "fallback": {
+        "type": "pressKey",
+        "key": "Escape"
+      },
+      "description": "取消复制(不实际执行)"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "screenshot",
+      "label": "link-final",
+      "description": "截图-最终状态"
+    }
+  ],
+  "realDomNotes": "链路列表 /strategy/linkList；操作列含编辑/复制；AntD Select需mouse.click展开；复制有Popconfirm确认。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88，至少存在一条链路"
+}

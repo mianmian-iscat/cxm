@@ -1,0 +1,43 @@
+{
+  "name": "screenshot",
+  "version": "1.1.0",
+  "description": "主动截图并保存，可选 baseline 启用视觉回归对比（对标 Percy 2025）",
+  "triggers": ["截图", "截屏", "screenshot", "capture"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "label"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "screenshot" },
+      "label": { "type": "string", "description": "截图标签，用于文件命名" },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" },
+      "baseline": { "type": "string", "description": "基线名称（启用视觉回归对比）" },
+      "autoSaveBaseline": { "type": "boolean", "default": false, "description": "基线不存在时是否自动保存为基线" },
+      "ignoreRegions": {
+        "type": "array",
+        "description": "忽略区域（动态内容：头像/广告/时间戳），每项 {x, y, w, h}",
+        "items": {
+          "type": "object",
+          "required": ["x", "y", "w", "h"],
+          "properties": {
+            "x": { "type": "integer" }, "y": { "type": "integer" },
+            "w": { "type": "integer" }, "h": { "type": "integer" }
+          }
+        }
+      },
+      "thresholdPx": { "type": "integer", "default": 50, "description": "单像素 RGB 容差" },
+      "thresholdPct": { "type": "number", "default": 0.01, "description": "全图差异占比阈值（0.01 = 1%）" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "screenshotPath": { "type": "string" },
+      "visualDiff": { "type": "object", "description": "视觉回归对比报告（仅 baseline 字段存在时）" }
+    }
+  },
+  "timeout_ms": 15000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 500 }
+}

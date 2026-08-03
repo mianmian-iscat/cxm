@@ -1,0 +1,62 @@
+{
+  "id": "tc05-brief-confirm-reject",
+  "name": "产运确认/驳回 Brief",
+  "description": "产运角色确认Brief或驳回Brief",
+  "priority": "P0",
+  "category": "functional",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "PENDING_BRIEF"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('确认Brief')",
+      "description": "产运确认Brief"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "IN_PRODUCTION"
+    },
+    {
+      "type": "screenshot",
+      "description": "截图确认后状态"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "state_is",
+      "value": "IN_PRODUCTION"
+    }
+  ],
+  "tags": [
+    "afd",
+    "functional",
+    "brief",
+    "operator"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

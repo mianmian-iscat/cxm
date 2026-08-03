@@ -1,0 +1,16 @@
+{
+  "id": "pat_subsidy_not_triggered",
+  "category": "patterns",
+  "title": "补贴未触发—时序错误",
+  "content": "{\"error\": \"先设到期时间再设补贴时间导致补贴不发\", \"root_cause\": \"HSF调用顺序错误\", \"fix\": \"必须先 updateInitAllowanceStartTime 再 updateProtectExpiredTime\"}",
+  "tags": [
+    "补贴",
+    "时序",
+    "P0",
+    "高频"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499698
+}

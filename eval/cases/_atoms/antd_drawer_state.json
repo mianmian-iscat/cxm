@@ -1,0 +1,14 @@
+{
+  "id": "antd_drawer_state",
+  "description": "检查 Ant Design Drawer 是否可见（排除 ant-drawer-hidden），并汇总内部 form-item 字段。",
+  "params": [
+    { "name": "storeAs", "type": "string", "default": "drawerState", "desc": "Store 键名" }
+  ],
+  "steps": [
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); if (!drawer) return { open: false }; const text = drawer.textContent || ''; const formItems = Array.from(drawer.querySelectorAll('.ant-form-item')); const fieldValues = {}; for (const item of formItems) { const label = (item.querySelector('.ant-form-item-label')?.textContent || '').trim(); const input = item.querySelector('input:not([type=checkbox]):not([type=radio])'); const select = item.querySelector('.ant-select-selection-item'); if (label && input) fieldValues[label] = input.value || ''; if (label && select) fieldValues[label] = select.textContent || ''; } const buttons = Array.from(drawer.querySelectorAll('button')).slice(0, 10).map(b => (b.textContent || '').trim()); return { open: true, formFieldCount: formItems.length, fieldValues, buttons, textPreview: text.substring(0, 300) }; })()",
+      "storeAs": "{{storeAs}}"
+    }
+  ]
+}

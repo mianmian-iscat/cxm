@@ -1,0 +1,73 @@
+{
+  "id": "tc04-brief-draft-submit",
+  "name": "Brief 草稿填写与提交",
+  "description": "填写Brief 5大区块表单并校验提交",
+  "priority": "P0",
+  "category": "smoke",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": "[data-tab='brief']",
+      "exists": true
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='迭代名称']",
+      "value": "春季视觉迭代",
+      "react": true
+    },
+    {
+      "type": "fill",
+      "selector": "textarea[placeholder*='风格定位']",
+      "value": "轻奢简约风格，注重面料质感与剪裁工艺，适合都市白领日常穿搭",
+      "react": true
+    },
+    {
+      "type": "screenshot",
+      "description": "截图Brief表单填写状态"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('提交产运确认')"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "PENDING_BRIEF"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "state_is",
+      "value": "PENDING_BRIEF"
+    }
+  ],
+  "tags": [
+    "afd",
+    "smoke",
+    "brief"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

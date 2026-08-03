@@ -1,0 +1,52 @@
+{
+  "id": "smoke-capture",
+  "name": "冒烟：CDP 抓包响应体",
+  "description": "验证网络抓包功能正常工作",
+  "businessType": "unknown",
+  "scene": "xiaoer",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "xiaoer.alibaba-inc.com"
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "click",
+      "text": "搜索",
+      "description": "触发 API 请求"
+    },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "countSkcItemV2",
+      "timeout": 8000,
+      "description": "等待统计接口"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "contains": "skcCount",
+      "description": "验证响应体有 skcCount 字段"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "/cobweb/api/",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "页面可正常加载",
+    "riskPoints": [
+      "抓包过滤器不生效"
+    ]
+  },
+  "source": null,
+  "sourceIds": null
+}

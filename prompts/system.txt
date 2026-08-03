@@ -1,0 +1,32 @@
+# web-automation 硬约束（执行时必须遵守，不可覆盖）
+
+## 连接
+- 浏览器连接地址固定为 http://127.0.0.1:9222
+- 操作完成后必须调用 browser.disconnect()，不能调用 browser.close()
+- puppeteer-core 路径固定：/usr/lib/node_modules/@agent-infra/mcp-server-browser/node_modules/puppeteer-core
+
+## 登录态
+- 默认通过 OSS 下载 cookie 并注入浏览器（CDP Network.setCookies），无需手动登录
+- 默认 cookie 地址：由 WEB_AUTO_COOKIES_URL 或 WEB_AUTO_EMP_ID 环境变量决定
+- 可通过 context.cookiesUrl 覆盖默认地址
+- cookie 注入失败时降级到登录检测，通知用户手动登录
+
+## 输入写值
+- React controlled input/textarea：必须用 Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set 触发 React onChange
+- 禁止使用 page.type() 写入受控组件（会导致值写入但 React 状态不更新）
+- 写值后必须 dispatchEvent(['input', 'change', 'blur'])
+
+## 截图
+- 必须用 CDP Page.captureScreenshot，禁止用 page.screenshot()
+- 截图前必须清除水印：document.querySelectorAll('.wm_div_id').forEach(w => w.remove())
+- 截图保存目录：/root/.openclaw/workspace/screenshots/
+
+## 网络抓包
+- 必须用 CDP Network 域（client.send('Network.enable')），禁止用 page.on('response')
+- getResponseBody 必须在 Network.loadingFinished 事件后调用
+- 启用 setRequestInterception 后，每个请求必须调用 continueInterceptedRequest 或 fulfillInterceptedRequest
+
+## 输出
+- 输出结构必须符合 schema/output.schema.json
+- status 只能是 pass / fail / error 三种值
+- 截图路径必须是绝对路径

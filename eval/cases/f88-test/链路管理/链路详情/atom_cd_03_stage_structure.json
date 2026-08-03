@@ -1,0 +1,59 @@
+{
+  "id": "atom-cd-03-stage-structure",
+  "name": "原子：链路环节结构验证",
+  "description": "验证5个环节的入参、出参、策略数量、操作按钮完整",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => {\n          const expected = [\n            { name: '刷标签', inParams: ['seller_id','seed_image_url','tao_cate','item_id'], outParams: ['season_tag','style_tag'], strategyCount: 1 },\n            { name: '首图生图', inParams: ['seller_id','item_id','seed_image_url','style_tag','season_tag','tao_cate'], outParams: ['main_img_url'], strategyCount: 4 },\n            { name: '首图审核', inParams: ['seller_id','main_img_url'], outParams: ['main_img_url'], strategyCount: 1 },\n            { name: '套图生图', inParams: ['seller_id','main_img_url','tao_cate'], outParams: ['set_img_url'], strategyCount: 1 },\n            { name: '套图审核', inParams: ['seller_id','main_img_url','set_img_url','tao_cate'], outParams: ['no_pass_reason','set_img_url'], strategyCount: 1 }\n          ];\n          const text = document.body.innerText;\n          const results = expected.map(stage => ({\n            name: stage.name,\n            found: text.includes(stage.name),\n            hasInput: stage.inParams.every(p => text.includes(p)),\n            hasOutput: stage.outParams.some(p => text.includes(p)),\n          }));\n          return results;\n        })()",
+      "storeAs": "stageVerification"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const icons = ['edit','arrow-up','arrow-down','delete']; const allBtns = document.querySelectorAll('button'); const iconBtns = {}; icons.forEach(icon => { iconBtns[icon] = [...allBtns].filter(b => { const img = b.querySelector('img'); return img && img.alt === icon; }).length; }); return iconBtns; })()",
+      "storeAs": "stageButtons"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const addStrategyBtns = [...btns].filter(b => b.textContent.includes('添加策略')); return { count: addStrategyBtns.length, expected: 5 }; })()",
+      "storeAs": "addStrategyBtns"
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-structure"
+    }
+  ]
+}

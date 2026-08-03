@@ -1,0 +1,106 @@
+{
+  "id": "atomic-f88-industry-seeding-params",
+  "name": "UI：产业带种草链路-起点入参10字段验证",
+  "description": "验证产业带种草链路起点入参包含10个字段(item_id/seller_id/tao_cate/seed_image_url/template_1~6)，相比种草20205新增template_1~6",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20243",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20243",
+      "waitUntil": "networkidle",
+      "description": "打开产业带种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "item_id",
+      "description": "入参：item_id"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "入参：seller_id"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "tao_cate",
+      "description": "入参：tao_cate"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seed_image_url",
+      "description": "入参：seed_image_url"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "template_1",
+      "description": "新增入参：template_1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "template_2",
+      "description": "新增入参：template_2"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const baseParams = ['item_id', 'seller_id', 'tao_cate', 'seed_image_url']; const templateParams = ['template_1', 'template_2']; const baseFound = baseParams.filter(p => t.includes(p)); const templateFound = templateParams.filter(p => t.includes(p)); return { baseCount: baseFound.length, baseTotal: baseParams.length, templateCount: templateFound.length, templateTotal: templateParams.length, allBasePresent: baseFound.length === baseParams.length, allTemplatePresent: templateFound.length === templateParams.length, totalFound: baseFound.length + templateFound.length }; })()",
+      "description": "统计10个入参字段完整性",
+      "storeAs": "paramCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramCheck",
+      "path": "allBasePresent",
+      "equals": true,
+      "description": "4个基础入参全部存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramCheck",
+      "path": "allTemplatePresent",
+      "equals": true,
+      "description": "6个模板入参全部存在(template_1~6)"
+    },
+    {
+      "type": "assertStore",
+      "key": "paramCheck",
+      "path": "totalFound",
+      "equals": 6,
+      "description": "总共10个入参字段"
+    },
+    {
+      "type": "screenshot",
+      "label": "industry-seeding-params",
+      "description": "产业带种草链路入参10字段"
+    }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；产业带种草链路已创建(链路ID待确认，当前使用20180作为占位)",
+    "realDomNotes": "PRD定义10个入参字段: item_id/seller_id/tao_cate/seed_image_url + template_1~6; 相比种草20205新增6个模板字段",
+    "riskPoints": ["template_1~6是否已在链路起点注册", "链路ID是否为20180(需确认)"]
+  }
+}

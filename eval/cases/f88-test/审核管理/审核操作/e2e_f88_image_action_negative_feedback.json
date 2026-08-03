@@ -1,0 +1,140 @@
+{
+  "id": "e2e-f88-image-action-negative-feedback",
+  "name": "端到端：F88 图片负反馈 → 重生图 → CopyURL/下载验证 → 驳回 → 状态一致性校验",
+  "description": "进入图片审核详情，记录原始URL→点击负反馈→选择重生图原因→确认→等待重生图生成→postConfirmVerify验证CopyURL/下载得到重生后数据→驳回→API/DB状态校验。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "dataSetup",
+      "kind": "f88-audit-task",
+      "params": { "questionType": 4, "rows": 1 },
+      "storeAs": "setupTask",
+      "description": "[造数] 自动创建待审核首图审核任务（数据自愈，解决无待审核数据阻塞）"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待任务列表" },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核任务"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待筛选结果" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('.ant-table-row, tr[data-row-key]')); const row = rows[0]; return row ? { taskId: row.getAttribute('data-row-key') } : null; })()",
+      "storeAs": "firstTask",
+      "description": "读取首行任务ID"
+    },
+    { "type": "clickText", "text": "审核", "description": "打开第一条待审核任务" },
+    { "type": "wait", "ms": 2500, "description": "等待审核详情Drawer打开" },
+    { "type": "hover", "selector": "img", "description": "hover素材图触发工具栏" },
+    { "type": "wait", "ms": 1000, "description": "等待工具栏出现" },
+    { "type": "clickText", "text": "负反馈", "description": "点击负反馈按钮" },
+    { "type": "wait", "ms": 2000, "description": "等待负反馈弹窗" },
+    { "type": "clickText", "text": "重生图", "description": "选择重生图选项（如存在）" },
+    { "type": "clickText", "text": "确认", "description": "确认负反馈" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "imageFeedback|regenerateMaterial",
+      "timeout": 15000,
+      "description": "等待负反馈/重生图API"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待重生图异步状态" },
+    {
+      "_comment": "========== postConfirmVerify: 负反馈重生后CopyURL/下载验证 ==========",
+      "type": "noop"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw') && i.getBoundingClientRect().width > 100); const newImg = imgs.find(i => !i.src.includes('/llm/') || i.src.includes('/localUpload/') || i.src.includes('/regenerate/')); return newImg ? { regenUrl: newImg.src.substring(0, 120) } : null; })()",
+      "storeAs": "afterRegen",
+      "description": "【postConfirmVerify】获取重生后图片URL"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const imgs = Array.from(document.querySelectorAll('img')).filter(i => i.src && i.src.includes('scene-ossgw') && i.getBoundingClientRect().width > 100); return imgs.length > 0 ? { currentUrl: imgs[0].src.substring(0, 120) } : null; })()",
+      "storeAs": "currentImg",
+      "description": "【postConfirmVerify】获取当前显示图片URL"
+    },
+    {
+      "type": "clickText",
+      "text": "复制",
+      "description": "【postConfirmVerify-CopyURL】点击复制URL按钮"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待复制操作完成" },
+    {
+      "type": "clickText",
+      "text": "下载",
+      "description": "【postConfirmVerify-下载】点击下载按钮"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待下载完成" },
+    {
+      "type": "screenshot",
+      "label": "f88-negative-feedback-postconfirm-verify",
+      "description": "截图-负反馈重生后CopyURL/下载验证"
+    },
+    { "type": "clickText", "text": "驳回", "description": "点击审核驳回" },
+    {
+      "type": "waitForAPI",
+      "urlPattern": "rejectMaterial",
+      "timeout": 15000,
+      "description": "等待审核驳回API"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待列表刷新" },
+    {
+      "type": "apiCall",
+      "api": "bzb.api.fsyx_quality_guard.f88.queryInspectionList",
+      "v": "1.0",
+      "data": { "taskId": "${store.firstTask.taskId}" },
+      "storeAs": "inspectionList",
+      "description": "调用子任务列表API"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "path": "data.data.list[0].imageRegenerateStatus",
+      "contains": "PROCESSING",
+      "description": "API断言重生图状态为处理中"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT id, status, image_regenerate_status FROM material WHERE task_id = '${store.firstTask.taskId}' ORDER BY id DESC LIMIT 1",
+      "storeAs": "materialDb",
+      "description": "DB查询素材重生图状态"
+    },
+    {
+      "type": "assertDbResult",
+      "expectations": [
+        { "field": "status", "equals": "REJECTED" },
+        { "field": "image_regenerate_status", "contains": "PROCESSING" }
+      ],
+      "description": "DB断言驳回状态与重生图中状态"
+    },
+    { "type": "screenshot", "label": "f88-negative-feedback-e2e-done", "description": "截图-负反馈端到端完成" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在待审核图片任务。",
+    "realDomNotes": "负反馈按钮触发弹窗；选择重生图后调用 imageFeedback/regenerateMaterial；审核驳回后状态为REJECTED且imageRegenerateStatus为PROCESSING。",
+    "riskPoints": ["无待审核任务时无法进入详情", "DB表名/字段需按真实schema调整", "重生图为异步流程，状态可能Pending"]
+  }
+}

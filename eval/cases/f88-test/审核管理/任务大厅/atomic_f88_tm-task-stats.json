@@ -1,0 +1,67 @@
+{
+  "id": "atomic-f88-tm-task-stats",
+  "name": "UI：任务管理-任务级统计信息验证",
+  "description": "验证任务行的审核/抽检/埋雷统计信息",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); arrows.forEach(a => a.click()); return 'expanded'; })()",
+      "description": "展开所有节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const hasAudit = /审核[:：]\\s*\\d+\\/\\d+/.test(t); const hasInspect = t.includes('抽检'); const hasMine = t.includes('埋雷'); return { hasAuditProgress: hasAudit, hasInspect: hasInspect, hasMine: hasMine }; })()",
+      "description": "验证任务统计",
+      "storeAs": "taskStats"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-task-stats",
+      "description": "任务级统计"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在任务管理数据",
+    "realDomNotes": "任务行展示: 审核: x/y / 抽检: - / 埋雷: -",
+    "riskPoints": []
+  }
+}

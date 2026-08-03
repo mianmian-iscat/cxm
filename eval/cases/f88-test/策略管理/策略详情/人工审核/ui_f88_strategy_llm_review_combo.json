@@ -1,0 +1,276 @@
+{
+  "id": "ui-f88-strategy-llm-review-combo",
+  "name": "UI：F88 LLM+审核组合策略",
+  "description": "创建LLM文本生成+人工审核组合策略，模拟\"先生成后审核\"的经典搭配，验证两种不同类型节点可在同一策略中共存。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略列表加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "策略列表",
+      "description": "验证策略列表页已加载"
+    },
+    {
+      "type": "clickText",
+      "text": "新建策略",
+      "description": "点击新建策略按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待新建策略弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input#name'); if (!input) return { ok: false }; const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; setter.call(input, '自动化测试-LLM审核组合'); input.dispatchEvent(new Event('input', {bubbles:true})); input.dispatchEvent(new Event('change', {bubbles:true})); return { ok: true }; })()",
+      "description": "填写策略名称"
+    },
+    {
+      "type": "wait",
+      "ms": 500,
+      "description": "等待输入生效"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const el = document.querySelector('#stageCode'); if (!el) return false; const sel = el.closest('.ant-select'); const target = sel?.querySelector('.ant-select-selector') || sel; if (target) { target.setAttribute('data-testid', 'stage-select'); return true; } return false; })()",
+      "description": "标记环节 Select"
+    },
+    {
+      "type": "click",
+      "selector": "[data-testid=\"stage-select\"]",
+      "description": "打开环节下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉"
+    },
+    {
+      "type": "click",
+      "text": "视觉",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择视觉"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const el = document.querySelector('#lifeCycleCode'); if (!el) return false; const sel = el.closest('.ant-select'); const target = sel?.querySelector('.ant-select-selector') || sel; if (target) { target.setAttribute('data-testid', 'lifecycle-select'); return true; } return false; })()",
+      "description": "标记生命周期 Select"
+    },
+    {
+      "type": "click",
+      "selector": "[data-testid=\"lifecycle-select\"]",
+      "description": "打开生命周期下拉"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待下拉"
+    },
+    {
+      "type": "click",
+      "text": "实验",
+      "within": ".ant-select-dropdown:not(.ant-select-dropdown-hidden)",
+      "description": "选择实验"
+    },
+    {
+      "type": "wait",
+      "ms": 800,
+      "description": "等待"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const btn = [...modal.querySelectorAll('button')].find(b => /确.*定/.test(b.textContent.replace(/\\s/g,''))); if (btn) { btn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击确定创建策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待跳转详情页"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证详情页加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; const match = url.match(/strategy\\/detail\\/(\\d+)/); return match ? { strategyId: match[1], url } : { strategyId: null, url }; })()",
+      "storeAs": "newStrategy",
+      "description": "获取新建策略ID"
+    },
+    {
+      "type": "screenshot",
+      "label": "strategy-created",
+      "description": "截图-策略已创建"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点-生成"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点类型弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modals = document.querySelectorAll('.ant-modal'); for (const m of modals) { if (m.classList.contains('ant-modal-hidden')) continue; const cards = m.querySelectorAll('.ant-card'); for (const card of cards) { const t = card.querySelector('.ant-card-meta-title'); if (t && t.textContent.trim() === 'LLM文本生成') { card.click(); return {ok:true}; } } } return {ok:false}; })()",
+      "description": "选择 LLM文本生成 节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待 LLM文本生成 节点抽屉加载"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "保存 LLM文本生成 节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待 LLM文本生成 节点保存"
+    },
+    {
+      "type": "screenshot",
+      "label": "llm-added",
+      "description": "截图-LLM文本生成已添加"
+    },
+    {
+      "type": "clickText",
+      "text": "新增节点",
+      "description": "点击新增节点-审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待节点类型弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modals = document.querySelectorAll('.ant-modal'); for (const m of modals) { if (m.classList.contains('ant-modal-hidden')) continue; const cards = m.querySelectorAll('.ant-card'); for (const card of cards) { const t = card.querySelector('.ant-card-meta-title'); if (t && t.textContent.trim() === '人工审核') { card.click(); return {ok:true}; } } } return {ok:false}; })()",
+      "description": "选择 人工审核 节点"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待 人工审核 节点抽屉加载"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "保存 人工审核 节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待 人工审核 节点保存"
+    },
+    {
+      "type": "screenshot",
+      "label": "review-added",
+      "description": "截图-人工审核已添加"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排'); if (!titleEl) return { found: false, reason: 'no title' }; const card = titleEl.closest('.ant-card'); const body = card?.querySelector('.ant-card-body'); if (!body) return { found: false, reason: 'no body' }; return { found: body.innerText.includes('LLM'), nodeText: body.innerText.substring(0, 300) }; })()",
+      "storeAs": "check_LLM",
+      "description": "验证编排区 LLM"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排'); if (!titleEl) return { found: false, reason: 'no title' }; const card = titleEl.closest('.ant-card'); const body = card?.querySelector('.ant-card-body'); if (!body) return { found: false, reason: 'no body' }; return { found: body.innerText.includes('人工审核'), nodeText: body.innerText.substring(0, 300) }; })()",
+      "storeAs": "check_",
+      "description": "验证编排区 人工审核"
+    },
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "保存策略"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待策略保存"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const msgs = document.querySelectorAll('.ant-message .ant-message-success, .ant-message .ant-message-error, .ant-notification-notice'); return Array.from(msgs).map(m => m.textContent.trim()); })()",
+      "storeAs": "saveResult",
+      "description": "检查保存结果"
+    },
+    {
+      "type": "navigate",
+      "url": "current",
+      "waitUntil": "networkidle",
+      "description": "刷新验证持久化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待刷新"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排'); if (!titleEl) return { found: false, reason: 'no title' }; const card = titleEl.closest('.ant-card'); const body = card?.querySelector('.ant-card-body'); if (!body) return { found: false, reason: 'no body' }; return { found: body.innerText.includes('LLM'), nodeText: body.innerText.substring(0, 300) }; })()",
+      "storeAs": "check_LLM",
+      "description": "验证编排区 LLM"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const titleEl = [...document.querySelectorAll('.ant-card-head-title')].find(e => e.textContent.trim() === '节点编排'); if (!titleEl) return { found: false, reason: 'no title' }; const card = titleEl.closest('.ant-card'); const body = card?.querySelector('.ant-card-body'); if (!body) return { found: false, reason: 'no body' }; return { found: body.innerText.includes('人工审核'), nodeText: body.innerText.substring(0, 300) }; })()",
+      "storeAs": "check_",
+      "description": "验证编排区 人工审核"
+    },
+    {
+      "type": "screenshot",
+      "label": "combo-persisted",
+      "description": "截图-组合策略持久化验证"
+    }
+  ]
+}

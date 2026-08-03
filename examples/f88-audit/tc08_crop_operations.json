@@ -1,0 +1,379 @@
+{
+  "id": "f88-audit-tc08",
+  "name": "TC08 - 裁剪操作场景：CopyURL / 下载 / Excel导出 / API验证",
+  "description": "裁剪后同样需要「编辑后 + ✅ 确认」流程，验证裁剪后CopyURL/下载/导出是否返回裁剪后的新图URL。后端接口：POST /api/material/crop。",
+  "businessType": "f88_material",
+  "relatedCases": ["RP-C01", "RP-C02", "RP-C03", "RP-C04", "RP-C05", "RP-C06", "RP-C07", "RP-C08", "RP-C09", "RP-C10", "RP-C11", "RP-C12"],
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "F88",
+      "description": "【租户身份验证】"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+
+    {
+      "_comment": "=== RP-C01: 单图审核(qt=1) 裁剪 + CopyURL ===",
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "originalUrl_crop_c01",
+      "description": "RP-C01: 记录裁剪前原始URL"
+    },
+    {
+      "type": "clickText",
+      "text": "裁剪",
+      "selector": "button, [class*='action'], [class*='toolbar']",
+      "description": "RP-C01: 点击裁剪按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待裁剪工具加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "crop-tool-loaded",
+      "description": "截图 - 裁剪工具界面"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "裁剪",
+      "description": "验证裁剪工具已加载"
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const cropBtn = document.querySelector('[class*=crop-confirm], [class*=crop] button'); if (cropBtn) { cropBtn.click(); return 'clicked'; } return 'NO_CROP_BTN'; })()",
+      "description": "RP-C01: 执行裁剪确认（使用默认裁剪区域）"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待裁剪处理完成"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab'], [class*='toggle']",
+      "description": "RP-C01: 点击「编辑后」查看裁剪效果"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm'], [class*='check']",
+      "description": "RP-C01: 点击 ✅ 确认裁剪"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待确认操作完成"
+    },
+    {
+      "type": "screenshot",
+      "label": "crop-confirmed",
+      "description": "截图 - 裁剪确认后"
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy'], [class*='toolbar']",
+      "description": "RP-C01: 点击 CopyURL"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_crop_c01",
+      "description": "RP-C01: 读取剪贴板URL"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_crop_c01",
+      "notEquals": "${originalUrl_crop_c01}",
+      "description": "RP-C01: 【P0】CopyURL 为裁剪后的新图URL"
+    },
+
+    {
+      "_comment": "=== RP-C02: 套图审核(qt=2) 裁剪 + CopyURL ===",
+      "type": "clickText",
+      "text": "套图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-C02: 选择套图审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "裁剪",
+      "selector": "button, [class*='action']",
+      "selectorIndex": 0,
+      "description": "RP-C02: 裁剪其中一张图"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']",
+      "selectorIndex": 0,
+      "description": "RP-C02: CopyURL 被裁剪的那张图"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_crop_c02"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_crop_c02",
+      "notContains": "original",
+      "description": "RP-C02: 【P0】套图中被裁剪图的 CopyURL 为新图URL"
+    },
+
+    {
+      "_comment": "=== RP-C03: 封面图审核(qt=4) 裁剪 + CopyURL ===",
+      "type": "clickText",
+      "text": "封面图",
+      "selector": "[class*='task'], [class*='list'], [class*='item']",
+      "description": "RP-C03: 选择封面图审核任务"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "裁剪",
+      "selector": "button, [class*='action']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "编辑后",
+      "selector": "button, [class*='tab']"
+    },
+    {
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "clickText",
+      "text": "CopyURL",
+      "selector": "button, [class*='copy']"
+    },
+    {
+      "type": "eval",
+      "expression": "navigator.clipboard.readText()",
+      "storeAs": "copiedUrl_crop_c03"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "copiedUrl_crop_c03",
+      "notContains": "original",
+      "description": "RP-C03: 【P0】封面图裁剪后 CopyURL 为新图URL"
+    },
+
+    {
+      "_comment": "=== RP-C04: 裁剪 + 下载 ===",
+      "type": "clickText",
+      "text": "下载",
+      "selector": "button, [class*='download']",
+      "description": "RP-C04: 下载裁剪后的图"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "label": "crop-download",
+      "description": "截图 - 裁剪后下载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "下载",
+      "description": "RP-C04: 【P0】裁剪后下载操作执行"
+    },
+
+    {
+      "_comment": "=== RP-C05: 裁剪 + 完成任务 + 导出Excel ===",
+      "type": "clickText",
+      "text": "通过",
+      "selector": "button, [class*='approve']",
+      "description": "RP-C05: 通过审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "clickText",
+      "text": "导出",
+      "selector": "button, [class*='export']",
+      "description": "RP-C05: 导出Excel"
+    },
+    {
+      "type": "wait",
+      "ms": 5000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "导出",
+      "description": "RP-C05: 【P0】Excel导出操作执行（需离线验证URL列是否为裁剪后新图URL）"
+    },
+
+    {
+      "_comment": "=== RP-C06: 裁剪后未确认 → toolbar不可见 ===",
+      "type": "clickText",
+      "text": "裁剪",
+      "selector": "button, [class*='action']",
+      "description": "RP-C06: 再次裁剪但不确认"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "assert",
+      "target": "selector",
+      "selector": "[class*='toolbar']",
+      "notExists": true,
+      "description": "RP-C06: 【P1】裁剪后未确认，toolbar不可见，无法操作CopyURL"
+    },
+
+    {
+      "_comment": "=== RP-C07: 裁剪确认后 img.url 更新 ===",
+      "type": "clickText",
+      "text": "✅",
+      "selector": "button, [class*='confirm']",
+      "description": "RP-C07: 确认裁剪"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "imgUrl_afterCrop",
+      "description": "RP-C07: 获取裁剪后的 img.url"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "imgUrl_afterCrop",
+      "notContains": "original",
+      "description": "RP-C07: 【P0】img.url 已更新为裁剪后URL"
+    },
+
+    {
+      "_comment": "=== RP-C08/C09: API查询 + 刷新持久化 ===",
+      "type": "eval",
+      "expression": "location.reload()",
+      "description": "RP-C09: 刷新页面验证数据持久化"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "eval",
+      "expression": "(() => { const img = document.querySelector('[class*=review] img'); return img ? img.src : 'NO_IMG'; })()",
+      "storeAs": "imgUrl_afterRefresh",
+      "description": "RP-C09: 刷新后重新获取URL"
+    },
+    {
+      "type": "assert",
+      "target": "store",
+      "key": "imgUrl_afterRefresh",
+      "equals": "${imgUrl_afterCrop}",
+      "description": "RP-C09: 【P1】刷新后URL仍为裁剪后URL（数据已持久化）"
+    },
+
+    {
+      "_comment": "=== RP-C10: 二次裁剪 ===",
+      "type": "screenshot",
+      "label": "crop-final",
+      "description": "截图 - 裁剪测试完成"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "任务",
+      "description": "RP-C10/C11/C12: 【P2/P1/P2】二次裁剪/套图多图裁剪/埋雷记录URL 需额外场景覆盖"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "crop|material|copyUrl",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true,
+    "onEachStep": false
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

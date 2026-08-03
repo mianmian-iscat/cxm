@@ -1,0 +1,31 @@
+{
+  "name": "assertStore",
+  "version": "1.0.0",
+  "description": "断言已存储的值（通过 evaluate.storeAs 存储）",
+  "triggers": ["断言存储", "assertStore", "验证存储值"],
+  "parameters": {
+    "type": "object",
+    "required": ["type", "key"],
+    "additionalProperties": true,
+    "properties": {
+      "type": { "const": "assertStore" },
+      "key": { "type": "string", "description": "存储键名" },
+      "path": { "type": "string", "description": "JSON 路径（如 'foundCount'）" },
+      "equals": { "description": "期望等于" },
+      "gte": { "type": "number", "description": "期望大于等于" },
+      "lt": { "type": "number", "description": "期望小于" },
+      "expression": { "type": "string", "description": "JS 箭头函数表达式，如 'val => val !== null'" },
+      "description": { "type": "string" },
+      "id": { "type": "string", "description": "步骤 ID" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "assertStoreResult": { "type": "boolean" }
+    }
+  },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 0 }
+}

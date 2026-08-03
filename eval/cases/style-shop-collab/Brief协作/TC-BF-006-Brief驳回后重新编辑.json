@@ -1,0 +1,69 @@
+{
+  "id": "TC-BF-006",
+  "name": "TC-BF-006 — Brief驳回后买手重新编辑与版本管理 [P1]",
+  "description": "验证驳回后买手看到驳回信息、点击重新编辑fork新版本、版本侧栏展示v1/v2",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "Brief协作",
+  "page": "迭代详情-Brief tab",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const hasRejectInfo = text.includes('驳回原因') || text.includes('驳回'); const reEditBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('重新编辑')); return { hasRejectInfo, reEditBtn: !!reEditBtn }; })()",
+      "description": "验证驳回后展示驳回信息和重新编辑按钮",
+      "storeAs": "rejectView"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const sidebar = document.querySelector('[class*=version], [class*=sidebar]'); return { versionSidebarBefore: !!sidebar }; })()",
+      "description": "首版驳回前不展示版本侧栏",
+      "storeAs": "beforeFork"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const reEditBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('重新编辑')); if (reEditBtn) { reEditBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击重新编辑Brief",
+      "storeAs": "clickReEdit"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const sidebar = document.querySelector('[class*=version], [class*=sidebar]'); const text = document.body.textContent; const hasV1 = text.includes('v1'); const hasV2 = text.includes('v2'); const formEditable = !!document.querySelector('input:not([readonly]), textarea:not([readonly])'); return { versionSidebarAfter: !!sidebar, hasV1, hasV2, formEditable }; })()",
+      "description": "验证fork后展示版本侧栏",
+      "storeAs": "afterFork"
+    },
+    {
+      "type": "screenshot",
+      "label": "brief-version-sidebar"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为REJECTED_BRIEF，当前用户是店铺买手",
+    "stepsText": "1. 进入Brief tab看到驳回信息\n2. 验证首版驳回前无版本侧栏\n3. 点击重新编辑Brief\n4. 验证fork后展示v1/v2版本侧栏",
+    "expectedResult": "1. 驳回提示区展示驳回原因、详细说明、驳回人、时间\n2. 首版驳回前不展示版本侧栏\n3. 点击重新编辑后fork新草稿\n4. 版本侧栏展示v1(被驳回)和v2(当前编辑)\n5. 历史版本只读",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/Brief协作"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": "atomic-f88-sd-stage-phase",
+  "name": "UI：策略详情-策略阶段和环节下拉验证",
+  "description": "验证策略详情页面策略阶段和环节两个Select下拉",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10568"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/detail/10568",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开策略详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const labels = Array.from(document.querySelectorAll('span,div')).filter(el => el.textContent.trim() === '策略阶段：' || el.textContent.trim() === '环节：'); const selects = document.querySelectorAll('.ant-select'); const phaseSelect = Array.from(selects).find(s => s.previousElementSibling?.textContent?.includes('策略阶段') || s.parentElement?.textContent?.includes('策略阶段')); const stageSelect = Array.from(selects).find(s => s.previousElementSibling?.textContent?.includes('环节') || s.parentElement?.textContent?.includes('环节')); return { hasPhase: !!phaseSelect, hasStage: !!stageSelect, phaseVal: phaseSelect?.querySelector('.ant-select-selection-item')?.textContent, stageVal: stageSelect?.querySelector('.ant-select-selection-item')?.textContent }; })()",
+      "description": "验证下拉",
+      "storeAs": "selectInfo"
+    },
+    {
+      "type": "assertStore",
+      "key": "selectInfo",
+      "path": "hasPhase",
+      "equals": true,
+      "description": "验证策略阶段下拉存在"
+    },
+    {
+      "type": "assertStore",
+      "key": "selectInfo",
+      "path": "hasStage",
+      "equals": true,
+      "description": "验证环节下拉存在"
+    },
+    {
+      "type": "screenshot",
+      "label": "sd-stage-phase",
+      "description": "策略阶段和环节下拉"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "策略阶段：实验/灰度/正式，环节：视频/搭配/企划等",
+    "riskPoints": []
+  }
+}

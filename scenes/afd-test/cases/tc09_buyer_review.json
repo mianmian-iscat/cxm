@@ -1,0 +1,78 @@
+{
+  "id": "tc09-buyer-review",
+  "name": "买手审核试拍",
+  "description": "买手逐组大图审核，弃用操作，判定规则验证",
+  "priority": "P0",
+  "category": "smoke",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "assert",
+      "target": "state",
+      "value": "IN_REVIEW"
+    },
+    {
+      "type": "click",
+      "selector": "[data-tab*='试拍']",
+      "description": "切换到试拍Tab"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('进入审核')",
+      "description": "进入审核视图"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "screenshot",
+      "description": "截图审核视图大图展示"
+    },
+    {
+      "type": "click",
+      "selector": "button:has-text('弃用')",
+      "description": "弃用当前图片"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "assert",
+      "target": "element",
+      "selector": "[class*='discard-reason']",
+      "exists": true,
+      "description": "验证弃用原因弹窗"
+    }
+  ],
+  "assertions": [
+    {
+      "type": "element_exists",
+      "selector": "[class*='review-view']"
+    }
+  ],
+  "tags": [
+    "afd",
+    "smoke",
+    "review",
+    "buyer"
+  ],
+  "businessType": "afd_collab",
+  "scene": "afd-test",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/styleShopCollab/iteration/test-iter-id",
+    "waitAfterLoad": 3000
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 50,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  }
+}

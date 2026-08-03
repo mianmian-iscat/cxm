@@ -1,0 +1,46 @@
+{
+  "id": "ui-f88-create-link",
+  "name": "UI：F88 链路创建-进入详情页并返回列表",
+  "description": "打开链路列表，点击新建链路，验证进入链路详情页（起点入参/添加环节区域），然后返回列表验证跳转。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开链路列表页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待链路列表加载" },
+    { "type": "assert", "target": "page", "contains": "新建链路", "description": "验证新建链路按钮存在" },
+    { "type": "clickText", "text": "新建链路", "description": "点击新建链路" },
+    { "type": "wait", "ms": 2000, "description": "等待链路详情页/弹窗渲染" },
+    { "type": "assert", "target": "page", "contains": "链路", "description": "验证进入链路创建区域" },
+    { "type": "screenshot", "label": "f88-create-link-view", "description": "截图-链路创建页/详情" },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkList",
+      "waitUntil": "networkidle",
+      "description": "返回列表验证跳转"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待列表重新加载" },
+    { "type": "assert", "target": "page", "contains": "链路列表", "description": "验证回到链路列表" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "tc17_create_link 对应；链路详情页URL: /strategy/linkDetail?id=xxx；详情页含起点入参/添加环节按钮。",
+    "riskPoints": ["新建链路可能触发弹窗或直接跳转详情页", "返回列表需page.goto（SPA导航不新开tab）"]
+  }
+}

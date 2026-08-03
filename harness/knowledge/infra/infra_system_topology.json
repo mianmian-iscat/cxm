@@ -1,0 +1,14 @@
+{
+  "id": "infra_system_topology",
+  "category": "infra",
+  "title": "原创保护系统拓扑",
+  "content": "{\"systems\": [\"快维(维权下架)\", \"YC(专利权)\", \"汇金(结算)\", \"e签宝(电子签章)\"], \"databases\": [\"scenario(prod)\"], \"apis\": {\"商家端\": 21, \"小二端\": 10}, \"environments\": {\"预发商家端\": \"https://pre-fsyc.taobao.com/\", \"预发小二端\": \"https://pre-xiaoer.alibaba-inc.com/\"}}",
+  "tags": [
+    "拓扑",
+    "系统架构"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499702
+}

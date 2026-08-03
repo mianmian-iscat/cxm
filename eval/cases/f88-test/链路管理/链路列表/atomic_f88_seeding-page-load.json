@@ -1,0 +1,111 @@
+{
+  "id": "atomic-f88-seeding-page-load",
+  "name": "UI：种草链路详情-页面加载与基本信息验证",
+  "description": "验证种草链路(id=20205)详情页加载，链路名称、阶段、按钮展示正确",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路三",
+      "description": "验证链路名称包含'链路三'"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "种草链路",
+      "description": "验证链路名称包含'种草链路'"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路阶段",
+      "description": "验证链路阶段标签"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "实验",
+      "description": "验证当前阶段为实验"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路说明",
+      "description": "验证链路说明区域"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "链路起点入参",
+      "description": "验证起点入参区域"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = ['返回列表','试运行','查看运行结果','保 存','添加环节','编辑']; const t = document.body.innerText; return { buttons: btns.map(b => ({ name: b, found: t.includes(b) })) }; })()",
+      "description": "验证所有操作按钮",
+      "storeAs": "buttons"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "返回列表",
+      "description": "验证返回列表按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "试运行",
+      "description": "验证试运行按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "查看运行结果",
+      "description": "验证查看运行结果按钮"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-page-load",
+      "description": "种草链路详情页全貌"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；种草链路id=20205存在",
+    "realDomNotes": "链路名: 链路三-种草链路-风荷测试_; 阶段: 实验; 按钮: 返回列表/试运行/查看运行结果/保存/添加环节/编辑",
+    "riskPoints": ["TBD双字按钮渲染: '保 存' 含特殊空格"]
+  }
+}

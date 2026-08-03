@@ -1,0 +1,42 @@
+{
+  "name": "op_state_validator",
+  "version": "1.0.0",
+  "description": "原创保护状态机校验器，验证状态转换合法性、Guard条件、Side Effects完整性",
+  "triggers": ["验证状态流转", "状态机校验", "非法状态检测"],
+  "parameters": {
+    "type": "object",
+    "required": ["application_id", "expected_state"],
+    "properties": {
+      "application_id": {
+        "type": "string",
+        "description": "专利申请ID"
+      },
+      "expected_state": {
+        "type": "string",
+        "description": "期望状态值，必须在状态机定义的states集合内"
+      },
+      "expected_fields": {
+        "type": "object",
+        "description": "期望的字段值字典，用于验证Side Effects执行结果"
+      },
+      "include_history": {
+        "type": "boolean",
+        "default": false,
+        "description": "是否返回状态变更历史"
+      }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "valid": { "type": "boolean" },
+      "current_state": { "type": "string" },
+      "expected_state": { "type": "string" },
+      "guard_evaluated": { "type": "object" },
+      "side_effects_verified": { "type": "array" },
+      "errors": { "type": "array" }
+    }
+  },
+  "dependencies": ["dms-mcp"],
+  "timeout_ms": 30000
+}

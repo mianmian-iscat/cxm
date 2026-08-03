@@ -1,0 +1,56 @@
+{
+  "id": "smoke-qianniu-material",
+  "name": "冒烟：千牛素材管理页面可访问",
+  "description": "验证千牛素材管理页能加载，三区域结构正常渲染",
+  "businessType": "unknown",
+  "scene": "qianniu",
+  "priority": "P0",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "qn.wapa.taobao.com",
+    "url": "https://qn.wapa.taobao.com/home.htm/material-center/material-management?tab=recommend&subTab=SCU"
+  },
+  "contextOptimization": null,
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 4000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "素材",
+      "description": "验证页面包含「素材」字样"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "搜推素材",
+      "description": "验证搜推素材 Tab 已渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "qianniu-material-loaded",
+      "description": "素材管理页截图"
+    }
+  ],
+  "capture": {
+    "enabled": false
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "post_asserts": null,
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "淘宝商家账号已登录",
+    "riskPoints": [
+      "素材列表加载超时"
+    ]
+  },
+  "source": null,
+  "sourceIds": null,
+  "_note": "只验证页面渲染，不执行创建/编辑操作"
+}

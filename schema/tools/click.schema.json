@@ -1,0 +1,35 @@
+{
+  "name": "click",
+  "version": "1.0.0",
+  "description": "点击页面元素，支持 CSS 选择器或文本匹配",
+  "triggers": ["点击", "按钮", "click", "press"],
+  "parameters": {
+    "type": "object",
+    "required": ["type"],
+    "additionalProperties": false,
+    "properties": {
+      "type": { "const": "click" },
+      "selector": { "type": "string", "description": "CSS 选择器" },
+      "text": { "type": "string", "description": "按钮文本（优先用 text，比 selector 更稳定）" },
+      "screenshot": { "type": "boolean", "default": false, "description": "点击后截图" },
+      "description": { "type": "string", "description": "步骤说明" },
+      "id": { "type": "string", "description": "步骤 ID，用于变量引用" },
+      "output_binding": { "type": "object", "description": "输出变量绑定" }
+    }
+  },
+  "validation_rules": [
+    {
+      "rule": "xor",
+      "fields": ["selector", "text"],
+      "message": "click 步骤必须提供 selector 或 text（二选一）"
+    }
+  ],
+  "returns": {
+    "type": "object",
+    "properties": {
+      "clicked": { "type": "boolean" }
+    }
+  },
+  "timeout_ms": 10000,
+  "retry_policy": { "max_retries": 1, "backoff_ms": 500 }
+}

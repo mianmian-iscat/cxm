@@ -1,0 +1,162 @@
+{
+  "id": "atomic-f88-seeding-pipeline-output",
+  "name": "原子：种草链路 - 全链路出参结构验证(含上传所需字段)",
+  "description": "验证种草链路7环节的完整出参链路：最终出参(pic_urls/title/long_text)满足上传信息流的PRD要求。重点验证'添加环节'作为第7阶段存在、套图审核出参3字段完整、标题文案出参4字段完整。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20205",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开种草链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "_comment": "===== PRD: 7环节完整性 =====",
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const stages = ['入参图刷标签', '首图生成', '首图审核', '套图生成', '标题文案生成', '套图审核', '添加环节']; const found = stages.map(s => ({ name: s, present: t.includes(s) })); const allPresent = found.every(f => f.present); return { stages: found, allPresent, total: stages.length, foundCount: found.filter(f => f.present).length }; })()",
+      "description": "验证PRD规定的7个环节全部存在",
+      "storeAs": "stageCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "stageCheck",
+      "path": "allPresent",
+      "equals": true,
+      "description": "断言7环节全部存在（PRD全链路完整性）"
+    },
+    {
+      "_comment": "===== PRD: 首图裂变 - 4路并行验证 =====",
+      "type": "assert",
+      "target": "page",
+      "contains": "首图主品tryon-种草1",
+      "description": "PRD: 首图裂变-种草策略1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "首图主品tryon-种草4",
+      "description": "PRD: 首图裂变-种草策略4（4路并行）"
+    },
+    {
+      "_comment": "===== PRD: 套图审核出参 - 上传信息流所需字段 =====",
+      "type": "assert",
+      "target": "page",
+      "contains": "pic_urls",
+      "description": "PRD: 套图审核出参pic_urls（上传信息流必需）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "title",
+      "description": "PRD: 套图审核出参title（上传信息流必需）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "long_text",
+      "description": "PRD: 套图审核出参long_text（上传信息流必需）"
+    },
+    {
+      "_comment": "===== PRD: 标题文案生成 - 字数校验前置 =====",
+      "type": "assert",
+      "target": "page",
+      "contains": "title1",
+      "description": "标题文案出参title1（PRD: 标题字数校验P1）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "long_text1",
+      "description": "标题文案出参long_text1"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "title2",
+      "description": "标题文案出参title2（2路并行）"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "long_text2",
+      "description": "标题文案出参long_text2（2路并行）"
+    },
+    {
+      "_comment": "===== PRD: 添加环节 - 上传入口验证 =====",
+      "type": "assert",
+      "target": "page",
+      "contains": "添加环节",
+      "description": "PRD: 第7阶段'添加环节'存在（上传入口）"
+    },
+    {
+      "_comment": "===== 统计出参完整度 =====",
+      "type": "evaluate",
+      "expression": "(() => { const t = document.body.innerText; const uploadFields = ['pic_urls', 'title', 'long_text']; const titleFields = ['title1', 'title2', 'long_text1', 'long_text2']; const imageFields = ['main_image_url', 'set_image_url']; const tagFields = ['industry_tag', 'style_tag', 'season_tag']; return { uploadReady: uploadFields.every(f => t.includes(f)), titleReady: titleFields.every(f => t.includes(f)), imageReady: imageFields.every(f => t.includes(f)), tagReady: tagFields.every(f => t.includes(f)), uploadFields: uploadFields.map(f => ({ name: f, found: t.includes(f) })), titleFields: titleFields.map(f => ({ name: f, found: t.includes(f) })) }; })()",
+      "description": "统计各环节出参完整度",
+      "storeAs": "outputCompleteness"
+    },
+    {
+      "type": "assertStore",
+      "key": "outputCompleteness",
+      "path": "uploadReady",
+      "equals": true,
+      "description": "断言上传信息流所需3字段全部就绪"
+    },
+    {
+      "type": "assertStore",
+      "key": "outputCompleteness",
+      "path": "titleReady",
+      "equals": true,
+      "description": "断言标题文案4字段全部就绪（PRD:2路并行）"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-pipeline-output",
+      "description": "截图-种草链路完整出参结构"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；种草链路id=20205存在",
+    "realDomNotes": "PRD最终出参3字段(pic_urls/title/long_text)是上传信息流的必需数据；标题文案2路并行共4个出参；首图4路并行=4*2=8个部分出参",
+    "riskPoints": [
+      "PRD: 上传至信息流(P0)调信息流接口+内容id回流，UI不可直接验证",
+      "PRD: 上传至商详模块(P2)调光合接口，UI不可直接验证",
+      "PRD: 标题字数校验(≤20字)为后端校验逻辑",
+      "出参字段名可能随PRD迭代变更",
+      "'添加环节'目前为空操作节点，后续可能挂载上传策略"
+    ],
+    "prdMapping": {
+      "首图裂变4路": "首图主品tryon-种草1~4（P0）",
+      "标题字数校验": "标题文案出参title1/title2（P1后端校验）",
+      "上传信息流": "套图审核出参pic_urls+title+long_text → 添加环节",
+      "上传商详": "P2优先级，暂未实现"
+    }
+  }
+}

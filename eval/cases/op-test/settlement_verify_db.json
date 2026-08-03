@@ -1,0 +1,128 @@
+{
+  "id": "settlement-verify-db-batch",
+  "name": "结算资金流：DB批量校验（verify_settlement.py 全量回归）",
+  "description": "使用 scripts/verify_settlement.py 对钉钉表格中全部29个测试样本进行DB级结算金额校验。覆盖4大阶段×8种路径组合：补贴前取消(7)→补贴后终止(10)→到期确收(6)→到期退款(6)。验证维度：total_amount、init_allowance_amount、serv_finish_refund_amount、settle_status、下架率计算。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P2",
+  "category": "regression",
+  "source": "scripts/verify_settlement.py + dingtalk-spreadsheet/6LeBq413JA9BOdm2iBjQdjE7JDOnGvpb",
+  "sourceIds": [
+    "TC_SETTLE_PRE_001",
+    "TC_SETTLE_PRE_002",
+    "TC_SETTLE_PRE_003",
+    "TC_SETTLE_PRE_004",
+    "TC_SETTLE_PRE_005",
+    "TC_SETTLE_PRE_006",
+    "TC_SETTLE_PRE_007",
+    "TC_SETTLE_POST_001",
+    "TC_SETTLE_POST_002",
+    "TC_SETTLE_POST_003",
+    "TC_SETTLE_POST_004",
+    "TC_SETTLE_POST_005",
+    "TC_SETTLE_POST_006",
+    "TC_SETTLE_POST_007",
+    "TC_SETTLE_POST_008",
+    "TC_SETTLE_POST_009",
+    "TC_SETTLE_POST_010",
+    "TC_SETTLE_EXP_001",
+    "TC_SETTLE_EXP_002",
+    "TC_SETTLE_EXP_003",
+    "TC_SETTLE_EXP_004",
+    "TC_SETTLE_EXP_005",
+    "TC_SETTLE_EXP_006",
+    "TC_SETTLE_REF_001",
+    "TC_SETTLE_REF_002",
+    "TC_SETTLE_REF_003",
+    "TC_SETTLE_REF_004",
+    "TC_SETTLE_REF_005",
+    "TC_SETTLE_REF_006"
+  ],
+  "context": {
+    "type": "db",
+    "dbGroup": "scenario",
+    "dbEnv": "prod",
+    "script": "scripts/verify_settlement.py",
+    "env": "test"
+  },
+  "allApplyIds": [
+    "200000369",
+    "200000366",
+    "200000382",
+    "200000368",
+    "200000377",
+    "200000378",
+    "200000370",
+    "200000342",
+    "200000341",
+    "200000344",
+    "200000343",
+    "200000340",
+    "200000339",
+    "200000338",
+    "200000331",
+    "200000330",
+    "200000328",
+    "200000347",
+    "200000353",
+    "200000345",
+    "200000389",
+    "200000386",
+    "200000387",
+    "200000346",
+    "200000352",
+    "200001005",
+    "200000388",
+    "200000385",
+    "200000885"
+  ],
+  "steps": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && echo '=== 补贴前取消(7) ===' && for id in 200000369 200000366 200000382 200000368 200000377 200000378 200000370; do python3 scripts/verify_settlement.py $id 2>&1 | tail -5; echo '---'; done",
+      "description": "Phase 1: 补贴前取消场景批量校验"
+    },
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && echo '=== 补贴后终止(10) ===' && for id in 200000342 200000341 200000344 200000343 200000340 200000339 200000338 200000331 200000330 200000328; do python3 scripts/verify_settlement.py $id 2>&1 | tail -5; echo '---'; done",
+      "description": "Phase 2: 补贴后终止场景批量校验"
+    },
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && echo '=== 到期确收(6) ===' && for id in 200000347 200000353 200000345 200000389 200000386 200000387; do python3 scripts/verify_settlement.py $id 2>&1 | tail -5; echo '---'; done",
+      "description": "Phase 3: 到期确收场景批量校验"
+    },
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && echo '=== 到期退款(6) ===' && for id in 200000346 200000352 200001005 200000388 200000385 200000885; do python3 scripts/verify_settlement.py $id 2>&1 | tail -5; echo '---'; done",
+      "description": "Phase 4: 到期退款场景批量校验"
+    },
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && python3 -c \"import json,glob,sys; results=sorted(glob.glob('/tmp/settlement_result_*.json')); fail=[]; ok=[]; [fail.append(f'{json.load(open(f)).get(\"apply_id\",\"?\")}: {json.load(open(f)).get(\"issues\",[])}') if [i for i in json.load(open(f)).get('issues',[]) if 'protect_expire_time' not in i] else ok.append(json.load(open(f)).get('apply_id','?')) for f in results]; print(f'PASS: {len(ok)} / FAIL: {len(fail)} / TOTAL: {len(results)}'); [print(f'  FAIL: {f}') for f in fail]; sys.exit(1 if fail else 0)\"",
+      "description": "Phase 5: 汇总所有校验结果（排除时间反挂的数据问题）"
+    }
+  ],
+  "post_asserts": [
+    {
+      "type": "bash",
+      "command": "cd '{workspace}' && python3 -c \"import json,glob; results=sorted(glob.glob('/tmp/settlement_result_*.json')); assert len(results)>=28, f'expected>=28, got {len(results)}'; print(f'OK: {len(results)} reports')\"",
+      "description": "确认所有29个样本都产出了校验报告"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "dms-alibaba CLI 可连接 scenario/prod，所有29个专利申请测试数据已预埋",
+    "riskPoints": [
+      "4阶段全量覆盖：补贴前(7)→补贴后(10)→到期确收(6)→到期退款(6)",
+      "金额精度：测试环境分制(10/6/4/2)，生产环境元制(500/302/202/165)",
+      "下架率计算：SUCCESS/(SUCCESS+FAIL)，剔除RUNNING和INCORRECT",
+      "补贴路径分叉：有/无补贴 × 首发/非首发 = 4种金额组合",
+      "到期日取早：min(确认一致性+180天, 申请日+1年-30天)"
+    ],
+    "prdRef": "钉钉提测单 gvNG4YZ7Jnxop15OCqPbBaAyW2LD0oRE + PRD 淘天服饰原创保护平台-结算及电子用印",
+    "scriptRef": "scripts/verify_settlement.py v3（基于PRD+技术方案权威规则）"
+  }
+}

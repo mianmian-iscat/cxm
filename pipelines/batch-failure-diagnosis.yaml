@@ -1,0 +1,62 @@
+# 批次失败自动诊断 Pipeline
+# 当 F88 素材生产批次失败率超过阈值时自动触发
+
+name: 批次失败自动诊断
+version: "1.0"
+trigger:
+  type: alert
+  source: f88-pipeline-monitor
+  condition: "batch_failure_rate > 0.1 OR batch_timeout == true"
+
+variables:
+  diagnosis_trace_id: "diag-${batch_id}-${timestamp}"
+
+steps:
+  - id: query_status
+    tool: strategy_platform.query_batch_status
+    params:
+      batch_id: "${batch_id}"
+      include_sub_tasks: true
+      status_filter: FAILED
+    output_binding:
+      failed_tasks: "$.sub_tasks"
+      error_msgs: "$.error_msgs"
+      failed_count: "$.failed_count"
+    timeout_ms: 10000
+
+  - id: failure_analysis
+    tool: f88_failure_analysis.analyze
+    params:
+      batch_id: "${batch_id}"
+      analysis_depth: STANDARD
+      error_msgs: "${query_status.error_msgs}"
+    depends_on: [query_status]
+    output_binding:
+      root_cause: "$.root_cause"
+      confidence: "$.confidence"
+      suggestion: "$.suggestion"
+
+  - id: llm_health_check
+    tool: f88_pipeline_monitor.check_llm_health
+    condition: "root_cause == 'LLM_RATE_LIMIT' or root_cause == 'LLM_TIMEOUT'"
+    depends_on: [failure_analysis]
+    output_binding:
+      llm_status: "$.status"
+      rate_limit_info: "$.rate_limit_detail"
+
+  - id: generate_report
+    tool: notify.dingtalk_group
+    params:
+      message: |
+        F88批次诊断报告
+        批次: ${batch_id}
+        根因: ${failure_analysis.root_cause} (置信度: ${failure_analysis.confidence})
+        LLM状态: ${llm_health_check.llm_status}
+        建议: ${failure_analysis.suggestion}
+        追踪ID: ${diagnosis_trace_id}
+    depends_on: [failure_analysis, llm_health_check]
+
+error_handling:
+  default_strategy: retry_then_degrade
+  max_retries: 2
+  escalate_after: 3

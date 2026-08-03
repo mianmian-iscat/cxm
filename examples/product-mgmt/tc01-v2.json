@@ -1,0 +1,90 @@
+{
+  "id": "xiaoer-adplacement-tc01-v2",
+  "name": "TC01: 搜索平台商品ID 1039806673038，验证搜索结果",
+  "context": {
+    "urlPattern": "pre-xiaoer.alibaba-inc.com",
+    "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=AqBQyXxR2LUF60UQqst4"
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true,
+    "verboseMode": "summary"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/noone/product-batch-registration/adPlacement?_bzb_pvid=AqBQyXxR2LUF60UQqst4",
+      "waitUntil": "networkidle2",
+      "timeout": 30000,
+      "description": "打开广告位报名页面"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待页面初始化"
+    },
+    {
+      "type": "evaluate",
+      "fn": "() => { document.querySelectorAll('.wm_div_id, [id^=\"wm_\"]').forEach(el => el.remove()); }",
+      "description": "清除水印"
+    },
+    {
+      "type": "evaluate",
+      "fn": "() => { const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText?.includes('重置')); if(btn) btn.click(); }",
+      "description": "点击重置清空筛选条件"
+    },
+    {
+      "type": "wait",
+      "ms": 600,
+      "description": "等待重置"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder*='标题']",
+      "value": "1039806673038",
+      "react": true,
+      "description": "在标题/商品id搜索框中输入商品ID"
+    },
+    {
+      "type": "wait",
+      "ms": 300
+    },
+    {
+      "type": "screenshot",
+      "label": "01-filled-id",
+      "description": "填入商品ID后截图"
+    },
+    {
+      "type": "evaluate",
+      "fn": "() => { const btns = Array.from(document.querySelectorAll('button')); const sb = btns.find(b => b.innerText?.includes('搜')); if(sb) sb.click(); }",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待搜索结果加载"
+    },
+    {
+      "type": "evaluate",
+      "fn": "() => { document.querySelectorAll('.wm_div_id, [id^=\"wm_\"]').forEach(el => el.remove()); }",
+      "description": "清除水印"
+    },
+    {
+      "type": "screenshot",
+      "label": "02-search-result",
+      "description": "搜索结果截图"
+    },
+    {
+      "type": "assert",
+      "target": "api",
+      "urlPattern": "queryItemSuperDiscountActivity",
+      "customCheck": "response => { const resp = typeof response === 'string' ? JSON.parse(response) : response; const items = resp?.data?.model?.items || []; return items.some(item => String(item?.itemInfo?.itemId) === '1039806673038' || String(item?.itemInfo?.platformItemId) === '1039806673038'); }",
+      "description": "通过API验证返回结果中包含平台商品ID 1039806673038"
+    }
+  ]
+}

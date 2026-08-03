@@ -1,0 +1,85 @@
+{
+  "id": "atom-cd-01-detail-load",
+  "name": "原子：链路详情页加载验证",
+  "description": "验证链路详情页正确加载：标题、阶段、操作按钮、链路说明、起点入参、5个环节",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "regression",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "auth": "buc"
+  },
+  "capture": {
+    "enabled": true,
+    "filter": "strategy|link",
+    "captureBody": true
+  },
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "screenshot": true
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "【zy测试】主图生成链路"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const btn = [...btns].find(b => b.textContent.includes('返回列表')); return { found: !!btn }; })()",
+      "storeAs": "backBtn"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const match = text.match(/链路阶段[：:]\\s*(\\S+)/); return { stageText: match ? match[1] : null, hasStage: !!match }; })()",
+      "storeAs": "stageSelect"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const texts = [...btns].filter(b => b.offsetHeight > 0).map(b => b.textContent.trim()); return { buttons: texts.filter(t => ['试运行','查看运行结果','保 存'].some(k => t.includes(k))) }; })()",
+      "storeAs": "actionBtns"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = document.querySelectorAll('button'); const btn = [...btns].find(b => b.textContent.includes('添加环节')); return { found: !!btn, visible: btn ? btn.offsetHeight > 0 : false }; })()",
+      "storeAs": "addStepBtn"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const textarea = document.querySelector('textarea[placeholder=\"请输入链路说明\"]'); return { found: !!textarea, value: textarea?.value, charCount: textarea?.value?.length }; })()",
+      "storeAs": "chainDesc"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const heading = [...document.querySelectorAll('h5')].find(h => h.textContent.includes('链路起点入参')); if (!heading) return { found: false }; const section = heading.closest('div[class]'); const text = section?.parentElement?.innerText || ''; const params = ['seller_id','seed_image_url','tao_cate','item_id']; const foundParams = params.filter(p => text.includes(p)); return { found: true, params: foundParams }; })()",
+      "storeAs": "startParams"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const stages = ['刷标签','首图生图','首图审核','套图生图','套图审核']; const text = document.body.innerText; return { stages: stages.map(s => ({ name: s, found: text.includes(s) })) }; })()",
+      "storeAs": "stages"
+    },
+    {
+      "type": "screenshot",
+      "label": "detail-loaded"
+    }
+  ]
+}

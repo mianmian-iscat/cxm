@@ -1,0 +1,65 @@
+{
+  "id": "tc-stream-INSPECT-005",
+  "name": "流式审核抽检 — 任务管理页面抽检状态展示",
+  "description": "验证任务管理页面中，流式抽检拦截任务的状态展示（待抽检/抽检中）、抽检进度、正确率统计。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "流式审核抽检",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理页面"
+    },
+    { "type": "wait", "ms": 3000 },
+    { "type": "assert", "target": "page", "contains": "任务管理", "description": "验证任务管理页面已加载" },
+    { "type": "screenshot", "label": "stream-inspect-005-task-management", "description": "截图-任务管理列表" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const hasInspectionStatus = text.includes('待抽检') || text.includes('抽检中') || text.includes('抽检完成') || text.includes('HELD'); const hasStreamTask = text.includes('流式') || text.includes('STREAM'); const tableHeaders = Array.from(document.querySelectorAll('th, .ant-table-column-title')).map(h => h.textContent.trim()); return { hasInspectionStatus, hasStreamTask, tableHeaders, pagePreview: text.substring(0, 500) }; })()",
+      "description": "验证任务管理列表含抽检状态和流式任务标识",
+      "storeAs": "taskListCheck"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const detailBtns = Array.from(document.querySelectorAll('button, a, span')).filter(e => e.textContent.includes('查看详情') || e.textContent.includes('详情')); if (detailBtns[0]) { detailBtns[0].click(); return { clicked: true, text: detailBtns[0].textContent.trim() }; } return { clicked: false }; })()",
+      "description": "点击查看详情",
+      "storeAs": "detailClick"
+    },
+    { "type": "wait", "ms": 3000 },
+    { "type": "screenshot", "label": "stream-inspect-005-task-detail", "description": "截图-任务详情" },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.innerText; const hasStats = text.includes('正确率') || text.includes('一致率') || text.includes('通过率') || text.includes('抽检进度'); const hasFilter = text.includes('任务状态') || text.includes('审核状态'); return { hasStats, hasFilter, pagePreview: text.substring(0, 500) }; })()",
+      "description": "验证任务详情含抽检统计信息",
+      "storeAs": "detailCheck"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "bzb.api.fsyx_quality_guard.f88|review|task",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发环境可访问；任务管理页面存在流式抽检相关任务",
+    "stepsText": "1.打开任务管理 2.验证列表含抽检状态 3.点击详情 4.验证抽检统计",
+    "expectedResult": "任务管理页面正确展示流式抽检任务状态和统计",
+    "dbAssertion": "",
+    "apiAssertion": "",
+    "riskPoints": ["流式抽检任务可能尚未产生"],
+    "relatedDocs": ["Aone#84266820 PRD"],
+    "prdMapping": "覆盖任务类型 + 正确率统计"
+  }
+}

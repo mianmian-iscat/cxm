@@ -1,0 +1,15 @@
+{
+  "id": "infra_f88_system",
+  "category": "infra",
+  "title": "F88素材生产系统拓扑",
+  "content": "{\"platform\": \"F88运营平台 / 策略平台\", \"url_pre\": \"pre-aifashion-xiaoer.alibaba-inc.com\", \"url_prod\": \"aifashion-xiaoer.alibaba-inc.com\", \"ui_framework\": \"react-antd\", \"api_prefix\": \"bzb.api.fsyx_quality_guard.f88\", \"hsf_service\": \"com.alibaba.f88.material.MaterialAuditService\", \"hsf_version\": \"1.0.0\", \"maven\": \"com.alibaba.f88:f88-material-client\"}",
+  "tags": [
+    "F88",
+    "系统拓扑",
+    "HSF"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783395382.0135732
+}

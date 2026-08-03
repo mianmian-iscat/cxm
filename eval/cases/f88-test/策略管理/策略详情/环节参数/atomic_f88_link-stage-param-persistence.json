@@ -1,0 +1,213 @@
+{
+  "id": "atomic-f88-link-stage-param-persistence",
+  "name": "UI：环节参数详情-取消不持久化+重开状态一致验证",
+  "description": "验证取消按钮关闭弹窗后不持久化任何修改，重新打开弹窗状态与初始一致",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/linkDetail?id=20180",
+      "waitUntil": "networkidle",
+      "description": "打开链路详情"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const el = spans.find(s => (s.textContent || '').trim() === '入参'); if (!el) return { found: false }; const rect = el.getBoundingClientRect(); return { found: true, x: rect.x + rect.width/2, y: rect.y + rect.height/2 }; })()",
+      "description": "定位入参span",
+      "storeAs": "paramLink"
+    },
+    {
+      "type": "click",
+      "description": "打开环节参数详情弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "paramLink"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); const initialState = wrappers.map(w => ({ label: (w.textContent || '').trim(), checked: w.querySelector('input[type=checkbox]')?.checked })); const inputs = Array.from(drawer.querySelectorAll('input:not([type=checkbox]), textarea')); const inputValues = inputs.map(inp => ({ value: (inp.value || '').substring(0, 80) })).slice(0, 10); return { open: true, checkedCount: initialState.filter(c => c.checked).length, totalCheckboxes: initialState.length, checkboxes: initialState, inputValues, snapshot: JSON.stringify(initialState) }; })()",
+      "description": "记录初始状态(checkbox+输入值)作为基准快照",
+      "storeAs": "baseline"
+    },
+    {
+      "type": "assertStore",
+      "key": "baseline",
+      "path": "open",
+      "equals": true,
+      "description": "弹窗已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "baseline",
+      "path": "totalCheckboxes",
+      "gte": 1,
+      "description": "至少1个checkbox"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); const checked = wrappers.find(w => w.querySelector('input[type=checkbox]')?.checked); if (!checked) return { found: false }; const r = checked.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位一个已勾选的checkbox",
+      "storeAs": "targetCb"
+    },
+    {
+      "type": "click",
+      "description": "取消勾选该checkbox(模拟修改)",
+      "useCoordinates": true,
+      "coordinateSource": "targetCb"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待状态变更"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); return { checkedCount: wrappers.filter(w => w.querySelector('input[type=checkbox]')?.checked).length, changed: true }; })()",
+      "description": "确认修改生效(checkedCount减少)",
+      "storeAs": "modified"
+    },
+    {
+      "type": "assertStore",
+      "key": "modified",
+      "path": "checkedCount",
+      "expression": "val => val < store.baseline.checkedCount",
+      "description": "取消后checkedCount < 初始值"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn"
+    },
+    {
+      "type": "click",
+      "description": "点击取消关闭弹窗(丢弃修改)",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗关闭+数据刷新"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const visible = drawer && !drawer.classList.contains('ant-drawer-hidden') && getComputedStyle(drawer).display !== 'none'; return { drawerClosed: !visible || !drawer }; })()",
+      "description": "确认弹窗已关闭",
+      "storeAs": "closeCheck"
+    },
+    {
+      "type": "assertStore",
+      "key": "closeCheck",
+      "path": "drawerClosed",
+      "equals": true,
+      "description": "弹窗已关闭"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const spans = Array.from(document.querySelectorAll('span')); const el = spans.find(s => (s.textContent || '').trim() === '入参'); if (!el) return { found: false }; const rect = el.getBoundingClientRect(); return { found: true, x: rect.x + rect.width/2, y: rect.y + rect.height/2 }; })()",
+      "description": "重新定位入参span",
+      "storeAs": "paramLink2"
+    },
+    {
+      "type": "click",
+      "description": "重新打开弹窗验证状态",
+      "useCoordinates": true,
+      "coordinateSource": "paramLink2"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待弹窗渲染"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); if (!drawer) return { open: false }; const wrappers = Array.from(drawer.querySelectorAll('.ant-checkbox-wrapper')); const currentState = wrappers.map(w => ({ label: (w.textContent || '').trim(), checked: w.querySelector('input[type=checkbox]')?.checked })); const inputs = Array.from(drawer.querySelectorAll('input:not([type=checkbox]), textarea')); const inputValues = inputs.map(inp => ({ value: (inp.value || '').substring(0, 80) })).slice(0, 10); return { open: true, checkedCount: currentState.filter(c => c.checked).length, totalCheckboxes: currentState.length, checkboxes: currentState, inputValues, snapshot: JSON.stringify(currentState) }; })()",
+      "description": "记录重新打开后的状态",
+      "storeAs": "afterReopen"
+    },
+    {
+      "type": "assertStore",
+      "key": "afterReopen",
+      "path": "open",
+      "equals": true,
+      "description": "弹窗重新打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "afterReopen",
+      "path": "checkedCount",
+      "expression": "val => val === store.baseline.checkedCount",
+      "description": "核心断言：重新打开后checkedCount与初始一致(取消未持久化)"
+    },
+    {
+      "type": "assertStore",
+      "key": "afterReopen",
+      "path": "snapshot",
+      "expression": "val => val === store.baseline.snapshot",
+      "description": "核心断言：checkbox状态快照与初始完全一致"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer'); const btns = Array.from(drawer.querySelectorAll('button')); const cancel = btns.find(b => (b.textContent || '').includes('取')); if (!cancel) return { found: false }; const r = cancel.getBoundingClientRect(); return { found: true, x: r.x + r.width/2, y: r.y + r.height/2 }; })()",
+      "description": "定位取消按钮",
+      "storeAs": "cancelBtn2"
+    },
+    {
+      "type": "click",
+      "description": "关闭弹窗",
+      "useCoordinates": true,
+      "coordinateSource": "cancelBtn2"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "stage-param-persistence",
+      "description": "取消不持久化验证截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；链路id=20180存在",
+    "realDomNotes": "修改checkbox状态后点取消关闭弹窗；重新打开同一弹窗状态应恢复为初始值；通过snapshot字符串比对确保完全一致",
+    "riskPoints": [
+      "取消后是否有确认弹层(二次确认)",
+      "后端是否在取消时也静默保存(不应发生)",
+      "重新打开时是否从后端重新拉取数据(确保不是前端缓存)"
+    ],
+    "safetyNote": "仅使用取消按钮，不点保存，不影响生产数据"
+  }
+}

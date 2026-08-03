@@ -1,0 +1,63 @@
+{
+  "id": "TC-SR-008",
+  "name": "TC-SR-008 — 产运补拍上传追加新批次 [P1]",
+  "description": "验证RETURNED状态下：先看结果视图、点击补充上传创建新批次、提交后追加vN",
+  "businessType": "style_shop_collab",
+  "scene": "style-shop-collab",
+  "module": "试拍与评审",
+  "page": "迭代详情-试拍与评审 tab",
+  "priority": "P1",
+  "category": "e2e_flow",
+  "context": {
+    "urlPattern": "afdMerchantManagement/styleShopCollab",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/styleShopCollab/iteration/811",
+      "waitUntil": "networkidle"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const defaultResultView = text.includes('结果视图'); const supplementBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('补充上传')); const reworkReason = text.includes('返修') || text.includes('驳回原因') || text.includes('补拍'); return { defaultResultView, supplementBtn: !!supplementBtn, reworkReason }; })()",
+      "description": "验证RETURNED状态默认展示结果视图",
+      "storeAs": "returnedView"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const supplementBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('补充上传')); if (supplementBtn) { supplementBtn.click(); return { clicked: true }; } return { clicked: false }; })()",
+      "description": "点击补充上传",
+      "storeAs": "clickSupplement"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const text = document.body.textContent; const uploadPage = text.includes('上传') || text.includes('图组'); const frozenArea = text.includes('v1') || text.includes('历史'); const submitBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('提交补拍')); return { uploadPage, frozenArea, submitBtn: !!submitBtn, submitBtnDisabled: submitBtn?.disabled }; })()",
+      "description": "验证补拍上传页",
+      "storeAs": "uploadCheck"
+    },
+    {
+      "type": "screenshot",
+      "label": "supplement-upload"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "迭代状态为RETURNED，当前用户是产运",
+    "stepsText": "1. 验证默认展示结果视图和返修意见\n2. 点击补充上传\n3. 验证进入上传页\n4. 验证历史批次冻结区展示",
+    "expectedResult": "1. 默认进入结果视图展示返修意见\n2. 点击补充上传后创建新批次编辑区\n3. 历史批次作为冻结区只读展示\n4. 至少新增1组并满足单组最小集\n5. 提交后追加vN批次进入买手审核",
+    "priority": "P1",
+    "groupPath": "风格店铺协作平台/试拍与评审"
+  }
+}

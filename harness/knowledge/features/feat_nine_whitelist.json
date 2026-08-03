@@ -1,0 +1,15 @@
+{
+  "id": "feat_nine_whitelist",
+  "category": "features",
+  "title": "9类白名单类目ID",
+  "content": "{\"ids\": [16, 30, 50006843, 50011740, 1625, 50010404, 50006842, 28, 50468001]}",
+  "tags": [
+    "白名单",
+    "类目",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783392790.499696
+}

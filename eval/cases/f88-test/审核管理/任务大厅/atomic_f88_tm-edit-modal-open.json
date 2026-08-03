@@ -1,0 +1,101 @@
+{
+  "id": "atomic-f88-tm-edit-modal-open",
+  "name": "UI：任务管理-编辑弹窗打开与表单验证",
+  "description": "点击编辑，验证弹窗打开且表单字段正确渲染",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/task-management?sourceTab=other",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开任务管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const arrows = document.querySelectorAll('.ant-tree-switcher:not(.ant-tree-switcher-noop)'); arrows.forEach(a => a.click()); return 'expanded'; })()",
+      "description": "展开所有节点"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "description": "编辑弹窗"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const btns = Array.from(document.querySelectorAll('a,button')).filter(el => el.textContent.trim() === '编辑'); if(btns.length > 0) { btns[0].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "点击编辑"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); const drawer = document.querySelector('.ant-drawer:not(.ant-drawer-hidden)'); const container = modal || drawer; if(!container) return { hasForm: false }; const title = container.querySelector('.ant-modal-title,.ant-drawer-title')?.textContent?.trim(); const inputs = container.querySelectorAll('input, .ant-select, textarea'); const labels = Array.from(container.querySelectorAll('.ant-form-item-label, label')).map(l => l.textContent.trim()); return { hasForm: true, title, inputCount: inputs.length, labels }; })()",
+      "description": "验证编辑表单",
+      "storeAs": "editForm"
+    },
+    {
+      "type": "assertStore",
+      "key": "editForm",
+      "path": "hasForm",
+      "equals": true,
+      "description": "验证编辑弹窗/抽屉已打开"
+    },
+    {
+      "type": "assertStore",
+      "key": "editForm",
+      "path": "inputCount",
+      "notEmpty": true,
+      "description": "验证表单有输入控件"
+    },
+    {
+      "type": "screenshot",
+      "label": "tm-edit-modal",
+      "description": "编辑弹窗"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止抓包"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在任务管理数据",
+    "realDomNotes": "编辑弹窗应包含任务名称/预期交付时间等表单字段",
+    "riskPoints": []
+  }
+}

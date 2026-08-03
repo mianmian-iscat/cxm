@@ -1,0 +1,39 @@
+{
+  "id": "ui-f88-review-node",
+  "name": "UI：F88 审核节点管理页结构验证",
+  "description": "打开审核节点管理，验证表格列（节点名称/审核标准/人效预估/分配方式等）与新建审核节点入口。基于预发真实路由 /review/node-management。",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/node-management",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开审核节点管理页"
+    },
+    { "type": "wait", "ms": 2500, "description": "等待审核节点表格加载" },
+    { "type": "assert", "target": "page", "contains": "审核节点管理", "description": "验证审核节点管理页已加载" },
+    { "type": "assert", "target": "page", "contains": "新建审核节点", "description": "验证含新建审核节点入口" },
+    { "type": "assert", "target": "page", "contains": "节点名称", "description": "验证表格含节点名称列" },
+    { "type": "assert", "target": "page", "contains": "人效预估", "description": "验证表格含人效预估列" },
+    { "type": "assert", "target": "page", "contains": "分配方式", "description": "验证表格含分配方式列" },
+    { "type": "screenshot", "label": "review-node", "description": "截图-审核节点管理页" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "真实路由 /review/node-management；表格列：节点名称/审核标准/人效预估/难度预估/分配方式/审核人/检查设置/创建人/操作；按钮：新建审核节点/重置/查询/编辑；筛选：节点名称、创建人。",
+    "riskPoints": ["表格数据为空时仅表头存在"]
+  }
+}

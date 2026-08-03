@@ -1,0 +1,96 @@
+name: 专利申请转普通申请全流程验证
+version: "1.0"
+description: "验证YC驳回→商家提交普通申请→状态流转→权益扣除完整链路"
+
+trigger:
+  type: manual
+  description: "预审驳回后转普通申请全流程回归验证"
+
+state_machine:
+  entity: patent_application
+  id_field: application_id
+  initial_state: PRE_EXAM_REJECTED
+
+steps:
+  - id: setup_test_data
+    tool: op_exec_assistant.create_test_data
+    params:
+      scenario: "pre_exam_rejected_with_to_regular_todo"
+      merchant_id: "${test_merchant_id}"
+    output_binding:
+      application_id: "$.application_id"
+      charge_order_id: "$.charge_order_id"
+
+  - id: verify_todo_state
+    tool: op_state_validator.assert_state
+    params:
+      application_id: "${setup_test_data.application_id}"
+      expected_state: "PRE_EXAM_REJECTED"
+      expected_fields:
+        to_regular_status: "TODO"
+        to_regular_suggest_reason: "创新性不足"
+    depends_on: [setup_test_data]
+
+  - id: simulate_merchant_submit
+    tool: op_exec_assistant.call_api
+    params:
+      api: "/api/patent/to-regular/submit"
+      method: POST
+      body:
+        application_id: "${setup_test_data.application_id}"
+      env: PRE
+    depends_on: [verify_todo_state]
+    output_binding:
+      submit_response: "$"
+
+  - id: verify_done_state
+    tool: op_state_validator.assert_state
+    params:
+      application_id: "${setup_test_data.application_id}"
+      expected_state: "FIRST_EXAM_IN_PROGRESS"
+      expected_fields:
+        to_regular_status: "DONE"
+        patent_status: "FIRST_EXAM_IN_PROGRESS"
+    depends_on: [simulate_merchant_submit]
+
+  - id: verify_charge_deduction
+    tool: op_settlement_calc.verify_deduction
+    params:
+      charge_order_id: "${setup_test_data.charge_order_id}"
+      expected_amount: 500.00
+      expected_status: "DEDUCTED"
+    depends_on: [simulate_merchant_submit]
+
+  - id: verify_timeout_scenario
+    tool: op_state_validator.simulate_timeout
+    params:
+      application_id: "${setup_test_data.application_id}"
+      mock_time_offset: "3d"
+      expected_final_state: "TIMEOUT"
+    depends_on: [verify_done_state]
+    condition: "${test_config.include_timeout} == true"
+
+  - id: collect_evidence
+    tool: op_evidence_collector.collect
+    params:
+      case_id: "${case_id}"
+      evidence_level: "STANDARD"
+      include_screenshots: true
+      include_api_capture: true
+    depends_on: [verify_charge_deduction]
+
+error_handling:
+  default_strategy: rollback_and_report
+  rollback_steps:
+    - tool: op_exec_assistant.reverse_state_transition
+      params:
+        application_id: "${setup_test_data.application_id}"
+        target_state: "PRE_EXAM_REJECTED"
+    - tool: op_settlement_calc.reverse_deduction
+      params:
+        charge_order_id: "${setup_test_data.charge_order_id}"
+  cleanup:
+    - tool: op_exec_assistant.cleanup_test_data
+      params:
+        application_id: "${setup_test_data.application_id}"
+  escalate_if_rollback_fails: true

@@ -1,0 +1,140 @@
+{
+  "id": "atomic-f88-seeding-production-priority",
+  "name": "原子：种草链路 - 生产优先级(F0/普通)在审核任务中的体现验证",
+  "description": "验证种草链路的生产优先级机制在UI端的体现：1)审核任务列表的'备注'列正确显示任务类型(F0/其他)；2)F0商品任务优先级高于普通商品；3)任务按创建时间排序且F0任务排前面。",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "atomic",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 4000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开个人任务中心"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待页面加载"
+    },
+    {
+      "_comment": "===== 找到种草审核任务并进入 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { const t = row.textContent || ''; if (t.includes('种草') && (t.includes('待开始') || t.includes('进行中'))) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '开始任务' || b.textContent?.trim() === '查看详情'); if (btn) { btn.click(); return { clicked: true, taskText: t.slice(0, 100) }; } } } return { clicked: false }; })()",
+      "description": "找到种草审核任务并进入",
+      "storeAs": "seedingTask"
+    },
+    {
+      "type": "assertStore",
+      "key": "seedingTask",
+      "path": "clicked",
+      "equals": true,
+      "description": "断言种草审核任务存在"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待任务详情页加载"
+    },
+    {
+      "_comment": "===== PRD: 生产优先级 - 验证备注列存在 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')).map(h => h.textContent?.trim()).filter(Boolean); const remarkIdx = headers.findIndex(h => h.includes('备注')); const priorityIdx = headers.findIndex(h => h.includes('优先级')); return { headers, remarkIdx, priorityIdx, hasRemark: remarkIdx >= 0 }; })()",
+      "description": "读取表头，定位备注列和优先级列",
+      "storeAs": "tableStructure"
+    },
+    {
+      "type": "assertStore",
+      "key": "tableStructure",
+      "path": "hasRemark",
+      "equals": true,
+      "description": "断言表头包含'备注'列（PRD:任务类型标签通道）"
+    },
+    {
+      "_comment": "===== PRD: F0商品优先级1 - 验证F0备注值 =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')); const remarkIdx = headers.findIndex(h => h.textContent?.includes('备注')); if (remarkIdx < 0) return { found: false, reason: 'no remark column' }; const rows = Array.from(document.querySelectorAll('tbody tr')); const remarkValues = []; for (const row of rows) { const cells = row.querySelectorAll('td'); if (cells.length > remarkIdx) { const val = cells[remarkIdx]?.textContent?.trim(); const taskId = cells[0]?.textContent?.trim(); remarkValues.push({ taskId, remark: val }); } } const f0Tasks = remarkValues.filter(r => r.remark?.includes('F0')); const otherTasks = remarkValues.filter(r => r.remark && !r.remark.includes('F0')); return { found: true, total: remarkValues.length, f0Count: f0Tasks.length, otherCount: otherTasks.length, allRemarks: remarkValues }; })()",
+      "description": "读取所有任务的备注值，区分F0/非F0",
+      "storeAs": "priorityData"
+    },
+    {
+      "type": "assertStore",
+      "key": "priorityData",
+      "path": "found",
+      "equals": true,
+      "description": "断言备注数据可读取"
+    },
+    {
+      "_comment": "===== PRD: 备注字段值域验证(F0/F0爆款&潜爆/其他) =====",
+      "type": "evaluate",
+      "expression": "(() => { const headers = Array.from(document.querySelectorAll('th')); const remarkIdx = headers.findIndex(h => h.textContent?.includes('备注')); if (remarkIdx < 0) return { valid: false }; const rows = Array.from(document.querySelectorAll('tbody tr')); const validPrefixes = ['F0', '新增F0', 'F0爆款', '其他', '']; const remarks = []; for (const row of rows) { const cells = row.querySelectorAll('td'); if (cells.length > remarkIdx) { const val = cells[remarkIdx]?.textContent?.trim() || ''; remarks.push(val); } } const allValid = remarks.every(r => !r || validPrefixes.some(p => r.startsWith(p) || r.includes('F0'))); return { remarks, allValid, validPrefixes }; })()",
+      "description": "验证备注值在合法域内",
+      "storeAs": "remarkValidation"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-production-priority",
+      "description": "截图-种草任务优先级备注列"
+    },
+    {
+      "_comment": "===== PRD: 审核详情中验证备注传递 =====",
+      "type": "evaluate",
+      "expression": "(() => { const rows = Array.from(document.querySelectorAll('tr')); for (const row of rows) { if (row.textContent?.includes('待审核')) { const btn = Array.from(row.querySelectorAll('button, a')).find(b => b.textContent?.trim() === '审核'); if (btn) { btn.click(); return { clicked: true }; } } } return { clicked: false }; })()",
+      "description": "进入审核详情查看备注传递",
+      "storeAs": "auditEntry"
+    },
+    {
+      "type": "wait",
+      "ms": 5000,
+      "description": "等待SetImageReview加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const remarkEl = document.querySelector('[class*=remark]'); const labelEls = Array.from(document.querySelectorAll('[class*=label]')); const remarkLabel = labelEls.find(l => l.textContent?.includes('备注')); return { remarkExists: !!remarkEl, remarkText: remarkEl?.textContent?.trim() || '', remarkLabel: remarkLabel?.textContent?.trim() || '', remarkCls: remarkEl?.className?.slice(0, 60) || '' }; })()",
+      "description": "验证审核详情中备注字段正确传递",
+      "storeAs": "detailRemark"
+    },
+    {
+      "type": "screenshot",
+      "label": "seeding-priority-in-audit-detail",
+      "description": "截图-审核详情中的优先级备注"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；个人任务中心存在种草审核任务",
+    "realDomNotes": "PRD规定F0商品优先级=1(最高)，备注列显示'新增F0'；其他商品优先级=2，按日均销量排序；备注字段通过链路入参remark传递到审核任务",
+    "riskPoints": [
+      "PRD: 生产疲劳度(72h释放)为纯后端逻辑，UI无法直接验证",
+      "PRD: ODPS日更表(tbanalyst.ads_tb_fashion_f88_itm_d)为数据源，UI不可见",
+      "PRD: F0商品买手运营→生产平台的服务端消息通知机制不可测",
+      "备注值域可能扩展（当前: 新增F0/F0爆款&潜爆/其他）",
+      "种草审核任务可能不存在（需试运行构造数据）"
+    ],
+    "prdMapping": {
+      "F0优先级1": "备注列显示'新增F0'或'F0'相关值",
+      "其他优先级2": "备注列为空或显示'其他'",
+      "疲劳度72h": "后端逻辑，建议API/DB断言补充",
+      "ODPS日更表": "数据源验证，建议离线数据质量监控"
+    }
+  }
+}

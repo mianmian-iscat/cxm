@@ -1,0 +1,499 @@
+{
+  "id": "e2e-f88-template-match-rule-package-visual-main-v2",
+  "name": "E2E：模板匹配策略端到端测试V2 - 规则匹配×模板包×视觉×主图素材（细化版）",
+  "description": "完整的端到端测试流程：创建策略 → 配置Start节点入参(seller_id) → 添加模板匹配节点(规则匹配+模板包+视觉+主图素材+排序维度+目标匹配数量) → 保存节点(验证\"节点已更新\") → 保存策略(验证\"保存成功\") → 试运行(单次运行) → 详细验证运行结果(匹配到的图组、模板ID、图片URL、输出格式)",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P0",
+  "category": "e2e",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle2",
+      "screenshot": true,
+      "description": "打开策略列表页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待页面加载" },
+
+    {
+      "type": "clickText",
+      "text": "新建策略",
+      "description": "点击新建策略按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待弹窗" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const input = document.querySelector('input#name'); if (!input) return { ok: false }; const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeInputValueSetter.call(input, '自动化测试-模板匹配策略-E2E-V2'); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true }; })()",
+      "description": "填写策略名称"
+    },
+    { "type": "wait", "ms": 500, "description": "等待输入" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const el = document.querySelector('#stageCode'); if (!el) return false; const sel = el.closest('.ant-select'); const target = sel?.querySelector('.ant-select-selector') || sel; if (target) { target.click(); return true; } return false; })()",
+      "description": "打开环节下拉框"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待下拉列表" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = dd.querySelectorAll('.ant-select-item-option'); for (const item of items) { if (item.textContent.trim() === '视觉') { item.click(); return true; } } } return false; })()",
+      "description": "选择视觉环节"
+    },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const el = document.querySelector('#lifeCycleCode'); if (!el) return false; const sel = el.closest('.ant-select'); const target = sel?.querySelector('.ant-select-selector') || sel; if (target) { target.click(); return true; } return false; })()",
+      "description": "打开生命周期下拉框"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待下拉列表" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = dd.querySelectorAll('.ant-select-item-option'); for (const item of items) { if (item.textContent.trim() === '实验') { item.click(); return true; } } } return false; })()",
+      "description": "选择实验生命周期"
+    },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const btn = [...modal.querySelectorAll('button')].find(b => /确.*定/.test(b.textContent)); if (btn) { btn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击确定创建策略"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待跳转策略详情页" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const url = window.location.href; const match = url.match(/strategy\\/detail\\/(\\d+)/); return match ? { strategyId: match[1], url } : { strategyId: null, url }; })()",
+      "storeAs": "newStrategy",
+      "description": "获取新建策略ID"
+    },
+    { "type": "screenshot", "label": "strategy-created", "description": "截图-策略已创建" },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "节点编排",
+      "description": "验证节点编排区域已渲染"
+    },
+
+    { "type": "comment", "text": "========== 配置 Start 节点入参 ==========" },
+
+    {
+      "type": "clickText",
+      "text": "Start",
+      "description": "点击Start节点"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待抽屉加载" },
+
+    {
+      "type": "clickText",
+      "text": "新增字段",
+      "description": "点击新增字段按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待字段选择modal" },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "验证seller_id字段存在"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const items = [...modal.querySelectorAll('.ant-list-item, tr, .ant-table-row, [class*=item]')]; for (const item of items) { if (item.textContent.includes('seller_id')) { const r = item.getBoundingClientRect(); if (r.height > 0) { item.click(); return { ok: true }; } } } return { ok: false }; })()",
+      "description": "选择seller_id字段"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return true; const btns = [...modal.querySelectorAll('button')]; for (const btn of btns) { const t = btn.textContent.trim(); if (/确.*定|确.*认|添.*加|保.*存/.test(t)) { if (!btn.disabled) { btn.click(); return true; } } } return false; })()",
+      "description": "关闭modal"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待modal关闭" },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "seller_id",
+      "description": "验证seller_id已配置"
+    },
+    { "type": "screenshot", "label": "start-configured", "description": "截图-Start节点已配置" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (drawer) { const close = drawer.querySelector('.ant-drawer-close'); if (close && close.offsetHeight > 0) close.click(); return true; } return false; })()",
+      "description": "关闭Start抽屉"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待抽屉关闭" },
+
+    { "type": "comment", "text": "========== 添加模板匹配节点 ==========" },
+
+    {
+      "type": "clickText",
+      "text": "+ 新增节点",
+      "description": "点击新增节点"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待弹窗" },
+
+    {
+      "type": "click",
+      "text": "模板匹配",
+      "within": ".ant-modal",
+      "description": "选择模板匹配节点"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待抽屉加载" },
+
+    { "type": "comment", "text": "========== 配置模板匹配节点 ==========" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('匹配模式')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "modePos",
+      "description": "定位匹配模式下拉框"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${modePos}"],
+      "description": "点击匹配模式下拉框"
+    },
+    { "type": "wait", "ms": 1200, "description": "等待下拉列表" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '规则匹配') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "ruleModePos",
+      "description": "定位规则匹配选项"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${ruleModePos}"],
+      "description": "选择规则匹配"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待联动字段渲染" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('数据来源')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "dataSourcePos",
+      "description": "定位数据来源下拉框"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${dataSourcePos}"],
+      "description": "点击数据来源下拉框"
+    },
+    { "type": "wait", "ms": 1200, "description": "等待下拉列表" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '模板包') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "packagePos",
+      "description": "定位模板包选项"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${packagePos}"],
+      "description": "选择模板包"
+    },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('应用环节')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "stagePos",
+      "description": "定位应用环节下拉框"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${stagePos}"],
+      "description": "点击应用环节下拉框"
+    },
+    { "type": "wait", "ms": 1200, "description": "等待下拉列表" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '视觉') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "visualPos",
+      "description": "定位视觉选项"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${visualPos}"],
+      "description": "选择视觉"
+    },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const items = [...drawer.querySelectorAll('.ant-form-item')]; for (const item of items) { const label = item.querySelector('.ant-form-item-label label')?.textContent || ''; if (label.includes('应用场景')) { const sel = item.querySelector('.ant-select .ant-select-selector'); if (sel) { const r = sel.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "scenePos",
+      "description": "定位应用场景下拉框"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${scenePos}"],
+      "description": "点击应用场景下拉框"
+    },
+    { "type": "wait", "ms": 1200, "description": "等待下拉列表" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const dds = document.querySelectorAll('.ant-select-dropdown:not(.ant-select-dropdown-hidden)'); for (const dd of dds) { const items = [...dd.querySelectorAll('.ant-select-item-option')]; for (const item of items) { if (item.textContent.trim() === '主图素材') { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } } return null; })()",
+      "storeAs": "mainImagePos",
+      "description": "定位主图素材选项"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${mainImagePos}"],
+      "description": "选择主图素材"
+    },
+    { "type": "wait", "ms": 800, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const listItems = [...drawer.querySelectorAll('.ant-list-item')]; for (const item of listItems) { if (item.textContent.trim() === '类目' || item.textContent.includes('类目')) { const r = item.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; } } return null; })()",
+      "storeAs": "sortPos",
+      "description": "定位排序维度-类目"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((pos) => pos && pos.x ? { ok: true, action: 'mouse_click', x: pos.x, y: pos.y } : { ok: false })",
+      "args": ["${sortPos}"],
+      "description": "选择排序维度-类目"
+    },
+    { "type": "wait", "ms": 600, "description": "等待选择" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const input = drawer.querySelector('input[placeholder*=\"目标匹配数量\"]'); if (input) { input.value = '4'; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true }; } return { ok: false }; })()",
+      "description": "设置目标匹配数量为4"
+    },
+    { "type": "wait", "ms": 500, "description": "等待输入" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const input = drawer.querySelector('input[placeholder*=\"疲劳度\"]'); if (input) { input.value = '2'; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true }; } return { ok: false }; })()",
+      "description": "设置疲劳度为2"
+    },
+    { "type": "wait", "ms": 500, "description": "等待输入" },
+
+    { "type": "screenshot", "label": "node-configured", "description": "截图-节点已配置" },
+
+    { "type": "comment", "text": "========== 运行测试（抽屉内） ==========" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const btn = drawer.querySelector('button:has-text(\"运行测试\")'); if (btn && !btn.disabled) { btn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击运行测试按钮"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待运行完成" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false, groups: [] }; const outputSection = drawer.querySelector('div:has-text(\"匹配到的图组\")'); if (!outputSection) return { ok: false, groups: [] }; const groupDivs = outputSection.querySelectorAll('div:has(> .ant-tag)'); const groups = Array.from(groupDivs).map(groupDiv => { const title = groupDiv.querySelector('div')?.textContent || ''; const tags = Array.from(groupDiv.querySelectorAll('.ant-tag')).map(tag => ({ text: tag.textContent.trim(), color: tag.className.includes('green') ? 'green' : tag.className.includes('blue') ? 'blue' : 'white' })); return { title, tags }; }); return { ok: true, groups }; })()",
+      "storeAs": "outputGroups",
+      "description": "获取输出结果"
+    },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "匹配到的图组",
+      "description": "验证输出结果区域存在"
+    },
+    { "type": "screenshot", "label": "test-run-result", "description": "截图-运行测试结果" },
+
+    { "type": "comment", "text": "========== 保存节点配置 ==========" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (!drawer) return { ok: false }; const saveBtn = [...drawer.querySelectorAll('button')].find(b => b.textContent.trim() === '保存'); if (saveBtn && !saveBtn.disabled) { saveBtn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击保存按钮（节点配置）"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待保存完成" },
+
+    {
+      "type": "waitForFunction",
+      "expression": "() => { const notices = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); for (const notice of notices) { if (notice.textContent.includes('节点已更新')) { return true; } } return false; }",
+      "timeout": 5000,
+      "description": "等待\"节点已更新\"提示"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待提示显示完整" },
+    { "type": "screenshot", "label": "node-updated", "description": "截图-节点已更新提示" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const drawer = document.querySelector('.ant-drawer-open'); if (drawer) { const close = drawer.querySelector('.ant-drawer-close'); if (close && close.offsetHeight > 0) close.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "关闭节点抽屉"
+    },
+    { "type": "wait", "ms": 1500, "description": "等待抽屉关闭" },
+
+    { "type": "comment", "text": "========== 保存策略配置 ==========" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const desc = document.querySelector('textarea[placeholder*=\"策略说明\"]'); if (desc) { desc.value = '自动化测试模板匹配策略-规则匹配×模板包×视觉×主图素材-V2'; desc.dispatchEvent(new Event('input', { bubbles: true })); } return { ok: true }; })()",
+      "description": "填写策略说明"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待输入" },
+
+    {
+      "type": "clickText",
+      "text": "保 存",
+      "description": "点击保存按钮（策略配置）"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待保存完成" },
+
+    {
+      "type": "waitForFunction",
+      "expression": "() => { const notices = document.querySelectorAll('.ant-message-notice, .ant-notification-notice'); for (const notice of notices) { if (notice.textContent.includes('保存成功')) { return true; } } return false; }",
+      "timeout": 5000,
+      "description": "等待\"保存成功\"提示"
+    },
+    { "type": "wait", "ms": 1000, "description": "等待提示显示完整" },
+    { "type": "screenshot", "label": "strategy-saved", "description": "截图-策略保存成功" },
+
+    { "type": "comment", "text": "========== 试运行 ==========" },
+
+    {
+      "type": "clickText",
+      "text": "试运行",
+      "description": "点击试运行按钮"
+    },
+    { "type": "wait", "ms": 2000, "description": "等待试运行弹窗" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const inputs = modal.querySelectorAll('input'); for (const input of inputs) { const placeholder = input.placeholder || ''; if (placeholder.includes('seller_id')) { input.value = 'test_seller_123'; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true }; } } return { ok: false }; })()",
+      "description": "填写seller_id参数"
+    },
+    { "type": "wait", "ms": 800, "description": "等待输入" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const buttons = Array.from(modal.querySelectorAll('button')); const runBtn = buttons.find(btn => btn.textContent.includes('单次运行') || btn.textContent.includes('运行')); if (runBtn && !runBtn.disabled) { runBtn.click(); return { ok: true }; } return { ok: false }; })()",
+      "description": "点击单次运行"
+    },
+    { "type": "wait", "ms": 5000, "description": "等待运行完成" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return null; const successMsg = modal.querySelector('.ant-message-success, .ant-alert-success'); const errorMsg = modal.querySelector('.ant-message-error, .ant-alert-error'); const resultData = {}; const preElements = modal.querySelectorAll('pre'); preElements.forEach(pre => { const text = pre.textContent.trim(); if (text) { try { resultData.json = JSON.parse(text); } catch (e) { resultData.text = text; } } }); return { success: !!successMsg, error: !!errorMsg, successText: successMsg?.textContent || '', errorText: errorMsg?.textContent || '', data: resultData }; })()",
+      "storeAs": "runResult",
+      "description": "获取运行结果"
+    },
+
+    { "type": "screenshot", "label": "run-result", "description": "截图-运行结果" },
+
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "运行成功",
+      "description": "验证运行成功"
+    },
+
+    { "type": "comment", "text": "========== 详细验证运行结果 ==========" },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false, matchedTemplateIds: [], matchedImgUrls: [], matchedTemplateUsedIds: [], matchedTemplatePkg: null }; const preElements = modal.querySelectorAll('pre'); let jsonData = null; for (const pre of preElements) { const text = pre.textContent.trim(); if (text) { try { jsonData = JSON.parse(text); break; } catch (e) {} } } if (!jsonData) return { ok: false, matchedTemplateIds: [], matchedImgUrls: [], matchedTemplateUsedIds: [], matchedTemplatePkg: null }; return { ok: true, matchedTemplateIds: jsonData.matched_template_ids || [], matchedImgUrls: jsonData.matchedImg || [], matchedTemplateUsedIds: jsonData.matched_template_used_ids || [], matchedTemplatePkg: jsonData.matched_template_pkg || null }; })()",
+      "storeAs": "detailedRunResult",
+      "description": "获取详细的运行结果数据"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((result) => { if (!result || !result.ok) return { ok: false, message: '运行结果数据不存在' }; if (!result.matchedTemplateIds || result.matchedTemplateIds.length === 0) return { ok: false, message: 'matched_template_ids为空' }; if (!result.matchedImgUrls || result.matchedImgUrls.length === 0) return { ok: false, message: 'matchedImg为空' }; if (!result.matchedTemplateUsedIds || result.matchedTemplateUsedIds.length === 0) return { ok: false, message: 'matched_template_used_ids为空' }; if (!result.matchedTemplatePkg) return { ok: false, message: 'matched_template_pkg为空' }; return { ok: true, message: '所有必填字段都存在', templateCount: result.matchedTemplateIds.length, imgCount: result.matchedImgUrls.length, usedIdCount: result.matchedTemplateUsedIds.length }; })(detailedRunResult)",
+      "description": "验证运行结果的必填字段都存在"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((result) => { if (!result || !result.ok) return { ok: false, message: '运行结果数据不存在' }; const expectedCount = 4; const actualCount = result.matchedTemplateIds.length; if (actualCount !== expectedCount) return { ok: false, message: `模板数量不匹配，期望${expectedCount}个，实际${actualCount}个` }; return { ok: true, message: `模板数量正确：${actualCount}个` }; })(detailedRunResult)",
+      "description": "验证匹配到的模板数量是否符合预期（目标匹配数量=4）"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((result) => { if (!result || !result.ok) return { ok: false, message: '运行结果数据不存在' }; const imgUrls = result.matchedImgUrls; for (const url of imgUrls) { if (!url.startsWith('http')) return { ok: false, message: `图片URL格式错误：${url}` }; if (!url.includes('alicdn.com') && !url.includes('taobaocdn.com')) return { ok: false, message: `图片URL域名不正确：${url}` }; } return { ok: true, message: '所有图片URL格式正确' }; })(detailedRunResult)",
+      "description": "验证图片URL格式是否正确"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "((result) => { if (!result || !result.ok) return { ok: false, message: '运行结果数据不存在' }; const usedIds = result.matchedTemplateUsedIds; for (const usedId of usedIds) { const parts = usedId.split('_'); if (parts.length !== 3) return { ok: false, message: `matched_template_used_ids格式错误：${usedId}，应该是sellerId_pkgId_templateId` }; const [sellerId, pkgId, templateId] = parts; if (!sellerId || !pkgId || !templateId) return { ok: false, message: `matched_template_used_ids字段缺失：${usedId}` }; } return { ok: true, message: '所有matched_template_used_ids格式正确' }; })(detailedRunResult)",
+      "description": "验证matched_template_used_ids格式是否正确（sellerId_pkgId_templateId）"
+    },
+
+    {
+      "type": "evaluate",
+      "expression": "(() => { const modal = document.querySelector('.ant-modal:not(.ant-modal-hidden)'); if (!modal) return { ok: false }; const resultSection = modal.querySelector('.ant-result, .ant-alert'); if (!resultSection) return { ok: false }; const isSuccess = resultSection.querySelector('.ant-result-success, .ant-alert-success'); if (!isSuccess) return { ok: false, message: '运行结果不是成功状态' }; return { ok: true, message: '运行结果状态为成功' }; })()",
+      "description": "验证运行结果的状态为成功"
+    },
+
+    {
+      "type": "screenshot",
+      "label": "detailed-run-result",
+      "description": "截图-详细的运行结果"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "workflow2|strategy",
+    "captureBody": true
+  },
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录，Chrome --remote-debugging-port=9222 已启动",
+    "keyVerifications": [
+      "节点已更新提示",
+      "保存成功提示",
+      "运行成功提示",
+      "matched_template_ids 数量正确（4个）",
+      "matchedImg URL格式正确",
+      "matched_template_used_ids 格式正确（sellerId_pkgId_templateId）",
+      "matched_template_pkg 存在"
+    ],
+    "riskPoints": [
+      "Start节点必须配置seller_id",
+      "模板匹配节点必须配置所有必填字段",
+      "保存节点后必须等待\"节点已更新\"提示",
+      "保存策略后必须等待\"保存成功\"提示",
+      "试运行参数必须正确填写",
+      "运行结果必须包含所有必填字段",
+      "图片URL必须是https链接",
+      "matched_template_used_ids格式必须正确"
+    ]
+  }
+}

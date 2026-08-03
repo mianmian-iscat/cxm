@@ -1,0 +1,117 @@
+{
+  "id": "e2e-seed-007-dedup-72h",
+  "name": "E2E-SEED-007 — 同一商品72小时内图文去重(DB端到端验证)",
+  "description": "验证同一商品在72小时去重窗口内只生产一次图文种草。通过DB查询f88_ai_process_record表验证：①seedGenerate记录去重正确 ②同item_id同processMode 72h内无重复PENDING ③retry_count>0不影响去重 ④图文与视频链路去重独立",
+  "businessType": "f88_material",
+  "scene": "f88-test",
+  "module": "上游素材生产链路/种草链路",
+  "priority": "P0",
+  "category": "boundary",
+  "source": "upstream-repo/F88MaterialGenerateCronTrigger#filterAlreadyProcessed",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-xiaoer.alibaba-inc.com/bzb/fsyx_quality_guard/quality-pulse/product-management",
+      "description": "[造数] 导航到商品管理页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "[造数] 等待页面加载"
+    },
+    {
+      "type": "apiCall",
+      "api": "/cobweb/api/bzb.api.sceneplatform.cloth.btg.yanxuan.xiaoer.fsShopItem.batchUpdateItemTierTag",
+      "method": "POST",
+      "body": "{\"_bzb_format\":\"json\",\"_bzb_data\":{\"shopItemIds\":[1136918],\"itemTierTag\":\"F0\"}}",
+      "storeAs": "tierModifyResult",
+      "description": "[造数] 将女装测试商品设为F0触发种草"
+    },
+    {
+      "type": "assertStore",
+      "key": "tierModifyResult",
+      "path": "data.success",
+      "equals": true,
+      "description": "[造数] 验证分层修改成功"
+    },
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/list",
+      "waitUntil": "networkidle",
+      "description": "打开F88策略列表(建立页面上下文)"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { return { testType: 'db-validated-dedup', scenario: '图文72h去重', table: 'f88_ai_process_record', dedupWindowHours: 72, dedupWindowMinutes: 4320, imageProcessMode: 'seedGenerate', videoProcessMode: 'seedVideoGenerate', expectedRules: { firstEvent: '首次事件→PENDING记录落库', within72h: '72h内重复事件→filterAlreadyProcessed过滤→不新增记录', after72h: '72h后→允许再次生产', retryFilter: 'retry_count>0的记录不参与去重判断', pipelineIsolation: 'seedGenerate与seedVideoGenerate去重独立' } }; })()",
+      "description": "定义图文72h去重规则",
+      "storeAs": "dedupSpec"
+    },
+    {
+      "type": "assertStore",
+      "key": "dedupSpec",
+      "path": "dedupWindowHours",
+      "equals": 72,
+      "description": "去重窗口为72小时"
+    },
+    {
+      "type": "dbQuery",
+      "sql": "SELECT record_id, item_id, seller_id, scene_type, biz_type, main_status, retry_count, gmt_create FROM f88_ai_process_record WHERE scene_type='generate' AND biz_type='item_material' AND is_deleted=0 AND gmt_create > DATE_SUB(NOW(), INTERVAL 72 HOUR) ORDER BY item_id, gmt_create DESC LIMIT 100",
+      "dbGroup": "scenario",
+      "dbName": "prod",
+      "storeAs": "recent72hRecords",
+      "description": "查询72h内所有图文种草记录"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const records = ${recent72hRecords}; if (!records || !records.rows) return { ok: false, error: 'DB查询无结果' }; const rows = records.rows; const itemCount = {}; const duplicates = []; for (const r of rows) { const key = r.item_id + '_' + r.biz_type; if (!itemCount[key]) itemCount[key] = []; itemCount[key].push(r); } for (const key in itemCount) { if (itemCount[key].length > 1) { const sorted = itemCount[key].sort((a,b) => new Date(b.gmt_create) - new Date(a.gmt_create)); const first = sorted[0]; const rest = sorted.slice(1); for (const dup of rest) { const hoursDiff = (new Date(first.gmt_create) - new Date(dup.gmt_create)) / 3600000; if (hoursDiff <= 72 && dup.retry_count == 0) { duplicates.push({ item_id: dup.item_id, record_id: dup.record_id, hoursDiff: hoursDiff.toFixed(1) }); } } } } return { totalRecords: rows.length, uniqueItems: Object.keys(itemCount).length, potentialDuplicates: duplicates.length, duplicates: duplicates.slice(0, 10) }; })()",
+      "description": "分析72h内同商品重复记录",
+      "storeAs": "dedupAnalysis"
+    },
+    {
+      "type": "assertStore",
+      "key": "dedupAnalysis",
+      "path": "totalRecords",
+      "gte": 1,
+      "description": "72h内有记录(数据存在性)"
+    },
+    {
+      "type": "assertStore",
+      "key": "dedupAnalysis",
+      "path": "potentialDuplicates",
+      "equals": 0,
+      "description": "72h内同商品无重复记录(去重生效)"
+    },
+    {
+      "type": "screenshot",
+      "label": "seed-dedup-72h-db",
+      "description": "截图 - 图文72h去重DB验证"
+    }
+  ],
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "f88_ai_process_record表有近期数据；SEED_DEDUP_LOOKBACK_MINUTES=4320",
+    "stepsText": "1.触发F0种草 2.DB查72h内generate记录 3.分析同item_id+biz_type是否有重复(排除retry>0) 4.验证去重生效",
+    "expectedResult": "①72h内同item_id+biz_type无重复PENDING ②retry_count>0不影响去重 ③图文与视频去重独立",
+    "dbAssertion": "72h内同item_id+biz_type: COUNT(*) <= 1 (排除retry)",
+    "riskPoints": [
+      "record_id哈希冲突可能误去重",
+      "时区偏差影响72h窗口边界"
+    ],
+    "relatedDocs": [
+      "F88MaterialGenerateCronTrigger#filterAlreadyProcessed"
+    ]
+  }
+}

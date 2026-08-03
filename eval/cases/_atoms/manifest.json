@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "description": "跨业务域公共原子步骤模板（F88 / 原创保护 / 千牛 共用）",
+  "atoms": [
+    {
+      "id": "page_snapshot",
+      "file": "page_snapshot.json",
+      "description": "页面快照：收集当前页的按钮、表格、表单、Tab、Select 数量及文本前 500 字。参数：storeAs（默认 pageSnapshot）",
+      "usage_count": 15,
+      "source_cases": [
+        "eval/cases/f88-test/链路管理/链路详情/m5-TC-LM-004-链路编辑按钮.json",
+        "eval/cases/f88-test/策略管理/策略详情/策略通用/m19-TC-SM-006-策略打开操作.json",
+        "eval/cases/f88-test/策略管理/策略详情/策略通用/m22-TC-SM-009-策略详情页-节点编排结构.json",
+        "eval/cases/f88-test/策略管理/策略详情/策略通用/m23-TC-SM-010-策略新增节点-20种节点类型.json",
+        "eval/cases/f88-test/策略管理/策略详情/策略通用/m24-TC-SM-011-策略添加人工审核节点.json",
+        "eval/cases/f88-test/策略管理/策略详情/策略通用/m25-TC-SM-012-策略入参配置.json",
+        "eval/cases/f88-test/策略管理/策略详情/策略通用/m28-TC-SM-015-策略试运行.json",
+        "eval/cases/f88-test/链路管理/链路详情/m8-TC-LM-007-链路详情页-环节编排结构.json",
+        "eval/cases/f88-test/链路管理/链路详情/m9-TC-LM-008-链路详情页-添加环节.json",
+        "eval/cases/f88-test/链路管理/链路详情/m10-TC-LM-009-链路环节-添加策略绑定.json",
+        "eval/cases/f88-test/链路管理/链路详情/m11-TC-LM-010-链路试运行.json"
+      ]
+    },
+    {
+      "id": "antd_select_open",
+      "file": "antd_select_open.json",
+      "description": "打开 Ant Design Select 下拉框（支持 scoped selector）。参数：scopeSelector（默认 '.ant-select'），storeAs（默认 antdSelectState）",
+      "usage_count": 8,
+      "source_cases": [
+        "eval/cases/f88-test/策略管理/策略详情/视频上传/atomic_f88_node-video_upload-type-switch.json",
+        "eval/cases/f88-test/审核管理/审核操作/atomic_f88_audit-reject-type.json",
+        "eval/cases/f88-test/审核管理/任务大厅/atomic_f88_tm-reset.json",
+        "eval/cases/f88-test/审核管理/个人任务中心/ui_f88_personal_task_filters.json"
+      ]
+    },
+    {
+      "id": "antd_select_choose_option",
+      "file": "antd_select_choose_option.json",
+      "description": "在已打开的 Ant Design Select 下拉框里按文本匹配选项并点击。参数：optionText（必填）",
+      "usage_count": 6,
+      "source_cases": [
+        "eval/cases/f88-test/策略管理/策略详情/视频上传/atomic_f88_node-video_upload-type-switch.json",
+        "eval/cases/f88-test/审核管理/审核操作/atomic_f88_audit-reject-type.json"
+      ]
+    },
+    {
+      "id": "antd_table_wait_load",
+      "file": "antd_table_wait_load.json",
+      "description": "等待 Ant Design 表格加载完成（出现 tr.ant-table-row 或 ant-empty），返回 rowCount / headers。参数：scopeSelector（默认 'body'），timeout（默认 5000ms），storeAs（默认 tableState）",
+      "usage_count": 12,
+      "source_cases": [
+        "eval/cases/f88-test/链路管理/链路列表/atom_f88_ll_lifecycle_filter.json",
+        "eval/cases/f88-test/策略管理/策略列表/atom_f88_sl_process_filter.json",
+        "eval/cases/f88-test/模版库/模版包管理/atomic_f88_tmgmt-detail-list.json",
+        "eval/cases/f88-test/商家管理/商家信息配置/atomic_f88_mc-view-all-suppliers.json"
+      ]
+    },
+    {
+      "id": "antd_drawer_state",
+      "file": "antd_drawer_state.json",
+      "description": "检查 Ant Design Drawer 是否可见，并汇总内部 form-item 字段。参数：storeAs（默认 drawerState）",
+      "usage_count": 5,
+      "source_cases": [
+        "eval/cases/f88-test/策略管理/策略详情/视频上传/atomic_f88_node-video_upload-type-switch.json",
+        "eval/cases/f88-test/策略管理/策略详情/视频上传/atomic_f88_node-video_upload-delete-reedit.json"
+      ]
+    },
+    {
+      "id": "antd_tab_switch",
+      "file": "antd_tab_switch.json",
+      "description": "点击 Ant Design Tabs 指定文本的 tab。参数：tabText（必填），storeAs（默认 tabSwitchState）",
+      "usage_count": 4,
+      "source_cases": []
+    }
+  ],
+  "usage": "详见 README.md。用例中使用 includeAtom 步骤类型引用，例：\n  { \"type\": \"includeAtom\", \"atom\": \"page_snapshot\", \"params\": {\"storeAs\": \"snap1\"} }"
+}

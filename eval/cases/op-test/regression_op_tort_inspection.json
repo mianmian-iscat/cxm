@@ -1,0 +1,180 @@
+{
+  "id": "regression-op-tort-inspection",
+  "name": "回归：商家端侵权巡检弹层（发起维权入口）+ 数值一致性",
+  "description": "验证商家端申请列表行内「发起维权」打开侵权巡检弹层（抽屉 inspectionDetailDrawer），全量校验弹层 UI：标题/第三方提示条/商品信息区（发现疑似N例、已获得专利保护、平台标签）/筛选区（日期、来源、疑似侵权平台、重置筛选、搜索）/列表表头（侵权日期/疑似侵权平台/来源/商品信息）/分页（共X条、条·页）/底部按钮（发起维权、返回）；并校验『发现疑似侵权N例』与巡检列表条数、分页『共X条』与当前页实际行数是否一致。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P0",
+  "category": "regression",
+  "source": "qoderwork/yc-child-shoes-testcases/test_inspection.py",
+  "sourceIds": [
+    "TC_INSPECTION_001",
+    "TC_INSPECTION_002"
+  ],
+  "depends_on": [
+    "regression-op-signup-flow"
+  ],
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "auth": "taobao"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-fsyc.taobao.com/",
+      "description": "打开原创保护商家端主页"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "专利认证数量",
+      "description": "验证商家端主页已加载"
+    },
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "selectorIndex": 2,
+      "value": "200000761",
+      "description": "【TC_INSPECTION_001】在申请编号搜索框输入保护中且有巡检数据的编号 200000761"
+    },
+    {
+      "type": "clickText",
+      "text": "搜",
+      "selector": "button",
+      "description": "点击搜索按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待搜索结果渲染"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "200000761",
+      "description": "验证搜索结果含目标申请编号 200000761（保护中，有发起维权入口）"
+    },
+    {
+      "type": "clickText",
+      "text": "发起维权",
+      "description": "【TC_INSPECTION_002】点击行内「发起维权」打开侵权巡检弹层"
+    },
+    {
+      "type": "wait",
+      "ms": 4000,
+      "description": "等待侵权巡检弹层渲染"
+    },
+    {
+      "type": "screenshot",
+      "label": "tort-inspection-modal",
+      "description": "截图-侵权巡检弹层"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "侵权巡检",
+      "description": "【UI】验证侵权巡检弹层标题已打开"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "巡检数据由第三方服务机构",
+      "description": "【UI】验证顶部第三方巡检说明提示条"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "立即添加",
+      "description": "【UI】验证提示条「立即添加」入口"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "发现疑似侵权",
+      "description": "【UI】验证商品信息区『发现疑似侵权N例』统计"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "已获得专利保护",
+      "description": "【UI】验证商品保护状态标签「已获得专利保护」"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "重置筛选",
+      "description": "【UI】验证筛选区「重置筛选」按钮"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "疑似侵权平台",
+      "description": "【UI】验证筛选项/列表列「疑似侵权平台」"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "侵权日期",
+      "description": "【UI】验证巡检列表表头「侵权日期」"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "来源",
+      "description": "【UI】验证巡检列表表头「来源」"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "条/页",
+      "description": "【UI】验证分页器「N条/页」"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "返 回",
+      "description": "【UI】验证弹层底部「返回」按钮（TBD 双字按钮渲染为「返 回」）"
+    },
+    {
+      "type": "assert",
+      "assertion": "pageConsistency",
+      "expected": "发现疑似侵权N例 vs 巡检列表条数 vs 分页共X条一致",
+      "script": "const body=document.body.innerText;const sm=body.match(/发现疑似侵权\\s*(\\d+)\\s*例/);const suspect=sm?+sm[1]:undefined;const hdr=[...document.querySelectorAll('th,div,span')].find(e=>{const own=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim();return own==='侵权日期';});let tbl=null;if(hdr){let p=hdr.parentElement;for(let i=0;i<15&&p;i++){if(p.querySelector('tbody')){tbl=p;break;}p=p.parentElement;}}const withDate=tbl?[...tbl.querySelectorAll('tbody tr')].filter(r=>/\\d{4}-\\d{2}-\\d{2}/.test(r.innerText||'')):[];const listCount=withDate.length;const allPm=[...body.matchAll(/共\\s*(\\d+)\\s*条/g)];const pageTotal=allPm.length?+allPm[allPm.length-1][1]:undefined;const issues=[];if(pageTotal!==undefined&&listCount!==pageTotal)issues.push('分页共('+pageTotal+')条≠当前页行数('+listCount+')');return{pass:issues.length===0,message:issues.length===0?'UI数据加载一致: 列表行='+listCount+' 分页共='+pageTotal+'条 (概览: 发现疑似侵权='+suspect+'例)':'不一致: '+issues.join('; '),suspect,pageTotal,listCount};",
+      "description": "【数值一致性】校验侵权巡检弹层『发现疑似侵权N例』与巡检列表有效行数一致（已排除「暂未构成侵权」行），且与分页『共X条』对得上"
+    }
+  ],
+  "capture": {
+    "enabled": true,
+    "filter": "yc.inspection|inspection|tort",
+    "captureBody": true
+  },
+  "post_asserts": null,
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 80,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "9223 淘宝登录态有效；申请编号 200000761（商品ID 1062265240422，专利保护中，拼多多/淘宝 2 平台）有第三方巡检疑似侵权数据（弹层显示发现疑似侵权 3 例，巡检列表共 2 条有效行，另有暂未构成侵权行被排除）。",
+    "riskPoints": [
+      "侵权巡检弹层入口为行内「发起维权」链接（非「查看详情」=专利详情，非「查看维权详情」=维权记录弹层）",
+      "fill 用 selectorIndex=2 定位「申请编号」输入框（顺序：商品名/商品ID/申请编号/专利号）",
+      "200000885 已失效无发起维权入口，必须用 200000761（保护中）",
+      "数值一致性校验已排除「暂未构成侵权」状态的列表行",
+      "弹层底部「返 回」为 TBD 双字按钮（含特殊空格字符），pageContains 可匹配"
+    ],
+    "erratum": "商家端侵权巡检弹层入口为行内「发起维权」(startProtectionButton)；「查看详情」(viewDetailLink)打开专利详情抽屉，「查看维权详情」打开维权记录弹层，三者互不相同"
+  }
+}

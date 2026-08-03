@@ -1,0 +1,15 @@
+{
+  "id": "contract_settlement_calc",
+  "category": "contracts",
+  "title": "结算金额计算契约",
+  "content": "{\"service_fee_test\": 10, \"service_fee_prod\": 50000, \"gov_fee\": 165, \"subsidy_first\": 302, \"subsidy_non_first\": 202, \"subsidy_first_test\": 6, \"subsidy_non_first_test\": 4, \"takedown_threshold_full\": 0.7, \"takedown_threshold_partial\": 0.3, \"formula\": {\"takedown_ge_70_first\": \"service_fee * 1.0 + subsidy\", \"takedown_ge_70_non_first\": \"service_fee * 1.0\", \"takedown_30_70_first\": \"service_fee * takedown_rate + subsidy\", \"takedown_30_70_non_first\": \"service_fee * takedown_rate\", \"takedown_lt_30_first\": \"subsidy_only (33 test)\", \"takedown_lt_30_non_first\": \"service_fee - subsidy - gov_fee (133 test)\"}, \"refund_formula\": \"remaining_count * 500\", \"precision_tolerance\": 0.01}",
+  "tags": [
+    "结算",
+    "契约",
+    "P0"
+  ],
+  "hit_count": 0,
+  "retrieval_count": 0,
+  "level": 0,
+  "created_at": 1783394362.291935
+}

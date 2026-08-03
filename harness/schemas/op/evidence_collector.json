@@ -1,0 +1,37 @@
+{
+  "name": "op_evidence_collector",
+  "version": "1.0.0",
+  "description": "原创保护证据采集器，支持MINIMAL/STANDARD/AUDIT三级证据采集",
+  "triggers": ["采集证据", "截图存证", "DB快照", "证据归档"],
+  "parameters": {
+    "type": "object",
+    "required": ["case_id", "evidence_level"],
+    "properties": {
+      "case_id": {
+        "type": "string",
+        "pattern": "^OP-TC-\\d{4}$",
+        "description": "测试用例ID"
+      },
+      "evidence_level": {
+        "type": "string",
+        "enum": ["MINIMAL", "STANDARD", "AUDIT"],
+        "description": "证据采集级别"
+      },
+      "include_screenshots": { "type": "boolean", "default": true },
+      "include_db_snapshot": { "type": "boolean", "default": false },
+      "include_api_capture": { "type": "boolean", "default": true }
+    }
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "evidence_trace_id": { "type": "string" },
+      "screenshots": { "type": "array" },
+      "db_snapshots": { "type": "array" },
+      "api_captures": { "type": "array" },
+      "checksum": { "type": "string" }
+    }
+  },
+  "dependencies": ["browser-use", "dms-mcp"],
+  "timeout_ms": 60000
+}

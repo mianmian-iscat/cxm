@@ -1,0 +1,135 @@
+{
+  "id": "normal_f88_merchant_config_edit",
+  "name": "商家管理 - 编辑商家配置 + 批量下载",
+  "description": "在商家管理页面验证编辑商家配置（行内/弹窗）、批量下载触发、表格筛选功能。",
+  "priority": "P1",
+  "category": "functional",
+  "tags": [
+    "merchant",
+    "CRUD",
+    "edit"
+  ],
+  "timeout": 120000,
+  "context": {
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/afdMerchantManagement/shopConfig",
+      "waitUntil": "networkidle",
+      "description": "打开商家信息配置页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待页面加载"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(店铺|商家|配置)/",
+      "description": "验证页面标题"
+    },
+    {
+      "type": "screenshot",
+      "label": "merchant-initial",
+      "description": "截图-初始页面"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const rows = document.querySelectorAll('.ant-table-row, tr[data-row-key]'); return { rowCount: rows.length, columns: Array.from(document.querySelectorAll('.ant-table-thead th')).map(th=>th.textContent.trim()), firstRowBtns: rows.length ? Array.from(rows[0].querySelectorAll('button, a, [class*=btn]')).map(b=>b.textContent.trim()).filter(Boolean) : [] }; })()",
+      "description": "探查表格结构(列名/行数/操作按钮)"
+    },
+    {
+      "type": "capture",
+      "action": "start",
+      "filter": "merchant|shop|config|update|download",
+      "description": "开始网络抓包"
+    },
+    {
+      "type": "clickText",
+      "text": "编辑",
+      "within": ".ant-table",
+      "data-test-target": "edit-btn",
+      "description": "点击第一行编辑按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待编辑弹窗/行内编辑"
+    },
+    {
+      "type": "screenshot",
+      "label": "merchant-edit",
+      "description": "截图-编辑状态"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const m=document.querySelector('.ant-modal,.ant-drawer'); if(m) return {type:'modal', inputs:Array.from(m.querySelectorAll('input,textarea')).map(i=>({placeholder:i.placeholder,value:i.value})), selects:m.querySelectorAll('.ant-select').length, buttons:Array.from(m.querySelectorAll('button')).map(b=>b.textContent.trim())}; const cell=document.querySelector('.ant-table-cell input, .ant-table-cell textarea'); if(cell) return {type:'inline', cellValue:cell.value}; return {type:'unknown'}; })()",
+      "description": "判断编辑形式(弹窗/行内)并探查字段"
+    },
+    {
+      "type": "capture",
+      "selector": ".ant-modal, .ant-drawer, .ant-table-cell",
+      "description": "捕获编辑区域DOM"
+    },
+    {
+      "type": "clickText",
+      "text": "/(取消|关闭)/",
+      "within": ".ant-modal, .ant-drawer",
+      "fallback": {
+        "type": "pressKey",
+        "key": "Escape"
+      },
+      "description": "取消编辑"
+    },
+    {
+      "type": "wait",
+      "ms": 1000,
+      "description": "等待关闭"
+    },
+    {
+      "type": "screenshot",
+      "label": "merchant-after-cancel",
+      "description": "截图-取消后"
+    },
+    {
+      "type": "clickText",
+      "text": "批量下载",
+      "data-test-target": "batch-download-btn",
+      "description": "点击批量下载按钮"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待下载触发"
+    },
+    {
+      "type": "screenshot",
+      "label": "merchant-download",
+      "description": "截图-下载触发后"
+    },
+    {
+      "type": "assert",
+      "target": "page",
+      "contains": "/(下载|导出|生成中|成功|队列|准备)/",
+      "description": "验证下载状态提示"
+    },
+    {
+      "type": "capture",
+      "action": "stop",
+      "description": "停止网络抓包"
+    },
+    {
+      "type": "evaluate",
+      "expression": "document.querySelector('.ant-message,.ant-notification,[class*=message]')?.textContent || 'no message'",
+      "description": "获取下载操作结果"
+    }
+  ],
+  "realDomNotes": "商家管理 /afdMerchantManagement/shopConfig；表格列：店铺信息/合作供应商/参考竞店/负责买手/视觉偏好/搭配偏好/参考视觉图例/操作；编辑可能为弹窗或行内编辑；批量下载可能为异步任务。",
+  "preconditions": "F88预发环境可访问，测试账号已登录，当前身份为F88"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "ui-f88-production-dashboard-stats",
+  "name": "UI：F88 生产看板-整体推送进度与链路生产进度验证",
+  "description": "打开生产看板页，验证整体推送进度区域（总任务数/成功数/失败数/进行中数）和链路生产进度表格（批次/状态/进度条）渲染。",
+  "businessType": "f88_material_production",
+  "scene": "f88-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+    "waitAfterLoad": 3000,
+    "auth": "buc"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/strategy/productionDashboard",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开生产看板页"
+    },
+    { "type": "wait", "ms": 3000, "description": "等待看板数据加载" },
+    { "type": "assert", "target": "page", "contains": "生产看板", "description": "验证看板标题" },
+    { "type": "assert", "target": "page", "contains": "进度", "description": "验证进度统计区域存在" },
+    { "type": "assert", "target": "page", "contains": "链路", "description": "验证链路生产进度表格存在" },
+    { "type": "screenshot", "label": "f88-dashboard-stats", "description": "截图-生产看板统计与表格" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "F88预发已登录（buc）。",
+    "realDomNotes": "tc15_production_dashboard 对应；整体推送进度（4项：总任务数/成功数/失败数/进行中数）；链路生产进度（批次/状态/进度条）。",
+    "riskPoints": ["无生产任务时统计区显示0", "表格数据依赖预发环境实时任务"]
+  }
+}

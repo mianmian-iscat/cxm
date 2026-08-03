@@ -1,0 +1,67 @@
+{
+  "id": "atomic-f88-tmgmt-card-carousel",
+  "name": "UI：模版包管理-卡片预览图翻页验证",
+  "description": "验证模版包卡片预览图支持左右翻页：左箭头/页码/右箭头",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/templateManagement",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开模版包管理"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const detailBtns = Array.from(document.querySelectorAll('button')).filter(b => b.textContent.trim() === '查看详情'); if(detailBtns.length > 2) { detailBtns[2].click(); return 'clicked'; } return 'no btn'; })()",
+      "description": "进入店铺详情"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const leftArrows = document.querySelectorAll('[class*=left],[aria-label*=left]'); const rightArrows = document.querySelectorAll('[class*=right],[aria-label*=right]'); const pageIndicators = Array.from(document.body.innerText.matchAll(/(\\d+)\\s*\\/\\s*(\\d+)/g)).map(m => m[0]); return { hasLeftArrows: leftArrows.length > 0, hasRightArrows: rightArrows.length > 0, pageIndicators: pageIndicators.slice(0,5) }; })()",
+      "description": "验证翻页控件",
+      "storeAs": "carouselInfo"
+    },
+    {
+      "type": "screenshot",
+      "label": "tmgmt-card-carousel",
+      "description": "卡片预览图翻页"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在相关数据",
+    "realDomNotes": "预览图有左右箭头和页码指示(N/M)",
+    "riskPoints": []
+  }
+}

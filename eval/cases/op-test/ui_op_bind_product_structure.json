@@ -1,0 +1,69 @@
+{
+  "id": "ui-op-bind-product-structure",
+  "name": "UI：商家端-专利详情Drawer完整结构验证（搜索→详情→时间轴→下载）",
+  "description": "从商家端搜索保护中专利200000761，打开专利详情Drawer，全量验证：标题/申请编号/查看申请详情入口/5阶段时间轴（初审通过→专利预审完成→专利授权申请成功→下发专利证书→原创保护到期专利转回）/各阶段详情字段（初审人/联系方式/预审号/审核机构/申请号/受理时间）/下载链接（专利授权通知书/专利证书）/PDF查看入口。基于真实页面操作验证，绑定商品入口已从当前UI移除。",
+  "businessType": "original_protection",
+  "scene": "op-test",
+  "priority": "P1",
+  "category": "smoke",
+  "context": {
+    "urlPattern": "pre-fsyc.taobao.com",
+    "url": "https://pre-fsyc.taobao.com/",
+    "waitAfterLoad": 3000,
+    "auth": "taobao"
+  },
+  "steps": [
+    { "type": "navigate", "url": "https://pre-fsyc.taobao.com/", "waitUntil": "networkidle", "description": "打开原创保护商家端首页" },
+    { "type": "wait", "ms": 4000, "description": "等待商家端加载" },
+    { "type": "assert", "target": "page", "contains": "淘天服饰原创保护", "description": "验证商家端已加载" },
+
+    {
+      "type": "fill",
+      "selector": "input[placeholder='请输入']",
+      "selectorIndex": 2,
+      "value": "200000761",
+      "description": "在申请编号搜索框输入保护中专利 200000761"
+    },
+    { "type": "clickText", "text": "搜", "selector": "button", "description": "点击搜索按钮" },
+    { "type": "wait", "ms": 3000, "description": "等待搜索结果" },
+    { "type": "assert", "target": "page", "contains": "200000761", "description": "验证搜索结果含目标编号" },
+
+    { "type": "clickText", "text": "查看详情", "description": "点击查看详情打开专利详情Drawer" },
+    { "type": "wait", "ms": 4000, "description": "等待专利详情Drawer渲染" },
+    { "type": "screenshot", "label": "patent-detail-drawer", "description": "截图-专利详情Drawer" },
+
+    { "type": "assert", "target": "page", "contains": "专利详情", "description": "【标题】验证Drawer标题「专利详情」" },
+    { "type": "assert", "target": "page", "contains": "申请编号：200000761", "description": "【基本信息】验证申请编号" },
+    { "type": "assert", "target": "page", "contains": "查看申请详情", "description": "【入口】验证「查看申请详情」链接存在" },
+
+    { "type": "assert", "target": "page", "contains": "初审通过", "description": "【阶段1】验证初审通过节点" },
+    { "type": "assert", "target": "page", "contains": "初审人：", "description": "【阶段1详情】验证初审人字段" },
+    { "type": "assert", "target": "page", "contains": "联系方式：", "description": "【阶段1详情】验证联系方式字段" },
+
+    { "type": "assert", "target": "page", "contains": "专利预审完成", "description": "【阶段2】验证专利预审完成节点" },
+    { "type": "assert", "target": "page", "contains": "预审号：", "description": "【阶段2详情】验证预审号字段" },
+    { "type": "assert", "target": "page", "contains": "审核机构：", "description": "【阶段2详情】验证审核机构字段" },
+
+    { "type": "assert", "target": "page", "contains": "专利授权申请成功", "description": "【阶段3】验证专利授权申请成功节点" },
+    { "type": "assert", "target": "page", "contains": "申请号：", "description": "【阶段3详情】验证申请号字段" },
+    { "type": "assert", "target": "page", "contains": "受理时间：", "description": "【阶段3详情】验证受理时间字段" },
+
+    { "type": "assert", "target": "page", "contains": "下发专利证书", "description": "【阶段4】验证下发专利证书节点" },
+    { "type": "assert", "target": "page", "contains": "点击查看 PDF", "description": "【下载】验证PDF查看入口" },
+
+    { "type": "assert", "target": "page", "contains": "原创保护到期，专利转回", "description": "【阶段5】验证原创保护到期节点（最终状态）" }
+  ],
+  "screenshot": { "onError": true },
+  "contextOptimization": { "screenshotExternal": true, "maxResponseSizeKb": 100, "outputCompact": true },
+  "_expected": { "status": "pass" },
+  "_testDesign": {
+    "preconditions": "isv测试账号已登录；商家端存在保护中专利200000761。",
+    "realDomNotes": "基于2026-07-07真实页面操作验证：专利详情Drawer含5阶段时间轴（初审通过→专利预审完成→专利授权申请成功→下发专利证书→原创保护到期，专利转回）。「绑定商品」按钮已从当前UI移除（页面DOM全局搜索无任何'绑定'叶节点），原BindProductModal入口不可达。",
+    "riskPoints": [
+      "搜索用selectorIndex=2定位申请编号输入框",
+      "专利详情Drawer通过「查看详情」行内链接打开，非「查看申请详情」（后者在Drawer内部）",
+      "阶段5文案含逗号：「原创保护到期，专利转回」，断言用完整文案匹配",
+      "「点击查看 PDF」在多个阶段重复出现（阶段3/阶段4），断言只需匹配一次"
+    ]
+  }
+}

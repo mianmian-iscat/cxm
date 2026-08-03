@@ -1,0 +1,101 @@
+{
+  "id": "ui-f88-personal-task-filters",
+  "name": "UI：个人任务中心-筛选功能完整性验证",
+  "description": "验证审核状态/素材类型/商家ID/商品ID筛选，搜索/重置按钮，数据一致性",
+  "businessType": "f88_material_audit",
+  "scene": "f88-test",
+  "priority": "P2",
+  "category": "normal_flow",
+  "context": {
+    "urlPattern": "pre-aifashion-xiaoer.alibaba-inc.com",
+    "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+    "waitAfterLoad": 3000,
+    "auth": "buc",
+    "captureFilter": "bzb.api.fsyx_quality_guard"
+  },
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "https://pre-aifashion-xiaoer.alibaba-inc.com/review/personal-task-center",
+      "waitUntil": "networkidle",
+      "screenshot": true,
+      "description": "打开页面"
+    },
+    {
+      "type": "wait",
+      "ms": 3000,
+      "description": "等待加载"
+    },
+    {
+      "type": "evaluate",
+      "expression": "(() => { const selects = Array.from(document.querySelectorAll('.ant-select-selector')).map(s => s.textContent.trim()); const inputs = Array.from(document.querySelectorAll('input')).map(i => ({ placeholder: i.placeholder, value: i.value })); return { selects, inputs: inputs.filter(i => i.placeholder) }; })()",
+      "description": "记录筛选元素",
+      "storeAs": "filters"
+    },
+    {
+      "type": "selectOption",
+      "label": "审核状态",
+      "option": "待审核",
+      "description": "筛选待审核"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-filter-pending",
+      "description": "待审核筛选结果"
+    },
+    {
+      "type": "selectOption",
+      "label": "素材类型",
+      "option": "主图",
+      "description": "筛选主图类型"
+    },
+    {
+      "type": "wait",
+      "ms": 2000,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-filter-main-image",
+      "description": "主图类型筛选结果"
+    },
+    {
+      "type": "clickText",
+      "text": "重置",
+      "description": "重置筛选"
+    },
+    {
+      "type": "wait",
+      "ms": 1500,
+      "description": "等待加载"
+    },
+    {
+      "type": "screenshot",
+      "label": "ptc-filter-reset",
+      "description": "重置后截图"
+    }
+  ],
+  "screenshot": {
+    "onError": true
+  },
+  "contextOptimization": {
+    "screenshotExternal": true,
+    "maxResponseSizeKb": 100,
+    "outputCompact": true
+  },
+  "_expected": {
+    "status": "pass"
+  },
+  "_testDesign": {
+    "preconditions": "F88预发已登录；存在多状态/多类型任务数据。",
+    "realDomNotes": "筛选区：审核状态(Select)/素材类型(Select)/商家ID(Input)/商品ID(Input)/搜索按钮/重置按钮。",
+    "riskPoints": [
+      "素材类型选项需实际确认"
+    ]
+  }
+}
