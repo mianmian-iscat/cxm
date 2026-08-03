@@ -57,7 +57,7 @@ phases:
         agent: data-builder
         gate: gate_data_to_exec
       - id: execution
-        tool: test_executor.run
+        agent: test-executor
       - id: verification
         agent: verifier
     gate: gate_p2_to_p3

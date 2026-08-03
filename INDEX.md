@@ -51,6 +51,7 @@ memory/                  三层记忆架构
 agents/                  子 Agent 定义
 ├── rule-hunter.md       业务规则猎人（只读）
 ├── data-builder.md      数据构造专家（执行）
+├── test-executor.md     UI 执行专家（执行）
 └── verifier.md          交叉验证专家（执行）
 
 harness/
