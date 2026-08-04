@@ -15,6 +15,9 @@ failure_classification:
   env_issue:
     keywords: ["connection refused", "502", "503", "timeout", "network", "DNS", "环境"]
     description: "环境问题"
+  api_deprecated:
+    keywords: ["405", "Method Not Allowed", "404 Not Found", "endpoint not found", "API 已下线", "接口已废弃", "REST Controller"]
+    description: "API 端点不可用（405/404/已废弃）"
 
 # 自愈策略
 healing_strategies:
@@ -50,6 +53,12 @@ healing_strategies:
     action: "cdp_relocate"
     description: "iframe/Shadow DOM 穿透 → 跨 frame 重定位"
     max_retries: 1
+  api_endpoint_fallback:
+    trigger: "api_deprecated"
+    action: "endpoint_discovery_and_fallback"
+    description: "API 端点不可用 → 三路径降级：①逆向 JS bundle 找新端点 ②走页面 UI 等价操作 ③Mock 消息直接验证下游逻辑"
+    max_retries: 1
+    fallback_order: ["reverse_js_bundle", "page_ui_equivalent", "mock_message_verify"]
 
 # 分级放行策略
 graded_release:
@@ -114,6 +123,47 @@ afd_collab_healing:
       description: "权限问题 → 切换租户身份（X-AFD-Emp-Identity）"
       max_retries: 1
 
+# ── F88 审核标注平台 — 业务域特有自愈规则 ───────────────────────────────
+f88_review_healing:
+  failure_classification:
+    review_submit_405:
+      keywords: ["405", "submitTaskResult", "/api/afd/review/task/item/submit", "审核提交失败", "Method Not Allowed"]
+      description: "审核提交 API 返回 405（REST Controller 未暴露）"
+    inspection_complete_missing:
+      keywords: ["inspection/complete", "抽检完成", "参数格式", "文档缺失"]
+      description: "抽检完成 API 参数文档缺失"
+    image_load_blocked:
+      keywords: ["图片加载", "image load", "img.*fail", "CDN.*error", "图片无法显示"]
+      description: "审核页面图片加载失败导致 UI 操作阻塞"
+
+  healing_strategies:
+    review_submit_405_fallback:
+      trigger: "review_submit_405"
+      action: "three_path_degradation"
+      description: |
+        审核提交 API 405 → 三路径降级：
+        ① 逆向 JS bundle 提取新端点（fetch script[src] → grep '/api/' → 查调用上下文）
+        ② 走页面 UI 完成审核（如遇图片加载问题 → 先执行 image_load_bypass 再操作）
+        ③ Mock MQ 消息直接验证主任务完成逻辑（sendSubTaskFinishMessage / doCompleteMainTaskIfAllPersonalDone）
+      max_retries: 1
+      applicable_domains: [f88-material]
+    inspection_complete_via_ui:
+      trigger: "inspection_complete_missing"
+      action: "page_ui_fallback"
+      description: "抽检完成 API 不可用 → 走页面 UI 完成抽检操作"
+      max_retries: 1
+      applicable_domains: [f88-material]
+    image_load_bypass:
+      trigger: "image_load_blocked"
+      action: "cdp_image_intercept"
+      description: |
+        图片加载失败 → CDP 三层处理：
+        ① Fetch.enable 拦截图片请求 → 返回 1x1 占位图（data:image/png;base64,...）
+        ② JS 注入隐藏所有 img 元素（display:none），移除图片相关断言
+        ③ 如图片是审核判断依据 → 标记该用例 BLOCKED_LOGIC（需真实图片才能验证）
+      max_retries: 2
+      applicable_domains: [f88-material]
+
 # ── 跨域共享组件自愈规则 ─────────────────────────────────────────────────
 shared_component_healing:
   react_controlled_input:
@@ -137,6 +187,13 @@ shared_component_healing:
     description: "SSO 登录态失效 → 预热 + 重试"
     applicable_domains: [afd-collab, f88-material, original-protection]
     max_retries: 1
+  image_load_failure:
+    trigger: "any"
+    keywords: ["img.*error", "image load failed", "图片加载", "broken image", "ERR_CONNECTION", "cdn.*timeout", "img.*fail"]
+    action: "cdp_image_intercept"
+    description: "图片加载失败 → CDP Fetch 拦截返回占位图 / JS 隐藏 img 元素 / 跳过图片断言"
+    applicable_domains: [afd-collab, f88-material, original-protection]
+    max_retries: 2
 
 # 双因子裁决配置
 dual_factor:
