@@ -21,6 +21,26 @@ data_prep 通过（gate_data_to_exec）
   → 移交 verifier
 ```
 
+## API 端点不可用自愈（405/404）
+
+当用例依赖的 API 返回 405 Method Not Allowed 或 404 Not Found 时，按以下三路径降级（对应 `self_healing_rules.yaml` → `api_endpoint_fallback`）：
+
+1. **逆向 JS bundle 找新端点**：从页面 `<script[src]>` 取 JS bundle URL → fetch 全文 → 正则 `grep '/api/'` 提取端点清单 → 查调用上下文取参数结构 → 尝试新端点
+2. **走页面 UI 等价操作**：API 不通时，通过浏览器自动化完成等价的页面操作。如遇图片加载问题 → 先执行下方「图片加载失败自愈」再操作 UI
+3. **Mock 消息验证下游逻辑**：当 UI 和 API 都不可用时，通过 Mock MQ 消息（`sendSubTaskFinishMessage` / `doCompleteMainTaskIfAllPersonalDone`）直接验证主任务完成逻辑，绕过前端提交环节
+
+**判定规则**：路径①成功 → 更新用例使用新端点；路径②成功 → 标记用例为 UI 执行；路径③成功 → 标记用例为 Mock 验证，报告中注明"API 不可用，通过 Mock 消息验证下游逻辑"。三条路径全失败 → BLOCKED_LOGIC。
+
+## 图片加载失败自愈
+
+当审核页面图片无法加载（CDN 超时、broken image、ERR_CONNECTION）导致 UI 操作阻塞时（对应 `self_healing_rules.yaml` → `image_load_failure` / `image_load_bypass`）：
+
+1. **CDP Fetch 拦截替换**：`Fetch.enable` → 拦截图片请求 → 返回 1x1 占位图（`data:image/png;base64,iVBOR...`），让页面正常渲染
+2. **JS 隐藏图片元素**：注入 `document.querySelectorAll('img').forEach(i => i.style.display='none')`，移除图片相关断言，保障流程按钮可点击
+3. **图片为审核依据时**：如果用例的核心验证点就是"图片内容是否正确"（如审核判断图片是否合规），则标记 `BLOCKED_LOGIC`——真实图片不可用时无法验证审核逻辑
+
+**注意**：路径①②仅适用于"图片是页面装饰/辅助信息"的场景。如果图片本身就是测试对象（如 gen_video 产出校验），则不能绕过，必须走 `f88-ffmpeg` skill 做 ffprobe 校验。
+
 ## 执行层选型
 
 | 场景 | 执行方式 | 说明 |
@@ -77,6 +97,17 @@ data_prep 通过（gate_data_to_exec）
 ## 约束
 
 - **不做数据构造**（那是 data-builder 的职责）；执行前确认 exec-log 数据段存在、gate_data_to_exec 已通过
+- **数据构造降级路由**：当 data-builder 失败且 exec-log 数据段不存在时，test-executor 可按以下路由表直接调用造数 Skill 自救，不必等待人工介入。（本表为 data-builder 完整路由表的紧急降级子集，覆盖最高频的 5 类数据；完整路由表见 data-builder.md）
+
+  | 缺失数据类型 | 调用 Skill | 备注 |
+  |-------------|-----------|------|
+  | 审核任务（首图/套图/视频） | `审核数据构造`（方式一：手动创建API+固定Excel模板） | 首选，dataFileUrl有值、UI正常显示图片。固定模板：`f88素材生产/审核专用模板.xlsx` |
+  | 审核任务（workflow管线验证） | `f88-strategy-test-run`（策略试运行） | 仅验证workflow管线时使用。⚠️ dataFileUrl=null，UI灰色无图 |
+  | 审核任务终态推进 | `审核数据构造` 终态推进章节 | claim → submit → complete 流程 |
+  | 模板包 | `f88-template-package-create` | 浏览器自动化在 pre-aifashion-xiaoer 创建 |
+  | 原创保护快审/初审 | `yc-quick-audit-data-create` | 商家端 MTOP API |
+  | 原创保护状态/时间修改 | `yc-data-factory` | HSF Tool + MetaQ 模拟 |
+
 - **不做 DB/SLS 交叉验证**（那是 verifier 的职责）；只负责 UI 层执行与证据
 - **禁止删除历史存量数据**（L0-01）；测试数据必须全新构造并带 `[TEST]` 前缀
 - **租户头**：F88/AFD 操作必须携带 `X-AFD-Emp-Identity`，操作前确认租户归属（L0-04）
