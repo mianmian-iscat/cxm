@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "description": "自愈规则回归防护配置 — 防止知识沉淀引入错误复利",
+  "regression_pool": {
+    "source": "~/.att-tf/cases/",
+    "lookback_sessions": 10,
+    "min_pass_count": 15,
+    "status_filter": [1],
+    "priority_weights": {"P0": 1.0, "P1": 0.8, "P2": 0.5, "P3": 0.2}
+  },
+  "guard_rules": {
+    "max_regression_rate": 0.0,
+    "min_coverage_retention": 0.95,
+    "auto_rollback_on_block": true
+  },
+  "snapshot_path": "~/.qoderwork/qa-self-healing/regression-snapshots/"
+}

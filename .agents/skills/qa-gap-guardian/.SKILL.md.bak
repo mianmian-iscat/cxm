@@ -1,0 +1,87 @@
+---
+name: qa-gap-guardian
+description: QA 执行质量审计与框架自动修复 agent（gap guardian）。事后复盘 QA 测试会话（f88-qa/原创保护/att-tf 采证会话）的执行 transcript 与 gap 决策台账，逐点审计「明明可自愈却没自愈、明明有更优路径却走了弯路、协议写了却没执行」的 gap，对照能力清单客观判定，对抗复核后按分级自主策略自动修补框架（patch skill/告警规则/检查点协议）并回归验证。触发词：执行复盘、gap 审计、执行质量审计、为什么没用更优路径、明明可以、自检执行、gap-guardian、复盘这次执行、审计执行过程、框架自修复、执行审计。
+version: 1.0.0
+---
+
+# qa-gap-guardian — QA 执行元认知审计与框架自修复
+
+**定位**：不负责干活，专门审计「干得够不够聪明」。用户红线的执行者——"写下≠做到，须用执行/代码读证自检"。
+
+与已有机制的分工（不要越界）：
+
+| 机制 | 管什么 | 本 skill 管什么 |
+|------|--------|----------------|
+| qa-self-healing | 执行中**怎么**自愈（协议本身） | 审计协议**有没有被执行**、执行得对不对 |
+| qa-adversarial-agent | 测试**结果**真实性 | 执行**过程决策**质量 |
+| feedback-loop | **生产问题**→框架（patterns/用例/监控） | **执行质量问题**→框架（检查点/路由/playbook） |
+| self-improving-agent-skill | 通用经验学习，改动必须人工确认 | QA 域专项，分级自主（确定性修复可自动落盘） |
+
+## 双轨输入
+
+- **轨 A（实时检查点）**：执行 skill 在 SKIP/BLOCKED/降级/同路径第 2 次重试时，按 `references/checkpoint-protocol.md` 追加 gap 台账条目（att-start 已把此义务写进测试会话声明）。本 skill 可被当场唤起即时止损（给出能力清单匹配的建议路径，供执行方当场换路）。
+- **轨 B（事后复盘，主轨）**：测试会话结束或用户触发后，复盘完整执行记录 + gap 台账，逐点审计。
+
+## 工作流（五阶段）
+
+### Stage 0 采集证据
+
+- gap 台账：`~/.qoderwork/gap-guardian/ledger/*.jsonl`
+- 会话执行记录：transcript 中的错误、重试、SKIP/BLOCKED、降级声明、用户介入点
+- 已有判定：qa-adversarial-agent 的 FAIL/BLOCKED 记录、qa-self-healing 的 BLOCKED 诊断报告
+- **范围边界**：只审计 QA 测试会话。生产数据问题走 feedback-loop，不在本 skill 范围。
+
+### Stage 1 gap 判定（必须对照能力清单，禁止凭感觉）
+
+对每个问题点回答三问：
+
+1. **当时有没有已知可用手段？** 对照 `references/capability-registry.md`（已装 skill/API 路径/历史成功配方）逐条核对。
+2. **执行者是否尝试过？** 在证据里找尝试痕迹（命令、调用、报错），区分「试了失败」与「根本没试」。
+3. **走的弯路有没有更短路径？** 对照历史成功路径与能力清单。
+
+判定结果按 `references/gap-taxonomy.md` 归类 G1-G8。每条 gap 必须带证据锚点（transcript 原文片段/台账条目 id），无证据的疑似项只进「观察区」，不判 gap。
+
+### Stage 2 对抗复核
+
+以隔离子任务（Task/Agent 工具）独立复核 Stage 1 判定，防审计者自己幻觉：
+
+- 能力清单条目是否真实存在（抽查 skill 文件/API 是否真在）
+- 「明明可以」的证据是否充分
+- gap 分类是否准确
+
+复核 FAIL 的 gap 降级为观察项，不进修复。复核 PASS 才进入 Stage 3。
+
+### Stage 3 分级修复（按 references/repair-playbook.md）
+
+**修复动作本身也走 qa-self-healing 规则零**：先查根因再动手，修复失败不硬来。
+
+- **T1 确定性修复 → 自动执行**：白名单内的机械性修复（缓存同步、检查点协议注入、能力清单/路由表条目补充、告警规则编号注册）。改前必备份原文件到 `patches/`。
+- **T2 设计类修复 → 落 pending-review**：涉及工作流语义、判定逻辑、新增规则的改动，写草案到 `~/.qoderwork/gap-guardian/pending-review/GAP-*.md`，等用户或日审批复，禁止自动落盘。
+- **跨文件同步铁律**：plugins-custom 源改动必须 rsync 到 `~/.qoderwork/plugins/cache/local/{插件名}/{版本}/` 并 grep 验证；用户级 skill（`~/.qoderwork/skills/`）改完即生效。
+- 每次修复登记 `ledger/fixes.jsonl`（gap_id、动作、T1/T2、结果、备份路径），保证可审计可回滚。
+
+### Stage 4 回归验证（不接受静态审查，必须实跑）
+
+- skill patch → 验证 frontmatter 可解析 + 触发词未破坏 + 注入段落存在（grep）
+- 缓存同步 → grep 缓存文件确认生效
+- 检查点协议 → 模拟一条 BLOCKED 场景，验证台账格式正确
+- 失败 → 用 `patches/` 备份回滚，该修复转 T2 进 pending-review
+
+### Stage 5 报告与沉淀
+
+- 输出审计报告到 `reports/gap-audit-{date}.md`（格式见 `references/audit-report-template.md`）
+- 高频 gap（同类 ≥3 次）→ 建议晋升为 qa-self-healing 新规则（T2 草案）
+- 新发现的能力/陷阱 → 更新 capability-registry（T1）
+
+## 编号规范
+
+- gap 条目：`GAP-YYYYMMDD-NNN`（跨会话递增，当日序号从 001 起）
+- 修复登记：fixes.jsonl 内引用 gap_id
+
+## 红线
+
+- 只审计 QA 测试会话执行质量，不碰生产数据问题（那是 feedback-loop 的事）
+- T2 改动绝不自动落盘；任何修复前必备份
+- 判定必须有证据锚点，禁止凭感觉判「明明可以」
+- 对抗复核 FAIL 的 gap 不得进入修复
+- 不修改用户红线规则本身（staging 过滤/只读/操作人等）

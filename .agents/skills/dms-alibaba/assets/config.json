@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "default_group": null,
+  "api": {
+    "env_key_id": "DMS_ALIBABA_ACCESS_KEY_ID",
+    "env_key_secret": "DMS_ALIBABA_ACCESS_KEY_SECRET",
+    "current_region": "cn",
+    "current_env": "prod",
+    "timeout_sec": 60
+  },
+  "sync": {
+    "table_detail_workers": 5
+  }
+}

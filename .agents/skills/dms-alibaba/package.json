@@ -1,0 +1,1 @@
+{"name":"dms-alibaba","version":"0.4.0","description":"基于文件系统的数据库管理 CLI 工具，用于管理数据库组、执行 SQL、数据字典同步、提交工单等。","publishConfig":{"registry":"https://contextlab.alibaba-inc.com/skill"}}

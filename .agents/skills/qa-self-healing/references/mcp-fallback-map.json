@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "description": "MCP 工具降级映射表 — 当 MCP 工具不可用时，查此表找替代路径",
+    "updated": "2026-08-18",
+    "source": "MCP 实战指南课程改造落地",
+    "protocol": "L1 重试同路径 → L2 同能力替代 → L3 功能降级(BLOCKED_MCP + IM 私聊用户)"
+  },
+  "dms-mcp-server::executeScript": {
+    "level2_primary": "dms-alibaba CLI: dms-alibaba sql run <group_name> --db <db_name> --sql 'SELECT ...'",
+    "level2_alt": "db-query-tool::query_mysql (仅本地 MySQL，非阿里内网数据库)",
+    "note": "cron 隔离子任务中 MCP 不可用，直接走 L2，不做 L1 重试",
+    "db_routing": {
+      "f88_* 表": "scenario 库 dbId=975919 实例 rm-8vb6631b89ix0qkwl",
+      "g_afd_*/g_workflow_* 表": "stylespot 库 dbId=5335708 实例 rm-lgay0v5lor8396yka"
+    }
+  },
+  "dms-mcp-server::searchDatabase": {
+    "level2": "dms-alibaba CLI: dms-alibaba group search-db --keyword '...'",
+    "note": "通常与 executeScript 链式调用，一起降级"
+  },
+  "dms-mcp-server::listTables": {
+    "level2": "dms-alibaba CLI: dms-alibaba group info <group_name> (列出组内数据库及表)",
+    "note": "获取表名列表，通常后续接 executeScript"
+  },
+  "dms-mcp-server::getTableDetailInfo": {
+    "level2_primary": "dms-alibaba CLI: dms-alibaba sync <group_name> --db <db_name> --table <table_name> (同步表结构到本地 ~/dms-alibaba/db-groups/ 后查看)",
+    "level2_alt": "dms-alibaba sql run <group_name> --db <db_name> --sql 'DESCRIBE <table_name>' (快速查看表字段名和类型)",
+    "note": "sync 方式产出完整结构文件可反复查看；DESCRIBE 方式更快捷但无持久化"
+  },
+  "dms-mcp-server::createDataChangeOrder": {
+    "level3_only": "写操作工具，无 CLI 替代路径。仅用户显式要求时使用",
+    "note": "测试流程中禁止自动创建数据变更工单"
+  },
+  "tinyfish::run_web_automation": {
+    "level2_primary": "builtin_browser::computer + read_page + form_input + navigate",
+    "level2_alt": "tinyfish::run_web_automation_async (异步版本，可能绕过某些超时问题)",
+    "level3": "WebFetch (仅公开页面，无需登录态)",
+    "note": "TinyFish 超时常见(MCP error -32001)，优先检查是否可用 builtin_browser 替代"
+  },
+  "tinyfish::search": {
+    "level2": "WebFetch + WebSearch (公开网页搜索)",
+    "level3": "builtin_browser 导航到搜索引擎手动操作",
+    "note": "tinyfish::search 是最稳定的搜索路径，降级到 WebSearch 会丢失内网搜索能力"
+  },
+  "tinyfish::fetch_content": {
+    "level2": "WebFetch (公开页面)",
+    "level2_alt": "builtin_browser::navigate + get_page_text (需登录态页面)",
+    "note": "内网页面(需SSO)必须用 builtin_browser 路径"
+  },
+  "figma::get_figma_data": {
+    "level2": "figma-custom::get_figma_data (互为备份，功能完全相同)",
+    "level3": "用户提供 Figma 截图 + 手动描述布局",
+    "note": "两个 Figma Server 提供完全相同的工具，互为热备份"
+  },
+  "figma::download_figma_images": {
+    "level2": "figma-custom::download_figma_images",
+    "note": "同上"
+  },
+  "agent-sandbox::sandbox_run_code": {
+    "level2": "本地 Bash 直接执行 (注意安全风险)",
+    "level3": "用户提供执行环境",
+    "note": "沙箱隔离失败时降级到本地执行需评估安全性"
+  },
+  "agent-sandbox::sandbox_run_command": {
+    "level2": "本地 Bash 直接执行",
+    "note": "同上"
+  }
+}

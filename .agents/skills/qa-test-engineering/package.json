@@ -1,0 +1,11 @@
+{
+  "name": "qa-test-engineering",
+  "version": "0.2.0",
+  "description": "全生命周期质量保证（QA）测试工程技能。该技能包括分析需求以提取测试点、制定测试计划和编写测试用例、执行自动化回归测试（涵盖接口、界面及单元测试），以及通过根本原因分析调查生产环境问题。无论用户是否明确提及“QA”，只要其涉及测试规划、测试策略、测试用例生成、基于需求的测试、接口测试、回归测试、生产调试、事件分析或质量保证工作流程，请随时运用此技能。",
+  "publishConfig": {
+    "registry": "https://contextlab.alibaba-inc.com/skill"
+  },
+  "aoneKit": {
+    "generated": true
+  }
+}

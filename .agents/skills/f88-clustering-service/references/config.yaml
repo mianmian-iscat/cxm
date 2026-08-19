@@ -1,0 +1,39 @@
+# F88 失败聚类定时服务配置
+# Devix 部署时按需修改环境变量或直接编辑此文件
+
+# ── DMS 数据源 ──────────────────────────────
+dms:
+  group: stylespot                        # dms-alibaba 组名
+  db_id: "5335708"  # 权威来源：F88测试知识库/references/shared/db-connections.md
+  env: staging                            # 只查预发数据（红线）
+  query_hours: 8                          # 每次查询回溯小时数
+  max_rows: 2000                          # 单次最大采样行数
+  id_floor: 4000000                       # workflow_record_log id 下限（防超时）
+
+# ── 聚类参数 ────────────────────────────────
+clustering:
+  top_k: 5                                # 顶层簇数（运维分类）
+  sub_min_size: 10                        # 子聚类最小样本量
+  tfidf_max_features: 500                 # TF-IDF 最大特征维度
+  sub_k_range: [2, 5]                     # 子聚类 k 搜索范围
+
+# ── 调度 ────────────────────────────────────
+schedule:
+  hours: [9, 14, 19]                      # 每日执行时间（UTC+8）
+  timezone: Asia/Shanghai
+
+# ── 输出 ────────────────────────────────────
+output:
+  dir: ./reports                          # HTML 报告存储目录
+  keep_days: 30                           # 报告保留天数
+
+# ── 钉钉通知 ─────────────────────────────────
+dingtalk:
+  webhook: "${DINGTALK_WEBHOOK}"          # 部署时注入环境变量
+  secret: "${DINGTALK_SECRET}"            # 可选：加签密钥
+  enabled: true
+
+# ── 服务 ────────────────────────────────────
+server:
+  port: 5100
+  host: 0.0.0.0

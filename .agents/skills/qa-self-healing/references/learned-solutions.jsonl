@@ -1,0 +1,5 @@
+{"pattern": "workflow_record_log 查不到记录", "solution": "检查 g_workflow_batch 的 inputInfo 是否满足 required 字段，不满足时不会创建 instance 和 workflow_record_log", "source": "f88-failure-analysis WF-03", "confidence": 0.95, "times_used": 0, "created": "2026-08-12"}
+{"pattern": "审核任务全部 INIT", "solution": "检查 Diamond 配置 supplier.seller.template.pkg.config 是否正确，模板包是否关联了有效策略", "source": "f88-pipeline-monitor R012", "confidence": 0.88, "times_used": 0, "created": "2026-08-12"}
+{"pattern": "批次卡在 PROCESSING 但无 workflow 记录", "solution": "优先检查输入参数必填字段是否为空（空字符串不校验但 workflow 不推进），其次检查 seller_id 是否有有效合约", "source": "qa-self-healing 已验证场景1 (BT_7350)", "confidence": 0.92, "times_used": 0, "created": "2026-08-12"}
+{"pattern": "gen_img 节点图片列表为空", "solution": "上游算法生图超时或商品特征不适合，属于 BLOCKED_DEP，检查同批次其他商品是否正常", "source": "qa-self-healing 已验证场景2 (BT_7062)", "confidence": 0.85, "times_used": 0, "created": "2026-08-12"}
+{"pattern": "CDP 端口 9222 被占用", "solution": "9222 是用户 Chrome，agent 禁用。探测 9223-9230，已有则复用，未启动则用 9223 启动", "source": "MEMORY.md Chrome CDP 端口管理", "confidence": 0.98, "times_used": 0, "created": "2026-08-12"}

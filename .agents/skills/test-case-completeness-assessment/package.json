@@ -1,0 +1,1 @@
+{"name":"test-case-completeness-assessment","version":"0.1.0","description":"根据需求文档（PRD、系分文档、技术方案等）对测试用例进行完整性评估，生成HTML格式的评估报告。支持需求文档来源为钉钉文档链接或本地.md文件路径。适用于测试用例评审、测试覆盖度检查、以及测试质量评估场景。当用户提到\"测试用例评估\"、\"用例完整性检查\"、\"测试覆盖度分析\"、\"PRD对比测试用例\"时自动触发。","publishConfig":{"registry":"https://contextlab.alibaba-inc.com/skill"}}

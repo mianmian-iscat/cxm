@@ -1,0 +1,11 @@
+{
+  "name": "strategy-platform",
+  "version": "2.3.3",
+  "description": "监控和管理 i-FASHION 策略平台的生产批次，执行进度查询、失败排查、节点重试、LLM 资源监控等运维操作。只要用户提到批次（BT_xxxx）、环节（设计改款/视觉生图/视觉审核/算法过滤/套图生产/选款推送）、跑批、链路、个性化生产、生图任务、Gemini 进度、任务卡住、失败重试、审核推送，或询问\"跑到哪了\"\"为什么慢\"\"失败原因\"\"套图怎么样了\"等，都应立即使用此 skill，不要等用户明确说\"查批次\"才触发。",
+  "publishConfig": {
+    "registry": "https://contextlab.alibaba-inc.com/skill"
+  },
+  "aoneKit": {
+    "generated": true
+  }
+}

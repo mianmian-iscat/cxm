@@ -1,0 +1,1 @@
+{"name":"yc-defect-diagnosis","version":"0.1.0","description":"Diagnose and root-cause defects on the Original Protection (淘天服饰原创保护) platform via DB analysis, MetaQ message tracing, ScheduleX job inspection, and code reading","publishConfig":{"registry":"https://contextlab.alibaba-inc.com/skill"}}
