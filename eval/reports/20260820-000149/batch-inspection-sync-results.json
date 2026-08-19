@@ -1,0 +1,134 @@
+{
+  "domain": "inspection-sync",
+  "subdir_filter": null,
+  "total": 15,
+  "pass": 0,
+  "fail": 0,
+  "error": 15,
+  "timeout": 0,
+  "pass_rate": 0.0,
+  "total_elapsed": 1.5,
+  "timestamp": "2026-08-20T00:01:49.241442",
+  "results": [
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/BLK-SYNC-01.json",
+      "name": "BLK-SYNC-01"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/BLK-SYNC-02.json",
+      "name": "BLK-SYNC-02"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/BLK-SYNC-03.json",
+      "name": "BLK-SYNC-03"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/BND-01.json",
+      "name": "BND-01"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/BND-02.json",
+      "name": "BND-02"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/CAP-01.json",
+      "name": "CAP-01"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/CAP-03.json",
+      "name": "CAP-03"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/IND-01.json",
+      "name": "IND-01"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/IND-02.json",
+      "name": "IND-02"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/PREP-01-create-block-task.json",
+      "name": "PREP-01-create-block-task"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/QTA-01.json",
+      "name": "QTA-01"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/STM-SYNC-01.json",
+      "name": "STM-SYNC-01"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/STM-SYNC-02.json",
+      "name": "STM-SYNC-02"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/STM-SYNC-03.json",
+      "name": "STM-SYNC-03"
+    },
+    {
+      "status": "error",
+      "elapsed": 0.1,
+      "steps": "",
+      "returncode": 1,
+      "file": "inspection-sync/STM-SYNC-04.json",
+      "name": "STM-SYNC-04"
+    }
+  ]
+}
